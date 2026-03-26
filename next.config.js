@@ -42,7 +42,7 @@ const nextConfig = {
                             "img-src 'self' data: blob: https:",
                             "media-src 'self' blob:",
                             // ws/wss needed for Next.js HMR in dev; include all known external API origins
-                            "connect-src 'self' ws: wss: https://*.supabase.co https://generativelanguage.googleapis.com https://api.elevenlabs.io https://api.amadeus.com https://maps.googleapis.com https://maps.gstatic.com https://api.mapbox.com https://api.resend.com https://places.googleapis.com https://tpu.googleapis.com",
+                            "connect-src 'self' ws: wss: https://*.supabase.co https://generativelanguage.googleapis.com https://api.elevenlabs.io https://api.amadeus.com https://maps.googleapis.com https://maps.gstatic.com https://api.mapbox.com https://api.resend.com https://places.googleapis.com https://tpu.googleapis.com https://va.vercel-scripts.com",
                             "frame-ancestors 'none'",
                         ].join('; '),
                     },
