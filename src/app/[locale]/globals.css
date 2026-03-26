@@ -1,0 +1,154 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* ═══════════════════════════════════════════════════════════
+       BRAND PRIMARY: #0da2e7  →  HSL(199, 89%, 47%)
+       Vibrant sky-blue — the core identity color of iWillTravel
+    ═══════════════════════════════════════════════════════════ */
+
+    --background: 0 0% 100%;
+    --foreground: 215 28% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 215 28% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 28% 12%;
+
+    /* #0da2e7 */
+    --primary: 199 89% 47%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 199 40% 94%;
+    --secondary-foreground: 199 89% 30%;
+
+    --muted: 210 30% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    --accent: 199 60% 92%;
+    --accent-foreground: 199 89% 28%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 214 24% 90%;
+    --input: 214 24% 90%;
+    --ring: 199 89% 47%;
+
+    --radius: 0.5rem;
+
+    /* ── Travel Accent Colors ─────────────────────────────────────
+       Built to harmonize with #0da2e7 (hue 199°)
+    ──────────────────────────────────────────────────────────── */
+
+    /* Tropical — analogous teal-green (hue 172°) */
+    --tropical: 172 72% 40%;
+    --tropical-foreground: 0 0% 100%;
+
+    /* Sunset — warm split-complementary orange (hue 22°) */
+    --sunset: 22 95% 54%;
+    --sunset-foreground: 0 0% 100%;
+
+    /* Ocean — deeper version of brand blue (hue 205°) */
+    --ocean: 205 85% 42%;
+    --ocean-foreground: 0 0% 100%;
+
+    /* Mountain — rich emerald green (hue 155°) */
+    --mountain: 155 72% 38%;
+    --mountain-foreground: 0 0% 100%;
+
+    /* Desert — warm golden sand (hue 40°) */
+    --desert: 40 95% 52%;
+    --desert-foreground: 215 28% 12%;
+
+    /* Sky — exact alias for brand #0da2e7 */
+    --sky: 199 89% 47%;
+    --sky-foreground: 0 0% 100%;
+
+    /* Coral — warm split-complementary accent (hue 8°) */
+    --coral: 8 88% 62%;
+    --coral-foreground: 0 0% 100%;
+
+    /* ── Destination Card Stat Colors ─────────────────────────── */
+    --stat-cost: 40 95% 48%;
+    /* gold   — budget/cost     */
+    --stat-safety: 142 68% 42%;
+    /* green  — safety score    */
+    --stat-temp: 18 88% 56%;
+    /* orange — temperature     */
+    --stat-internet: 199 89% 47%;
+    /* #0da2e7 — wifi/internet  */
+  }
+
+  .dark {
+    --background: 215 40% 9%;
+    --foreground: 210 40% 96%;
+
+    --card: 215 36% 12%;
+    --card-foreground: 210 40% 96%;
+
+    --popover: 215 36% 12%;
+    --popover-foreground: 210 40% 96%;
+
+    /* Slightly brighter in dark mode for contrast */
+    --primary: 199 89% 52%;
+    --primary-foreground: 215 40% 9%;
+
+    --secondary: 215 30% 18%;
+    --secondary-foreground: 210 40% 96%;
+
+    --muted: 215 28% 16%;
+    --muted-foreground: 215 18% 58%;
+
+    --accent: 199 40% 18%;
+    --accent-foreground: 199 89% 72%;
+
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 210 40% 96%;
+
+    --border: 215 28% 20%;
+    --input: 215 28% 20%;
+    --ring: 199 89% 52%;
+
+    /* ── Travel Accents (Dark Mode) ─────────────────────────── */
+    --tropical: 172 65% 48%;
+    --tropical-foreground: 0 0% 100%;
+
+    --sunset: 22 90% 58%;
+    --sunset-foreground: 0 0% 100%;
+
+    --ocean: 205 80% 52%;
+    --ocean-foreground: 0 0% 100%;
+
+    --mountain: 155 68% 46%;
+    --mountain-foreground: 0 0% 100%;
+
+    --desert: 40 90% 56%;
+    --desert-foreground: 215 40% 9%;
+
+    --sky: 199 89% 52%;
+    --sky-foreground: 0 0% 100%;
+
+    --coral: 8 84% 66%;
+    --coral-foreground: 0 0% 100%;
+
+    /* ── Stat Colors (Dark Mode) ─────────────────────────────── */
+    --stat-cost: 40 90% 54%;
+    --stat-safety: 142 62% 48%;
+    --stat-temp: 18 84% 60%;
+    --stat-internet: 199 89% 52%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}

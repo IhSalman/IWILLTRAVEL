@@ -1,0 +1,62 @@
+{
+    "LanguageSwitcher": {
+        "switchLanguage": "Switch language"
+    },
+    "Navbar": {
+        "links": {
+            "discover": "Discover",
+            "community": "Community",
+            "visaHub": "Visa Hub",
+            "translate": "Translate",
+            "planTrip": "Plan Trip",
+            "travelResearch": "Travel Research",
+            "blogs": "Travel Blog"
+        },
+        "dashboard": "Dashboard",
+        "signOut": "Sign Out",
+        "logIn": "Log In",
+        "signUp": "Sign Up"
+    },
+    "Metadata": {
+        "title": "iWillTravel - AI Powered Travel Discovery",
+        "description": "Find the perfect destination based on cost, safety, weather, and your travel style."
+    },
+    "HomePage": {
+        "title": "Design Your <span className=\"bg-clip-text text-transparent bg-gradient-to-r from-primary via-blue-400 to-sky-600\">Perfect Trip</span> with AI",
+        "description": "From intelligent itinerary generation to real-time visa requirements and language translation. Plan smarter, travel further.",
+        "badge": "The Future of Travel",
+        "ctaPrimary": "Generate AI Itinerary",
+        "ctaSecondary": "Explore Destinations",
+        "features": {
+            "itineraries": {
+                "title": "AI Itineraries",
+                "description": "Generate comprehensive day-by-day travel plans instantly."
+            },
+            "visa": {
+                "title": "Visa Intelligence",
+                "description": "Check requirements and get AI-simplified document checklists."
+            },
+            "community": {
+                "title": "Global Community",
+                "description": "Share tips, itineraries, and experiences with travelers."
+            }
+        },
+        "howItWorks": {
+            "title": "How iWillTravel Works",
+            "description": "Three simple steps to your next adventure.",
+            "step1": {
+                "title": "Select Destination",
+                "description": "Choose your dream location or let AI suggest a spot based on your vibe."
+            },
+            "step2": {
+                "title": "Customize Preferences",
+                "description": "Set your budget, interests, and dietary restrictions for the perfect plan."
+            },
+            "step3": {
+                "title": "Generate Itinerary",
+                "description": "Get a comprehensive, day-by-day schedule with estimated costs and tips."
+            },
+            "tryNow": "Try it now"
+        }
+    }
+}

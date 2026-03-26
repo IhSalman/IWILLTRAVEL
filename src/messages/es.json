@@ -1,0 +1,62 @@
+{
+    "LanguageSwitcher": {
+        "switchLanguage": "Cambiar idioma"
+    },
+    "Navbar": {
+        "links": {
+            "discover": "Descubrir",
+            "community": "Comunidad",
+            "visaHub": "Centro de Visas",
+            "translate": "Traducir",
+            "planTrip": "Planificar Viaje",
+            "travelResearch": "Búsqueda de Viajes",
+            "blogs": "Blog de Viajes"
+        },
+        "dashboard": "Panel de Control",
+        "signOut": "Cerrar Sesión",
+        "logIn": "Iniciar Sesión",
+        "signUp": "Registrarse"
+    },
+    "Metadata": {
+        "title": "iWillTravel - Descubrimiento de Viajes impulsado por IA",
+        "description": "Encuentra el destino perfecto basándote en el costo, la seguridad, el clima y tu estilo de viaje."
+    },
+    "HomePage": {
+        "title": "Diseña tu <span className=\"bg-clip-text text-transparent bg-gradient-to-r from-primary via-blue-400 to-sky-600\">Viaje Perfecto</span> con IA",
+        "description": "Desde la generación inteligente de itinerarios hasta requisitos de visa en tiempo real y traducción de idiomas. Planifica de forma más inteligente, viaja más lejos.",
+        "badge": "El Futuro de los Viajes",
+        "ctaPrimary": "Generar Itinerario con IA",
+        "ctaSecondary": "Explorar Destinos",
+        "features": {
+            "itineraries": {
+                "title": "Itinerarios con IA",
+                "description": "Genera planes de viaje completos día a día al instante."
+            },
+            "visa": {
+                "title": "Inteligencia de Visas",
+                "description": "Consulta requisitos y obtén listas de verificación de documentos simplificadas por IA."
+            },
+            "community": {
+                "title": "Comunidad Global",
+                "description": "Comparte consejos, itinerarios y experiencias con otros viajeros."
+            }
+        },
+        "howItWorks": {
+            "title": "Cómo funciona iWillTravel",
+            "description": "Tres simples pasos para tu próxima aventura.",
+            "step1": {
+                "title": "Selecciona Destino",
+                "description": "Elige la ubicación de tus sueños o deja que la IA te sugiera un lugar según tu vibra."
+            },
+            "step2": {
+                "title": "Personaliza Preferencias",
+                "description": "Establece tu presupuesto, intereses y restricciones dietéticas para el plan perfecto."
+            },
+            "step3": {
+                "title": "Genera Itinerario",
+                "description": "Obtén un cronograma completo día a día con costos estimados y consejos."
+            },
+            "tryNow": "Pruébalo ahora"
+        }
+    }
+}
