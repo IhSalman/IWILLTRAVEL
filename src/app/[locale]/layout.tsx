@@ -8,6 +8,7 @@ import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Analytics } from '@vercel/analytics/next';
+import { ClarityAnalytics } from '@/components/analytics/ClarityAnalytics';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -54,6 +55,7 @@ export default async function RootLayout({
                 </NextIntlClientProvider>
                 <SpeedInsights />
                 <Analytics />
+                <ClarityAnalytics />
             </body>
         </html>
     );
