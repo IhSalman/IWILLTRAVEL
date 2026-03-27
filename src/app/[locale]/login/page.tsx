@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { createClient } from '@/utils/supabase/client';
+import { useLocale } from 'next-intl';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
@@ -17,6 +18,7 @@ export default function LoginPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const router = useRouter();
+    const locale = useLocale();
     const supabase = createClient();
 
     const handleLogin = async (e: React.FormEvent) => {
@@ -30,7 +32,7 @@ export default function LoginPage() {
             setError(error.message);
             setIsLoading(false);
         } else {
-            router.push('/dashboard');
+            router.push(`/${locale}/dashboard`);
             router.refresh();
         }
     };

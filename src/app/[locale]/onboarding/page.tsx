@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { createClient } from '@/utils/supabase/client';
+import { useLocale } from 'next-intl';
 
 const steps = [
     {
@@ -50,6 +51,7 @@ export default function OnboardingPage() {
     const [selections, setSelections] = useState<any>({});
     const [isSaving, setIsSaving] = useState(false);
     const router = useRouter();
+    const locale = useLocale();
     const supabase = createClient();
 
     const handleSelect = (id: string) => {
@@ -75,7 +77,7 @@ export default function OnboardingPage() {
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) {
-                router.push('/login');
+                router.push(`/${locale}/login`);
                 return;
             }
 
@@ -88,7 +90,7 @@ export default function OnboardingPage() {
                 .eq('id', user.id);
 
             if (error) throw error;
-            router.push('/dashboard');
+            router.push(`/${locale}/dashboard`);
         } catch (err) {
             console.error('Error saving onboard data:', err);
             alert('Failed to save preferences. Please try again.');

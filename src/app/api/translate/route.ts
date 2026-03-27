@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { getCache, setCache } from '@/utils/cache';
-import { requireAuth } from '@/utils/auth';
+import { requirePlan } from '@/utils/require-plan';
+import { deductUsage, deductCredits } from '@/utils/usage';
 import { getActiveModel, extractTokens, logAiUsage } from '@/utils/ai-config';
 import crypto from 'node:crypto';
 
@@ -11,9 +12,10 @@ const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'i
 const ALLOWED_VOICES = new Set(['Puck', 'Kore', 'Charon', 'Fenrir']);
 
 export async function POST(req: Request) {
-    // Security: require authentication to protect Gemini API credits
-    const authResult = await requireAuth();
-    if ('error' in authResult) return authResult.error;
+    // Security: require authentication + plan check for translation
+    const planResult = await requirePlan('translation');
+    if ('error' in planResult) return planResult.error;
+    const { user, useCredits } = planResult;
 
     try {
         if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === 'placeholder_gemini_key') {
@@ -87,13 +89,20 @@ Return ONLY valid JSON, no markdown.`;
             // Guard against unparseable AI responses
             const imgTokens = extractTokens(result.response);
             logAiUsage({
-                userId: authResult.user.id,
+                userId: user.id,
                 featureType: 'translate-image',
                 inputTokens: imgTokens.inputTokens,
                 outputTokens: imgTokens.outputTokens,
                 totalTokens: imgTokens.totalTokens,
                 model: activeModelName,
             }).catch(() => {});
+
+            // Deduct usage
+            if (useCredits) {
+                deductCredits(user.id, 1).catch(() => {});
+            } else {
+                deductUsage(user.id, 'translation_tokens', imgTokens.totalTokens).catch(() => {});
+            }
 
             try {
                 return NextResponse.json(JSON.parse(cleaned));
@@ -169,15 +178,21 @@ Text: "${safeText}"`;
             return NextResponse.json({ error: 'Translation generation failed' }, { status: 502 });
         }
 
-        // Log token usage
         logAiUsage({
-            userId: authResult.user.id,
+            userId: user.id,
             featureType: type === 'grammar' ? 'grammar-check' : 'translate',
             inputTokens: textTokens.inputTokens,
             outputTokens: textTokens.outputTokens,
             totalTokens: textTokens.totalTokens,
             model: activeModelName,
         }).catch(() => {});
+
+        // Deduct usage
+        if (useCredits) {
+            deductCredits(user.id, 1).catch(() => {});
+        } else {
+            deductUsage(user.id, 'translation_tokens', textTokens.totalTokens).catch(() => {});
+        }
 
         if (type === 'grammar') {
             try {

@@ -3,7 +3,7 @@
 import { usePathname, useRouter, Link } from '@/i18n/routing';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Plane, Compass, Users, FileText, Languages, LayoutDashboard, LogOut, ChevronDown, Menu, Search } from 'lucide-react';
+import { Plane, Compass, Users, FileText, Languages, LayoutDashboard, LogOut, ChevronDown, Menu, Search, Star } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -114,7 +114,20 @@ export function Navbar() {
                                         );
                                     })}
                                     {user && (
-                                        <div className="mt-4 pt-4 border-t border-border/50">
+                                        <div className="mt-4 pt-4 border-t border-border/50 flex flex-col gap-2">
+                                            <Link
+                                                href="/pricing"
+                                                onClick={() => setSheetOpen(false)}
+                                                className="w-full flex items-center justify-between px-4 py-3 rounded-xl hover:bg-muted text-foreground text-base border-transparent border transition-all"
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <Star className="h-5 w-5 text-amber-500 fill-amber-500/20" />
+                                                    <span className="font-semibold text-amber-500">Subscription</span>
+                                                </div>
+                                                <div className="text-[10px] bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">
+                                                    {user?.user_metadata?.plan || 'Free'}
+                                                </div>
+                                            </Link>
                                             <button
                                                 onClick={() => {
                                                     setSheetOpen(false);
@@ -195,6 +208,17 @@ export function Navbar() {
                                         <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-muted text-sm cursor-pointer">
                                             <LayoutDashboard className="h-4 w-4 text-muted-foreground" />
                                             {t('dashboard')}
+                                        </div>
+                                    </Link>
+                                    <Link href="/pricing" onClick={() => setDropdownOpen(false)}>
+                                        <div className="flex items-center justify-between gap-2.5 px-3 py-2.5 rounded-xl hover:bg-amber-500/10 text-sm cursor-pointer group transition-colors">
+                                            <div className="flex items-center gap-2.5 text-amber-500 font-medium">
+                                                <Star className="h-4 w-4 fill-amber-500/20" />
+                                                Subscription
+                                            </div>
+                                            <div className="text-[9px] bg-amber-500/10 border border-amber-500/20 text-amber-600 px-2 py-0.5 rounded-full font-bold uppercase tracking-wide">
+                                                {user?.user_metadata?.plan || 'Free'}
+                                            </div>
                                         </div>
                                     </Link>
                                     <div className="my-1 border-t border-border/50" />

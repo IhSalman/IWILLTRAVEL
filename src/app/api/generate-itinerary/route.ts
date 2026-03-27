@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server'
-import { createClient as createSsrClient } from '@/utils/supabase/server'
 import { z } from 'zod'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import { getCache, setCache } from '@/utils/cache'
 import { getActiveModel, extractTokens, logAiUsage } from '@/utils/ai-config'
+import { requirePlan } from '@/utils/require-plan'
+import { deductUsage, deductCredits } from '@/utils/usage'
 import crypto from 'node:crypto'
 
 // Input Validation Schema
@@ -30,13 +31,10 @@ const ItinerarySchema = z.object({
 
 export async function POST(req: Request) {
   try {
-    // 1. Authenticate user
-    const supabase = await createSsrClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    // 1. Authenticate + Plan Validation
+    const planResult = await requirePlan('itinerary', { days: undefined }); // days checked after parse
+    if ('error' in planResult) return planResult.error;
+    const { user, plan, useCredits } = planResult;
 
     // 2. Validate Input
     const body = await req.json()
@@ -58,7 +56,6 @@ export async function POST(req: Request) {
       accommodation: data.accommodation,
       transport: data.transport
     };
-    // Secure cache key via SHA-256 hash (avoids oversized keys with large payloads)
     const hash = crypto.createHash('sha256').update(JSON.stringify(cacheKeyObj)).digest('hex');
     const cacheKey = `itinerary_${hash}`;
     const cachedItinerary = await getCache(cacheKey);
@@ -67,22 +64,18 @@ export async function POST(req: Request) {
       return NextResponse.json({ itinerary: cachedItinerary });
     }
 
-    // 3. Rate Limiting Check
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-
-    const { count, error: countError } = await supabase
-      .from('ai_usage_logs')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.id)
-      .eq('feature_type', 'itinerary')
-      .gte('created_at', today.toISOString())
-
-    if (countError) throw countError
-
-    if (count !== null && count >= 20) {
-      return NextResponse.json({ error: 'Daily limit reached.' }, { status: 429 })
+    // 2.1 Plan-based day limit check
+    if (data.days > plan.limits.maxItineraryDays) {
+      return NextResponse.json(
+        { error: `Your ${plan.plan} plan supports up to ${plan.limits.maxItineraryDays}-day itineraries. Upgrade your plan or use credits.`, upgradeRequired: true, limitReached: true },
+        { status: 429 }
+      )
     }
+
+    // Re-check with actual days (requirePlan was called without days for auth)
+    const { requirePlan: requirePlanFn } = await import('@/utils/require-plan');
+    const dayCheck = await requirePlanFn('itinerary', { days: data.days });
+    if ('error' in dayCheck) return dayCheck.error;
 
     // 4. Build Persona & Context
     const travelerPersona = {
@@ -242,6 +235,13 @@ Rules:
       model: activeModelName,
       requestData: { city: data.city.name, days: data.days, budget: data.budget },
     })
+
+    // 7. Deduct usage / credits
+    if (useCredits || dayCheck.useCredits) {
+      await deductCredits(user.id, 1);
+    } else {
+      await deductUsage(user.id, 'itinerary');
+    }
 
     await setCache(cacheKey, itinerary);
 

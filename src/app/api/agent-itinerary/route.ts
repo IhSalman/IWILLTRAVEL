@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
-import { createClient as createSsrClient } from '@/utils/supabase/server';
 import { z } from 'zod';
 import { getCache, setCache } from '@/utils/cache';
 import { getActiveModel, logAiUsage } from '@/utils/ai-config';
+import { requirePlan } from '@/utils/require-plan';
+import { deductUsage, deductCredits } from '@/utils/usage';
 import crypto from 'node:crypto';
 
 import {
@@ -39,12 +40,10 @@ export async function POST(req: Request) {
   const pipelineStart = Date.now();
 
   try {
-    // ─── 1. Auth ───
-    const supabase = await createSsrClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    // ─── 1. Auth + Plan ───
+    const planResult = await requirePlan('itinerary', { days: undefined });
+    if ('error' in planResult) return planResult.error;
+    const { user, plan: userPlan, useCredits } = planResult;
 
     // ─── 2. Validate ───
     const body = await req.json();
@@ -53,6 +52,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid input', details: parsed.error.format() }, { status: 400 });
     }
     const input = parsed.data;
+
+    // ─── 2.1 Plan day limit ───
+    if (input.days > userPlan.limits.maxItineraryDays) {
+      return NextResponse.json(
+        { error: `Your ${userPlan.plan} plan supports up to ${userPlan.limits.maxItineraryDays}-day itineraries. Upgrade or buy credits.`, upgradeRequired: true, limitReached: true },
+        { status: 429 }
+      );
+    }
 
     // ─── 2.5 Cache check ───
     const cacheKeyObj = {
@@ -66,19 +73,6 @@ export async function POST(req: Request) {
     const cached = await getCache(cacheKey);
     if (cached) {
       return NextResponse.json({ itinerary: cached, fromCache: true });
-    }
-
-    // ─── 3. Rate Limit ───
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const { count } = await supabase
-      .from('ai_usage_logs')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', user.id)
-      .eq('feature_type', 'itinerary')
-      .gte('created_at', today.toISOString());
-    if (count !== null && count >= 20) {
-      return NextResponse.json({ error: 'Daily limit reached (20/day).' }, { status: 429 });
     }
 
     console.log(`\n${'═'.repeat(60)}`);
@@ -179,8 +173,15 @@ export async function POST(req: Request) {
       console.error('[Pipeline] Log failed:', logErr);
     }
 
-    // ─── Cache & Return ───
+    // ─── Cache & Deduct Usage ───
     await setCache(cacheKey, itinerary);
+
+    // Deduct usage or credits
+    if (useCredits) {
+      await deductCredits(user.id, 1);
+    } else {
+      await deductUsage(user.id, 'itinerary');
+    }
 
     // ─── Trigger Async Blog Generation (Phase 7) ───
     try {

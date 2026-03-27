@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { requireAuth } from '@/utils/auth';
+import { requirePlan } from '@/utils/require-plan';
+import { deductUsage, deductCredits } from '@/utils/usage';
 
 const MAX_TEXT_LENGTH = 1_000;
 
@@ -20,9 +21,10 @@ const VOICE_MAPPING: Record<string, string> = {
 };
 
 export async function POST(req: Request) {
-    // Require authentication to protect ElevenLabs API credits
-    const authResult = await requireAuth();
-    if ('error' in authResult) return authResult.error;
+    // Require authentication + plan check for voice TTS
+    const planResult = await requirePlan('voice', { minutes: 1 });
+    if ('error' in planResult) return planResult.error;
+    const { user, useCredits } = planResult;
 
     try {
         const { text, lang = 'en' } = await req.json();
@@ -73,6 +75,13 @@ export async function POST(req: Request) {
         }
 
         const audioBuffer = await response.arrayBuffer();
+
+        // Deduct usage (1 TTS call ~= 1 minute)
+        if (useCredits) {
+            await deductCredits(user.id, 1);
+        } else {
+            await deductUsage(user.id, 'voice_minutes', 1);
+        }
 
         return new Response(audioBuffer, {
             headers: { 'Content-Type': 'audio/mpeg' },

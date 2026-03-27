@@ -22,7 +22,7 @@ export type SupportedModel = typeof SUPPORTED_MODELS[number];
 // ─── Pricing Matrix ($ per 1M tokens) ─────────────────────────────────────────
 
 export const MODEL_PRICING: Record<string, { input: number; output: number; thinking?: number }> = {
-    'gemini-2.5-flash':      { input: 0.15,  output: 0.60,  thinking: 0.25 },
+    'gemini-2.5-flash':      { input: 0.225, output: 2.50,  thinking: 0.25 },
     'gemini-2.5-pro':        { input: 1.25,  output: 10.00, thinking: 1.25 },
     'gemini-2.0-flash':      { input: 0.10,  output: 0.40  }, // Deprecated June 2026
     'gemini-2.0-flash-lite': { input: 0.025, output: 0.10  },
