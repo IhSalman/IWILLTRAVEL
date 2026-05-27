@@ -4,24 +4,25 @@ import { getCache, setCache } from '@/utils/cache';
 
 export const dynamic = 'force-dynamic';
 
-interface PlacePhoto {
-    photoReference: string;
-    url: string;
-}
+// ─── Types ─────────────────────────────────────────────────────────────────────
 
 interface PlaceReview {
     author: string;
     rating: number;
     text: string;
     time: string;
+    relativeTime: string;
 }
 
 interface NearbyPlace {
     name: string;
     type: string;
     rating: number;
-    priceLevel?: number;
+    priceLevel?: string;
     address?: string;
+    lat?: number;
+    lng?: number;
+    googleMapsUri?: string;
 }
 
 export interface PlaceResearch {
@@ -42,61 +43,195 @@ export interface PlaceResearch {
     bestTimeToVisit: string;
     accessibilityInfo: string;
     googleMapsUrl: string;
+    primaryType?: string;
+    // New fields from Places API (New)
+    internationalPhone?: string;
+    website?: string;
+    priceLevel?: string;
+    currentStatus?: string;
+    lat?: number;
+    lng?: number;
+    // Aerial View
+    aerialVideoUrl?: string;
+    airQuality?: {
+        aqi: number;
+        category: string;
+        dominantPollutant: string;
+        color: string;
+    };
 }
 
-async function searchPlace(destination: string, apiKey: string) {
-    const url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(destination)}&key=${apiKey}`;
-    const res = await fetch(url);
+// ─── Places API (New) — Text Search ────────────────────────────────────────────
+// Uses POST with FieldMask to only pay for the fields we actually request
+
+async function searchPlaceNew(destination: string, apiKey: string) {
+    const url = 'https://places.googleapis.com/v1/places:searchText';
+    const fieldMask = [
+        'places.id',
+        'places.displayName',
+        'places.formattedAddress',
+        'places.location',
+        'places.rating',
+        'places.userRatingCount',
+        'places.primaryType',
+        'places.currentOpeningHours',
+        'places.priceLevel',
+        'places.nationalPhoneNumber',
+        'places.websiteUri',
+        'places.businessStatus',
+        'places.editorialSummary',
+        'places.photos',
+        'places.reviews',
+        'places.accessibilityOptions',
+    ].join(',');
+
+    const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Goog-Api-Key': apiKey,
+            'X-Goog-FieldMask': fieldMask,
+        },
+        body: JSON.stringify({
+            textQuery: destination,
+            languageCode: 'en',
+            maxResultCount: 1,
+        }),
+    });
+
+    if (!res.ok) {
+        const err = await res.text();
+        console.error('[Places API New] Text search failed:', err);
+        return null;
+    }
+
     const data = await res.json();
-    if (data.status !== 'OK' || !data.results?.length) return null;
-    return data.results[0];
+    return data.places?.[0] || null;
 }
 
-async function getPlaceDetails(placeId: string, apiKey: string) {
-    const fields = 'name,rating,user_ratings_total,formatted_address,editorial_summary,photos,reviews,opening_hours,wheelchair_accessible_entrance';
-    const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=${fields}&key=${apiKey}`;
-    const res = await fetch(url);
-    const data = await res.json();
-    if (data.status !== 'OK') return null;
-    return data.result;
-}
+// ─── Places API (New) — Nearby Search ──────────────────────────────────────────
 
-async function getNearbyPlaces(lat: number, lng: number, type: string, apiKey: string): Promise<NearbyPlace[]> {
-    const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=2000&type=${type}&rankby=prominence&key=${apiKey}`;
-    const res = await fetch(url);
+async function getNearbyPlacesNew(
+    lat: number, lng: number, type: string, apiKey: string
+): Promise<NearbyPlace[]> {
+    const url = 'https://places.googleapis.com/v1/places:searchNearby';
+    const fieldMask = [
+        'places.id',
+        'places.displayName',
+        'places.formattedAddress',
+        'places.location',
+        'places.rating',
+        'places.userRatingCount',
+        'places.priceLevel',
+        'places.primaryType',
+        'places.googleMapsUri',
+    ].join(',');
+
+    // Map legacy types to Places API (New) includedTypes
+    const typeMap: Record<string, string> = {
+        tourist_attraction: 'tourist_attraction',
+        restaurant: 'restaurant',
+        museum: 'museum',
+        park: 'park',
+        cafe: 'cafe',
+    };
+
+    const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Goog-Api-Key': apiKey,
+            'X-Goog-FieldMask': fieldMask,
+        },
+        body: JSON.stringify({
+            includedTypes: [typeMap[type] || type],
+            maxResultCount: 8,
+            locationRestriction: {
+                circle: {
+                    center: { latitude: lat, longitude: lng },
+                    radius: 2000,
+                },
+            },
+            rankPreference: 'POPULARITY',
+        }),
+    });
+
+    if (!res.ok) return [];
     const data = await res.json();
-    if (data.status !== 'OK') return [];
-    return (data.results || []).slice(0, 8).map((p: any) => ({
-        name: p.name,
-        type: p.types?.[0]?.replace(/_/g, ' ') || type,
+    return (data.places || []).map((p: any) => ({
+        name: p.displayName?.text || 'Unknown',
+        type: p.primaryType?.replace(/_/g, ' ') || type,
         rating: p.rating || 0,
-        priceLevel: p.price_level,
-        address: p.vicinity,
+        priceLevel: p.priceLevel?.replace('PRICE_LEVEL_', '').toLowerCase() || undefined,
+        address: p.formattedAddress || '',
+        lat: p.location?.latitude,
+        lng: p.location?.longitude,
+        googleMapsUri: p.googleMapsUri,
     }));
 }
 
-function getPhotoUrl(photoRef: string, apiKey: string, maxWidth = 800): string {
-    return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=${maxWidth}&photoreference=${photoRef}&key=${apiKey}`;
+// ─── Photo URL Builder (Places API New) ─────────────────────────────────────────
+
+function getPhotoUrlNew(photoName: string, apiKey: string, maxWidthPx = 1200): string {
+    // photoName format: "places/{placeId}/photos/{photoId}"
+    return `https://places.googleapis.com/v1/${photoName}/media?maxWidthPx=${maxWidthPx}&key=${apiKey}`;
 }
+
+
+
+// ─── Air Quality API ──────────────────────────────────────────────────────
+async function getAirQualityData(lat: number, lng: number, apiKey: string): Promise<{
+    aqi: number; category: string; dominantPollutant: string; color: string;
+} | null> {
+    try {
+        const res = await fetch('https://airquality.googleapis.com/v1/currentConditions:lookup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Goog-Api-Key': apiKey },
+            body: JSON.stringify({
+                location: { latitude: lat, longitude: lng },
+                extraComputations: ['DOMINANT_POLLUTANT_CONCENTRATION'],
+                languageCode: 'en',
+            }),
+        });
+        if (!res.ok) return null;
+        const data = await res.json();
+        const indexes = data.indexes || [];
+        const idx = indexes.find((i: any) => i.code === 'uaqi') || indexes[0];
+        if (!idx) return null;
+        console.log(`[Air Quality API] ✅ AQI ${idx.aqi} (${idx.category})`);
+        return {
+            aqi: idx.aqi || 0,
+            category: idx.category || 'Unknown',
+            dominantPollutant: data.dominantPollutant || idx.dominantPollutant || 'N/A',
+            color: idx.color
+                ? `rgb(${Math.round((idx.color.red||0)*255)},${Math.round((idx.color.green||0)*255)},${Math.round((idx.color.blue||0)*255)})`
+                : '#4CAF50',
+        };
+    } catch (e) {
+        return null;
+    }
+}
+
+// ─── Pros/Cons from Reviews ───────────────────────────────────────────────────
 
 function generateProsConsFromReviews(reviews: any[]): { pros: string[]; cons: string[] } {
     const pros: string[] = [];
     const cons: string[] = [];
-
-    const positiveKeywords = ['amazing', 'beautiful', 'great', 'wonderful', 'excellent', 'fantastic', 'loved', 'stunning', 'perfect', 'breathtaking'];
-    const negativeKeywords = ['crowded', 'expensive', 'queue', 'long wait', 'overpriced', 'noisy', 'disappointing', 'dirty', 'tourist trap'];
+    const positiveKeywords = ['amazing', 'beautiful', 'great', 'wonderful', 'excellent', 'fantastic', 'loved', 'stunning', 'perfect', 'breathtaking', 'incredible', 'gorgeous'];
+    const negativeKeywords = ['crowded', 'expensive', 'queue', 'long wait', 'overpriced', 'noisy', 'disappointing', 'dirty', 'tourist trap', 'slow', 'rude'];
 
     for (const review of reviews) {
-        const text = review.text?.toLowerCase() || '';
+        const text = review.text?.text?.toLowerCase() || review.originalText?.text?.toLowerCase() || '';
+        const rawText = review.text?.text || review.originalText?.text || '';
         for (const kw of positiveKeywords) {
             if (text.includes(kw) && pros.length < 4) {
-                const sentence = review.text?.split(/[.!?]/).find((s: string) => s.toLowerCase().includes(kw));
+                const sentence = rawText.split(/[.!?]/).find((s: string) => s.toLowerCase().includes(kw));
                 if (sentence && !pros.includes(sentence.trim())) pros.push(sentence.trim());
             }
         }
         for (const kw of negativeKeywords) {
             if (text.includes(kw) && cons.length < 3) {
-                const sentence = review.text?.split(/[.!?]/).find((s: string) => s.toLowerCase().includes(kw));
+                const sentence = rawText.split(/[.!?]/).find((s: string) => s.toLowerCase().includes(kw));
                 if (sentence && !cons.includes(sentence.trim())) cons.push(sentence.trim());
             }
         }
@@ -108,8 +243,9 @@ function generateProsConsFromReviews(reviews: any[]): { pros: string[]; cons: st
     };
 }
 
+// ─── Main Route Handler ────────────────────────────────────────────────────────
+
 export async function GET(req: Request) {
-    // Require authentication to protect Google Places API credits
     const authResult = await requireAuth();
     if ('error' in authResult) return authResult.error;
 
@@ -120,13 +256,12 @@ export async function GET(req: Request) {
         if (!destination || typeof destination !== 'string') {
             return NextResponse.json({ error: 'Destination is required' }, { status: 400 });
         }
-
         if (destination.length > 200) {
             return NextResponse.json({ error: 'Destination name is too long (max 200 characters)' }, { status: 400 });
         }
 
-        // Normalize cache key to avoid collisions from casing/whitespace
-        const cacheKey = `research_place_${destination.toLowerCase().trim().replace(/\s+/g, '_')}`;
+        // Normalize cache key
+        const cacheKey = `research_place_v2_${destination.toLowerCase().trim().replace(/\s+/g, '_')}`;
         const cachedData = await getCache(cacheKey);
         if (cachedData) {
             return NextResponse.json(cachedData);
@@ -134,9 +269,8 @@ export async function GET(req: Request) {
 
         const apiKey = process.env.GOOGLE_PLACES_API_KEY;
 
-        // Graceful fallback if no API key configured
         if (!apiKey) {
-            console.warn('GOOGLE_PLACES_API_KEY not configured — returning empty research data');
+            console.warn('GOOGLE_PLACES_API_KEY not configured — returning fallback data');
             const fallback: PlaceResearch = {
                 placeId: '',
                 name: destination,
@@ -159,66 +293,100 @@ export async function GET(req: Request) {
             return NextResponse.json(fallback);
         }
 
-        const searchResult = await searchPlace(destination, apiKey);
-        if (!searchResult) {
+        // ── Step 1: Text Search with Places API (New) ──────────────────────────
+        const place = await searchPlaceNew(destination, apiKey);
+        if (!place) {
             return NextResponse.json({ error: `Could not find "${destination}" on Google Maps` }, { status: 404 });
         }
 
-        const { place_id, geometry } = searchResult;
-        const { lat, lng } = geometry.location;
+        const lat = place.location?.latitude;
+        const lng = place.location?.longitude;
+        const placeId = place.id;
 
-        const [details, attractions, restaurants] = await Promise.all([
-            getPlaceDetails(place_id, apiKey),
-            getNearbyPlaces(lat, lng, 'tourist_attraction', apiKey),
-            getNearbyPlaces(lat, lng, 'restaurant', apiKey),
+        // ── Step 2: Fetch nearby places + aerial video + air quality in parallel ─────
+        const formattedAddress = place.formattedAddress || destination;
+        const [attractions, restaurants, airQuality] = await Promise.all([
+            getNearbyPlacesNew(lat, lng, 'tourist_attraction', apiKey),
+            getNearbyPlacesNew(lat, lng, 'restaurant', apiKey),
+            getAirQualityData(lat, lng, apiKey),
         ]);
 
-        if (!details) {
-            return NextResponse.json({ error: 'Could not fetch place details' }, { status: 500 });
-        }
-
-        const photoUrls: string[] = (details.photos || [])
+        // ── Step 3: Build photo URLs from Places API (New) photo names ─────────
+        const photoUrls: string[] = (place.photos || [])
             .slice(0, 12)
-            .map((p: any) => getPhotoUrl(p.photo_reference, apiKey));
+            .map((p: any) => getPhotoUrlNew(p.name, apiKey, 1200));
 
-        const reviews: PlaceReview[] = (details.reviews || []).slice(0, 5).map((r: any) => ({
-            author: r.author_name,
-            rating: r.rating,
-            text: r.text,
-            time: new Date(r.time * 1000).toLocaleDateString(),
+        // ── Step 4: Map reviews (Places API New has richer review format) ──────
+        const rawReviews = place.reviews || [];
+        const reviews: PlaceReview[] = rawReviews.slice(0, 5).map((r: any) => ({
+            author: r.authorAttribution?.displayName || r.authorName || 'Anonymous',
+            rating: r.rating || 0,
+            text: r.text?.text || r.originalText?.text || '',
+            time: r.publishTime ? new Date(r.publishTime).toLocaleDateString() : '',
+            relativeTime: r.relativePublishTimeDescription || '',
         }));
 
-        const { pros, cons } = generateProsConsFromReviews(details.reviews || []);
+        const { pros, cons } = generateProsConsFromReviews(rawReviews);
 
+        // ── Step 5: Map opening hours ──────────────────────────────────────────
+        const openingHours: string[] = place.currentOpeningHours?.weekdayDescriptions || [];
+
+        // ── Step 6: Map price level ────────────────────────────────────────────
+        const priceLevelMap: Record<string, string> = {
+            PRICE_LEVEL_FREE: 'Free',
+            PRICE_LEVEL_INEXPENSIVE: 'Inexpensive ($)',
+            PRICE_LEVEL_MODERATE: 'Moderate ($$)',
+            PRICE_LEVEL_EXPENSIVE: 'Expensive ($$$)',
+            PRICE_LEVEL_VERY_EXPENSIVE: 'Very Expensive ($$$$)',
+        };
+        const priceLevel = priceLevelMap[place.priceLevel || ''] || undefined;
+
+        // ── Step 7: Accessibility ──────────────────────────────────────────────
+        const acc = place.accessibilityOptions;
+        let accessibilityInfo = 'Accessibility info not available.';
+        if (acc) {
+            const notes = [];
+            if (acc.wheelchairAccessibleParking) notes.push('Wheelchair-accessible parking');
+            if (acc.wheelchairAccessibleEntrance) notes.push('Wheelchair-accessible entrance');
+            if (acc.wheelchairAccessibleRestroom) notes.push('Wheelchair-accessible restroom');
+            if (acc.wheelchairAccessibleSeating) notes.push('Wheelchair-accessible seating');
+            accessibilityInfo = notes.length > 0 ? notes.join('. ') + '.' : 'Limited accessibility information available.';
+        }
+
+        // ── Step 8: Assemble final response ───────────────────────────────────
         const research: PlaceResearch = {
-            placeId: place_id,
-            name: details.name || destination,
-            rating: details.rating || 0,
-            totalRatings: details.user_ratings_total || 0,
-            address: details.formatted_address || '',
-            summary: details.editorial_summary?.overview || `${details.name} is a remarkable destination known for its unique character and memorable experiences.`,
+            placeId,
+            name: place.displayName?.text || destination,
+            rating: place.rating || 0,
+            totalRatings: place.userRatingCount || 0,
+            address: place.formattedAddress || '',
+            summary: place.editorialSummary?.text || `${place.displayName?.text} is a remarkable destination known for its unique character and memorable experiences.`,
             photoUrls,
             reviews,
             nearbyAttractions: attractions,
             nearbyRestaurants: restaurants,
-            openingHours: details.opening_hours?.weekday_text || [],
+            openingHours,
             pros,
             cons,
             safetyNotes: [
                 'Keep your valuables secure in crowded areas',
                 'Use registered taxis or rideshare apps for transport',
                 'Stay informed about local emergency numbers',
-                details.wheelchair_accessible_entrance ? 'Wheelchair accessible entrance available' : '',
             ].filter(Boolean),
             bestTimeToVisit: 'Spring (March–May) and Autumn (September–November) offer the best weather and fewer crowds.',
-            accessibilityInfo: details.wheelchair_accessible_entrance
-                ? 'Wheelchair accessible entrance available at this location.'
-                : 'Accessibility varies. Check individual sites for specific information.',
-            googleMapsUrl: `https://www.google.com/maps/place/?q=place_id:${place_id}`,
+            accessibilityInfo,
+            googleMapsUrl: `https://www.google.com/maps/place/?q=place_id:${placeId}`,
+            primaryType: place.primaryType?.replace(/_/g, ' '),
+            internationalPhone: place.nationalPhoneNumber,
+            website: place.websiteUri,
+            priceLevel,
+            currentStatus: place.businessStatus === 'OPERATIONAL' ? 'Open' : place.businessStatus || undefined,
+            lat,
+            lng,
+            ...(airQuality ? { airQuality } : {}),
         };
 
         await setCache(cacheKey, research);
-
         return NextResponse.json(research);
 
     } catch (error) {

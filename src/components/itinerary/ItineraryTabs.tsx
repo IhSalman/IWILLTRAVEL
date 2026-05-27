@@ -29,6 +29,7 @@ interface Activity {
     tip?: string;
     transportNote?: string;
     photoUrl?: string | null;
+    aerialVideoUrl?: string | null;   // Aerial View API cinematic drone video
     highlights?: string[];
     editorialSummary?: string;
     rating?: number;
@@ -36,6 +37,17 @@ interface Activity {
     address?: string;
     openingHours?: string[];
     source?: string;
+    bookingUrl?: string;
+    lat?: number;
+    lng?: number;
+    transitToNextMinutes?: number;    // Routes API: walk/transit minutes to next stop
+    transitToNextMode?: string;       // WALK | TRANSIT | DRIVE
+    transitToNextKm?: number;         // distance in km
+    mealNearby?: string;
+    accessibilityNote?: string;
+    airQuality?: any;
+    category?: string;
+    bestTimeToVisit?: string;
 }
 
 interface DayResources {
@@ -100,6 +112,7 @@ interface Itinerary {
         crowds?: RealityItem;
         physical?: RealityItem;
         weather?: string[];
+        physicsCheck?: string;
     };
     days: Day[];
     budgetBreakdown?: {
@@ -116,6 +129,9 @@ interface Props {
     budget: string;
     pace: string;
     transportation: string;
+    startDate?: string;
+    endDate?: string;
+    originCity?: string;
     onSave: () => void;
     onRegenerate: () => void;
     isSaving: boolean;
@@ -125,6 +141,97 @@ interface Props {
 }
 
 // ── HELPERS ─────────────────────────────────────────────────────────────────
+
+/** Converts any value to a plain string for safe React rendering */
+function safeStr(val: unknown, fallback = ''): string {
+    if (val === null || val === undefined) return fallback;
+    if (typeof val === 'string') return val;
+    if (typeof val === 'number' || typeof val === 'boolean') return String(val);
+    if (typeof val === 'object') {
+        // Handle cases where the LLM returned a nested object instead of a string
+        const obj = val as Record<string, unknown>;
+        return String(obj.name ?? obj.title ?? obj.description ?? obj.text ?? fallback);
+    }
+    return fallback;
+}
+
+/**
+ * Normalises an activity from ANY schema version into the canonical Activity shape.
+ * - Old saves: { time, name, description }  → name becomes title
+ * - New saves: { time, title, description }
+ * - time/highlights/tip may sometimes be objects → coerced to strings/arrays
+ */
+function normalizeActivity(raw: any, fallbackTime = 'Morning'): Activity {
+    if (!raw || typeof raw !== 'object') {
+        return {
+            time: fallbackTime,
+            title: 'Unknown Activity',
+            description: '',
+        };
+    }
+    const title = safeStr(raw.title ?? raw.name, 'Unknown Activity');
+    const time = safeStr(raw.time, fallbackTime);
+    const description = safeStr(raw.description ?? raw.editorialSummary, '');
+    const tip = safeStr(raw.tip, '');
+    const duration = safeStr(raw.duration, '');
+    const cost = safeStr(raw.cost, '');
+    const address = safeStr(raw.address, '');
+    const transportNote = safeStr(raw.transportNote ?? raw.transportToNext, '');
+    const source = safeStr(raw.source, '');
+    const bookingUrl = safeStr(raw.bookingUrl, '');
+    const editorialSummary = safeStr(raw.editorialSummary, '');
+    const photoUrl = typeof raw.photoUrl === 'string' ? raw.photoUrl : null;
+    const aerialVideoUrl = typeof raw.aerialVideoUrl === 'string' ? raw.aerialVideoUrl : null;
+    const transitToNextMinutes = typeof raw.transitToNextMinutes === 'number' ? raw.transitToNextMinutes : undefined;
+    const transitToNextMode = typeof raw.transitToNextMode === 'string' ? raw.transitToNextMode : undefined;
+    const transitToNextKm = typeof raw.transitToNextKm === 'number' ? raw.transitToNextKm : undefined;
+    const mealNearby = safeStr(raw.mealNearby, '');
+    const accessibilityNote = safeStr(raw.accessibilityNote, '');
+    const airQuality = raw.airQuality;
+    const category = safeStr(raw.category, '');
+    const bestTimeToVisit = safeStr(raw.bestTimeToVisit, '');
+
+    // highlights must be string[]
+    let highlights: string[] = [];
+    if (Array.isArray(raw.highlights)) {
+        highlights = raw.highlights.map((h: unknown) => safeStr(h)).filter(Boolean);
+    }
+    // openingHours must be string[]
+    let openingHours: string[] = [];
+    if (Array.isArray(raw.openingHours)) {
+        openingHours = raw.openingHours.map((h: unknown) => safeStr(h)).filter(Boolean);
+    }
+
+    return {
+        time,
+        title,
+        description,
+        duration: duration || undefined,
+        cost: cost || undefined,
+        tip: tip || undefined,
+        transportNote: transportNote || undefined,
+        photoUrl,
+        aerialVideoUrl,
+        highlights,
+        editorialSummary,
+        rating: typeof raw.rating === 'number' ? raw.rating : 0,
+        totalRatings: typeof raw.totalRatings === 'number' ? raw.totalRatings : 0,
+        address: address || undefined,
+        openingHours,
+        source: source || undefined,
+        bookingUrl: bookingUrl || undefined,
+        lat: typeof raw.lat === 'number' ? raw.lat : undefined,
+        lng: typeof raw.lng === 'number' ? raw.lng : undefined,
+        transitToNextMinutes,
+        transitToNextMode,
+        transitToNextKm,
+        mealNearby: mealNearby || undefined,
+        accessibilityNote: accessibilityNote || undefined,
+        airQuality,
+        category: category || undefined,
+        bestTimeToVisit: bestTimeToVisit || undefined,
+    } as Activity & { lat?: number; lng?: number };
+}
 
 const DIFFICULTY_STYLES: Record<string, { bg: string; text: string; label: string }> = {
     high: { bg: 'bg-red-500/15 border-red-500/30', text: 'text-red-500', label: 'high' },
@@ -188,10 +295,57 @@ export default function ItineraryTabs({
 
     const mapsEmbedKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY || '';
 
+    // Calculate points for the header roadmap if available
+    const headerPoints = itinerary?.days?.flatMap(d => d.activities).filter(a => a.lat && a.lng) || [];
+    const routePoints = headerPoints.filter(p => !p.title?.toLowerCase().includes('hotel') && !p.title?.toLowerCase().includes('dinner'));
+
+    let headerMapUrl = '';
+    if (mapsEmbedKey) {
+        if (routePoints.length >= 2) {
+            const origin = `${routePoints[0].lat},${routePoints[0].lng}`;
+            const destination = `${routePoints[routePoints.length - 1].lat},${routePoints[routePoints.length - 1].lng}`;
+            const waypoints = routePoints.slice(1, -1).slice(0, 20).map(p => `${p.lat},${p.lng}`).join('%7C');
+            headerMapUrl = `https://www.google.com/maps/embed/v1/directions?key=${mapsEmbedKey}&origin=${origin}&destination=${destination}${waypoints ? `&waypoints=${waypoints}` : ''}`;
+        } else if (routePoints.length === 1) {
+            headerMapUrl = `https://www.google.com/maps/embed/v1/place?key=${mapsEmbedKey}&q=${routePoints[0].lat},${routePoints[0].lng}`;
+        } else {
+            headerMapUrl = `https://www.google.com/maps/embed/v1/search?key=${mapsEmbedKey}&q=${encodeURIComponent(destination)}`;
+        }
+    }
+
+    // ── Safety guard: protect against malformed/old itinerary data ──────────
+    if (!itinerary || !Array.isArray(itinerary.days) || itinerary.days.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[400px] gap-4 rounded-2xl border border-border/40 bg-muted/20 p-10 text-center">
+                <span className="text-4xl">🗺️</span>
+                <h2 className="text-xl font-bold">Itinerary data unavailable</h2>
+                <p className="text-sm text-muted-foreground max-w-sm">
+                    This trip was saved in an older format. Please regenerate it to view the full itinerary.
+                </p>
+                <button
+                    onClick={onRegenerate}
+                    className="mt-2 px-5 py-2 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
+                >
+                    Regenerate Trip
+                </button>
+            </div>
+        );
+    }
+
     const TABS = [
         ...BASE_TABS.slice(0, 2), // Itinerary, Roadmap
-        { id: 'flights', label: '✈️ Flights' },
-        { id: 'hotels', label: '🏨 Hotels' },
+        { id: 'flights', label: (
+            <span className="flex items-center gap-1.5">
+                ✈️ Flights
+                <span className="flex h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
+            </span>
+        ) },
+        { id: 'hotels', label: (
+            <span className="flex items-center gap-1.5">
+                🏨 Hotels
+                <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            </span>
+        ) },
         ...BASE_TABS.slice(2), // Budget, Visa, Tips, Score
     ];
 
@@ -231,7 +385,7 @@ export default function ItineraryTabs({
                             width="100%" height="100%"
                             loading="lazy" allowFullScreen
                             referrerPolicy="no-referrer-when-downgrade"
-                            src={`https://www.google.com/maps/embed/v1/search?key=${mapsEmbedKey}&q=${encodeURIComponent(destination)}`}
+                            src={headerMapUrl}
                             className="w-full h-full"
                             style={{ border: 0 }}
                         />
@@ -247,8 +401,20 @@ export default function ItineraryTabs({
 
                 {/* Title & meta */}
                 <div className="p-6 space-y-4">
-                    <h1 className="text-2xl md:text-3xl font-extrabold leading-tight">{itinerary.title}</h1>
-                    <p className="text-muted-foreground leading-relaxed">{itinerary.overview}</p>
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div className="space-y-1.5">
+                            <div className="flex items-center gap-2 mb-1">
+                                <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 px-2 py-0 h-5 text-[10px] uppercase tracking-wider font-bold animate-pulse">
+                                    <Shield className="w-2.5 h-2.5 mr-1" /> Verified by iWillTravel Agents
+                                </Badge>
+                                <Badge variant="secondary" className="bg-blue-500/10 text-blue-600 border-blue-500/20 px-2 py-0 h-5 text-[10px] uppercase tracking-wider font-bold">
+                                    <Zap className="w-2.5 h-2.5 mr-1" /> Physics-Compliant
+                                </Badge>
+                            </div>
+                            <h1 className="text-2xl md:text-3xl font-extrabold leading-tight">{itinerary.title}</h1>
+                        </div>
+                    </div>
+                    <p className="text-muted-foreground leading-relaxed italic border-l-2 border-primary/20 pl-4">{itinerary.overview}</p>
 
                     {/* Info pills */}
                     <div className="flex flex-wrap gap-3 pt-1">
@@ -287,7 +453,7 @@ export default function ItineraryTabs({
             <div className="flex overflow-x-auto scrollbar-hide border-b border-border/50 gap-0">
                 {TABS.map(tab => (
                     <button
-                        key={tab.id}
+                        key={typeof tab.label === 'string' ? tab.id : tab.id}
                         onClick={() => setActiveTab(tab.id)}
                         className={`flex-shrink-0 px-5 py-3 text-sm font-semibold border-b-2 transition-all whitespace-nowrap -mb-px
                             ${activeTab === tab.id
@@ -326,15 +492,15 @@ export default function ItineraryTabs({
                                         <button className="w-full text-left" onClick={() => setExpandedDay(isExpanded ? null : i)}>
                                             <div className="flex items-center justify-between px-5 py-4 hover:bg-muted/20 transition-colors">
                                                 <div className="flex items-center gap-4">
-                                                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 shadow-sm border border-primary/10">
                                                         <span className="text-primary font-black text-base">{day.day}</span>
                                                     </div>
-                                                    <div>
+                                                    <div className="space-y-0.5">
                                                         <div className="flex items-center gap-2 flex-wrap mb-0.5">
                                                             <h3 className="font-bold text-base flex items-center gap-1.5">🧳 Day {day.day}: {day.theme}</h3>
                                                         </div>
                                                         {day.areaFocus && (
-                                                            <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                                            <p className="text-xs text-muted-foreground flex items-center gap-1 font-medium">
                                                                 <MapPin className="w-3 h-3" /> {day.areaFocus}
                                                             </p>
                                                         )}
@@ -364,7 +530,9 @@ export default function ItineraryTabs({
                                                     <div className="border-t border-border/40">
                                                         {/* Activity list */}
                                                         <div className="divide-y divide-border/30">
-                                                            {day.activities.map((act, j) => (
+                                                            {day.activities.map((rawAct, j) => {
+                                                                const act = normalizeActivity(rawAct, ['Morning', 'Late Morning', 'Afternoon', 'Early Evening', 'Evening'][j] ?? 'Morning');
+                                                                return (
                                                                 <div key={j} className="px-5 py-5 hover:bg-muted/10 transition-colors">
                                                                     {/* Place Photo */}
                                                                     {act.photoUrl && (
@@ -390,20 +558,41 @@ export default function ItineraryTabs({
                                                                         </div>
                                                                     )}
 
+                                                                    {/* Aerial View 3D Tour — cinematic drone video */}
+                                                                    {(act as any).aerialVideoUrl && (
+                                                                        <div className="relative w-full rounded-xl overflow-hidden mb-4 bg-black group">
+                                                                            <video
+                                                                                src={(act as any).aerialVideoUrl}
+                                                                                autoPlay
+                                                                                muted
+                                                                                loop
+                                                                                playsInline
+                                                                                className="w-full h-44 object-cover opacity-90 group-hover:opacity-100 transition-opacity"
+                                                                            />
+                                                                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+                                                                            <div className="absolute bottom-2 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-sm text-white text-xs font-semibold">
+                                                                                <span className="text-sky-400">▶</span> 3D Aerial Tour
+                                                                            </div>
+                                                                            <span className="absolute bottom-2 right-3 px-2 py-0.5 rounded-full bg-black/50 backdrop-blur-sm text-white/70 text-[10px]">
+                                                                                Google Aerial View
+                                                                            </span>
+                                                                        </div>
+                                                                    )}
+
                                                                     {/* Time period label */}
-                                                                    <p className={`text-xs font-bold uppercase tracking-wider mb-2 ${timeLabelColor(act.time)}`}>
+                                                                    <p className={`text-xs font-black uppercase tracking-widest mb-2 ${timeLabelColor(act.time)}`}>
                                                                         {act.time}
                                                                     </p>
 
                                                                     <div className="space-y-3 mb-4">
                                                                         {/* Title (📍 Place Name) */}
                                                                         <div className="flex items-start justify-between gap-2">
-                                                                            <h4 className="font-bold text-base text-primary flex items-start gap-2">
-                                                                                <span className="flex-shrink-0">📍</span> 
+                                                                            <h4 className="font-bold text-lg text-primary flex items-start gap-2">
+                                                                                <span className="flex-shrink-0">📍</span>
                                                                                 <span>{act.title}</span>
                                                                             </h4>
                                                                             {!act.photoUrl && act.rating && (
-                                                                                <span className="inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 font-semibold flex-shrink-0 mt-0.5">
+                                                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold flex-shrink-0 mt-0.5 border border-amber-500/20">
                                                                                     <Star className="w-3 h-3 fill-current" /> {act.rating}
                                                                                 </span>
                                                                             )}
@@ -426,15 +615,36 @@ export default function ItineraryTabs({
                                                                             >
                                                                                 View on Google Maps
                                                                             </a>
+                                                                            {act.bookingUrl && (
+                                                                                <a 
+                                                                                    href={act.bookingUrl}
+                                                                                    target="_blank" 
+                                                                                    rel="noreferrer"
+                                                                                    className="inline-flex items-center justify-center h-7 px-3 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-md transition-colors shadow-sm"
+                                                                                >
+                                                                                    🎟️ Book Tickets
+                                                                                </a>
+                                                                            )}
                                                                         </div>
 
                                                                         {/* Why visit (📝 Why visit) */}
-                                                                        <div className="text-sm text-muted-foreground leading-relaxed flex items-start gap-2">
-                                                                            <span className="flex-shrink-0">📝</span> 
-                                                                            <div>
-                                                                                <span className="font-semibold text-foreground/80 block mb-0.5">Why visit:</span>
-                                                                                {act.description || act.editorialSummary}
+                                                                        <div className="text-sm text-muted-foreground leading-relaxed flex flex-col gap-2 p-3 rounded-xl bg-primary/5 border border-primary/10">
+                                                                            <div className="flex items-start gap-2">
+                                                                                <span className="flex-shrink-0">📝</span>
+                                                                                <div className="flex-1">
+                                                                                    <span className="font-semibold text-foreground/80 block mb-0.5">Why visit:</span>
+                                                                                    {act.description}
+                                                                                </div>
                                                                             </div>
+                                                                            {act.editorialSummary && act.editorialSummary !== act.description && (
+                                                                                <div className="flex items-start gap-2 border-t border-primary/10 pt-2 mt-1">
+                                                                                    <span className="flex-shrink-0">ℹ️</span>
+                                                                                    <div className="flex-1">
+                                                                                        <span className="font-semibold text-foreground/80 block mb-0.5">Location Context:</span>
+                                                                                        {act.editorialSummary}
+                                                                                    </div>
+                                                                                </div>
+                                                                            )}
                                                                         </div>
                                                                     </div>
 
@@ -457,6 +667,11 @@ export default function ItineraryTabs({
 
                                                                     {/* Duration + Cost + Address pills */}
                                                                     <div className="flex flex-wrap gap-2 mb-2">
+                                                                        {act.rating > 0 && (
+                                                                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/10 text-xs text-amber-700 dark:text-amber-400 border border-amber-500/20 font-medium">
+                                                                                <Star className="w-3 h-3 fill-current" /> {act.rating.toFixed(1)} {act.totalRatings > 0 && `(${act.totalRatings})`}
+                                                                            </span>
+                                                                        )}
                                                                         {act.duration && (
                                                                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted/60 text-xs text-foreground/80 border border-border/40 font-medium">
                                                                                 <Clock className="w-3 h-3" /> {act.duration}
@@ -468,11 +683,31 @@ export default function ItineraryTabs({
                                                                             </span>
                                                                         )}
                                                                         {act.address && (
-                                                                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted/60 text-xs text-foreground/60 border border-border/30 font-medium truncate max-w-[200px]">
+                                                                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted/60 text-xs text-foreground/60 border border-border/30 font-medium truncate max-w-[200px]" title={act.address}>
                                                                                 <MapPin className="w-3 h-3 flex-shrink-0" /> {act.address}
                                                                             </span>
                                                                         )}
+                                                                        {act.category && (
+                                                                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-purple-500/10 text-xs text-purple-700 dark:text-purple-400 border border-purple-500/20 font-medium">
+                                                                                <Compass className="w-3 h-3 flex-shrink-0" /> {act.category}
+                                                                            </span>
+                                                                        )}
+                                                                        {act.airQuality?.aqi && (
+                                                                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-500/10 text-xs text-blue-700 dark:text-blue-400 border border-blue-500/20 font-medium" title={act.airQuality.dominantPollutant ? `Dominant: ${act.airQuality.dominantPollutant}` : 'Air Quality Index'}>
+                                                                                <Globe className="w-3 h-3 flex-shrink-0" /> AQI {act.airQuality.aqi} {act.airQuality.category ? `(${act.airQuality.category})` : ''}
+                                                                            </span>
+                                                                        )}
                                                                     </div>
+
+                                                                    {/* Opening Hours */}
+                                                                    {act.openingHours && act.openingHours.length > 0 && (
+                                                                        <div className="mb-3">
+                                                                            <p className="text-xs text-muted-foreground/80 flex items-start gap-1.5">
+                                                                                <Clock className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                                                                                <span>{act.openingHours.join(' · ')}</span>
+                                                                            </p>
+                                                                        </div>
+                                                                    )}
 
                                                                     {/* Transport note */}
                                                                     {act.transportNote && (
@@ -484,13 +719,63 @@ export default function ItineraryTabs({
 
                                                                     {/* Insider tip */}
                                                                     {act.tip && (
-                                                                        <div className="flex items-start gap-2 p-2.5 rounded-lg bg-amber-500/6 border border-amber-500/20 mt-1">
+                                                                        <div className="flex items-start gap-2 p-2.5 rounded-lg bg-amber-500/6 border border-amber-500/20 mt-1 mb-2">
                                                                             <Lightbulb className="w-3.5 h-3.5 text-amber-500 mt-0.5 flex-shrink-0" />
                                                                             <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">{act.tip}</p>
                                                                         </div>
                                                                     )}
+
+                                                                    {/* Meal Nearby */}
+                                                                    {act.mealNearby && (
+                                                                        <div className="flex items-start gap-2 p-2.5 rounded-lg bg-orange-500/6 border border-orange-500/20 mb-2">
+                                                                            <span className="mt-0.5 flex-shrink-0 text-orange-500 text-sm">🍽️</span>
+                                                                            <div>
+                                                                                <span className="font-semibold text-xs text-orange-800 dark:text-orange-300 block mb-0.5">Nearby Dining:</span>
+                                                                                <p className="text-xs text-orange-800 dark:text-orange-300 leading-relaxed">{act.mealNearby}</p>
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+
+                                                                    {/* Accessibility Note */}
+                                                                    {act.accessibilityNote && (
+                                                                        <div className="flex items-start gap-2 p-2.5 rounded-lg bg-blue-500/6 border border-blue-500/20 mb-2">
+                                                                            <span className="mt-0.5 flex-shrink-0 text-blue-500 text-sm">♿</span>
+                                                                            <div>
+                                                                                <span className="font-semibold text-xs text-blue-800 dark:text-blue-300 block mb-0.5">Accessibility:</span>
+                                                                                <p className="text-xs text-blue-800 dark:text-blue-300 leading-relaxed">{act.accessibilityNote}</p>
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+
+                                                                    {/* Best Time to Visit */}
+                                                                    {act.bestTimeToVisit && (
+                                                                        <div className="flex items-start gap-2 p-2.5 rounded-lg bg-emerald-500/6 border border-emerald-500/20 mb-2">
+                                                                            <Clock className="w-3.5 h-3.5 text-emerald-500 mt-0.5 flex-shrink-0" />
+                                                                            <div>
+                                                                                <span className="font-semibold text-xs text-emerald-800 dark:text-emerald-300 block mb-0.5">Best Time to Visit:</span>
+                                                                                <p className="text-xs text-emerald-800 dark:text-emerald-300 leading-relaxed">{act.bestTimeToVisit}</p>
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+
+
+                                                                    {/* Routes API: transit time to next stop */}
+                                                                    {(act as any).transitToNextMinutes != null && j < day.activities.length - 1 && (
+                                                                        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/20">
+                                                                            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/8 border border-primary/15 text-xs font-semibold text-primary">
+                                                                                <span>{(act as any).transitToNextMode === 'TRANSIT' ? '🚌' : (act as any).transitToNextMode === 'DRIVE' ? '🚗' : '🚶'}</span>
+                                                                                <span>
+                                                                                    {(act as any).transitToNextMinutes} min
+                                                                                    {(act as any).transitToNextMode === 'TRANSIT' ? ' transit' : (act as any).transitToNextMode === 'DRIVE' ? ' drive' : ' walk'}
+                                                                                    {(act as any).transitToNextKm != null ? ` · ${(act as any).transitToNextKm} km` : ''}
+                                                                                </span>
+                                                                            </div>
+                                                                            <span className="text-xs text-muted-foreground">to next stop</span>
+                                                                        </div>
+                                                                    )}
                                                                 </div>
-                                                            ))}
+                                                                );
+                                                            })}
                                                         </div>
 
                                                         {/* Day Resources */}
@@ -813,6 +1098,19 @@ export default function ItineraryTabs({
                                                 description={itinerary.realityCheck.physical.description}
                                             />
                                         )}
+                                        {itinerary.realityCheck.physicsCheck && (
+                                            <Card className="border-emerald-500/30 bg-emerald-500/5 md:col-span-2">
+                                                <CardContent className="p-5 flex items-start gap-4">
+                                                    <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+                                                        <Shield className="w-6 h-6 text-emerald-600" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs font-bold uppercase tracking-wider text-emerald-600 mb-1">Physics Verification</p>
+                                                        <p className="text-sm font-medium text-emerald-900 dark:text-emerald-100">{itinerary.realityCheck.physicsCheck}</p>
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
+                                        )}
                                         {itinerary.realityCheck.weather?.length ? (
                                             <Card className="border-blue-500/20 bg-blue-500/5 md:col-span-2">
                                                 <CardContent className="p-5">
@@ -909,8 +1207,8 @@ export default function ItineraryTabs({
                                                         </div>
                                                         {f.bookingUrl && (
                                                             <div className="mt-3 pt-3 border-t border-border/30">
-                                                                <a href={f.bookingUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline">
-                                                                    <ExternalLink className="w-3 h-3" /> Book this flight
+                                                                <a href={f.bookingUrl} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center h-8 px-4 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-md transition-colors shadow-sm">
+                                                                    <Plane className="w-3.5 h-3.5 mr-1.5" /> Book this flight
                                                                 </a>
                                                             </div>
                                                         )}
@@ -1016,8 +1314,8 @@ export default function ItineraryTabs({
                                                     </div>
                                                     {h.bookingUrl && (
                                                         <div className="mt-3 pt-3 border-t border-border/30">
-                                                            <a href={h.bookingUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline">
-                                                                <ExternalLink className="w-3 h-3" /> Book this hotel
+                                                            <a href={h.bookingUrl} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center h-8 px-4 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-md transition-colors shadow-sm">
+                                                                <Hotel className="w-3.5 h-3.5 mr-1.5" /> Book this hotel
                                                             </a>
                                                         </div>
                                                     )}

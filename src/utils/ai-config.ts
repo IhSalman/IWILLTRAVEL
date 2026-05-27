@@ -12,9 +12,12 @@ import { createAdminClient } from '@/utils/supabase/admin';
 // ─── Supported Models ─────────────────────────────────────────────────────────
 
 export const SUPPORTED_MODELS = [
-    'gemini-2.5-flash',
-    'gemini-2.5-pro',
+    'gemini-pro-latest',
+    'gemini-flash-latest',
+    'gemini-2.0-flash',
     'gemini-2.0-flash-lite',
+    'google/gemma-4-31b-it',
+    'google/gemma-4-26b-a4b',
 ] as const;
 
 export type SupportedModel = typeof SUPPORTED_MODELS[number];
@@ -22,16 +25,21 @@ export type SupportedModel = typeof SUPPORTED_MODELS[number];
 // ─── Pricing Matrix ($ per 1M tokens) ─────────────────────────────────────────
 
 export const MODEL_PRICING: Record<string, { input: number; output: number; thinking?: number }> = {
-    'gemini-2.5-flash':      { input: 0.225, output: 2.50,  thinking: 0.25 },
-    'gemini-2.5-pro':        { input: 1.25,  output: 10.00, thinking: 1.25 },
-    'gemini-2.0-flash':      { input: 0.10,  output: 0.40  }, // Deprecated June 2026
-    'gemini-2.0-flash-lite': { input: 0.025, output: 0.10  },
+    'gemini-pro-latest':   { input: 1.25,  output: 10.00 },
+    'gemini-flash-latest': { input: 0.15,  output: 0.60  },
+    'gemini-2.0-flash':        { input: 0.10,  output: 0.40  },
+    'gemini-2.0-flash-lite':   { input: 0.025, output: 0.10  },
+    'google/gemma-4-31b-it':   { input: 0.30,  output: 1.20  }, // Estimated OpenRouter pricing
+    'google/gemma-4-26b-a4b':  { input: 0.20,  output: 0.80  },
 };
 
 export const MODEL_INFO: Record<string, { label: string; description: string; tier: string }> = {
-    'gemini-2.5-flash':      { label: 'Gemini 2.5 Flash',      description: 'Best balance of speed and quality', tier: 'Recommended' },
-    'gemini-2.5-pro':        { label: 'Gemini 2.5 Pro',        description: 'Highest quality, slower and more expensive', tier: 'Premium' },
-    'gemini-2.0-flash-lite': { label: 'Gemini 2.0 Flash Lite', description: 'Ultra-cheap, lower quality', tier: 'Economy' },
+    'gemini-pro-latest':   { label: 'Gemini Pro',            description: 'Highest quality reasoning', tier: 'Premium' },
+    'gemini-flash-latest': { label: 'Gemini Flash',          description: 'Balanced speed and quality', tier: 'Recommended' },
+    'gemini-2.0-flash':        { label: 'Gemini 2.0 Flash',      description: 'Latest standard flash model', tier: 'Standard' },
+    'gemini-2.0-flash-lite':   { label: 'Gemini 2.0 Flash Lite', description: 'Ultra-cheap, lower quality', tier: 'Economy' },
+    'google/gemma-4-31b-it':   { label: 'Gemma 4 31B (OpenRouter)', description: 'Next-gen open model', tier: 'Premium' },
+    'google/gemma-4-26b-a4b':  { label: 'Gemma 4 26B (OpenRouter)', description: 'Fast MoE model', tier: 'Standard' },
 };
 
 // ─── In-memory cache to avoid hitting DB on every request ─────────────────────
@@ -45,6 +53,11 @@ const CACHE_TTL_MS = 60_000; // 1 minute
  * Falls back to env `GEMINI_MODEL` or `gemini-2.5-flash`.
  */
 export async function getActiveModel(): Promise<string> {
+    // 1. If OpenRouter API key is present, default to Gemma 4
+    if (process.env.OPENROUTER_API_KEY) {
+        return 'google/gemma-4-31b-it';
+    }
+
     const now = Date.now();
     if (cachedModel && (now - cacheTimestamp) < CACHE_TTL_MS) {
         return cachedModel;
@@ -72,7 +85,7 @@ export async function getActiveModel(): Promise<string> {
         // DB not available — fall through to env/default
     }
 
-    const fallback = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+    const fallback = process.env.GEMINI_MODEL || 'gemini-flash-latest';
     cachedModel = fallback;
     cacheTimestamp = now;
     return fallback;
@@ -86,6 +99,295 @@ export function invalidateModelCache(): void {
     cacheTimestamp = 0;
 }
 
+/**
+ * Get Tiered Model based on agent role.
+ * Creative/planning agents use Pro, analytical agents use Flash.
+ */
+export async function getTieredModel(role: 'creative' | 'analytical'): Promise<string> {
+    // If OpenRouter is configured, prioritize Gemma 4
+    if (process.env.OPENROUTER_API_KEY) {
+        return 'google/gemma-4-31b-it';
+    }
+
+    if (role === 'creative') {
+        return 'gemini-pro-latest';
+    } else {
+        return 'gemini-flash-latest';
+    }
+}
+
+// ─── LLM Execution ────────────────────────────────────────────────────────────
+
+import { GoogleGenerativeAI } from '@google/generative-ai';
+
+/**
+ * Universal LLM generator with OpenRouter -> Gemini fallback.
+ */
+export async function generateContent(
+    promptOrMessages: string | { role: string; content: string }[],
+    options: {
+        model?: string;
+        role?: 'creative' | 'analytical';
+        json?: boolean;
+        systemInstruction?: string;
+        image?: { mimeType: string; data: string }; // base64
+        modalities?: ('TEXT' | 'AUDIO')[];
+        speechConfig?: { voiceName: string };
+    } = {}
+): Promise<{ text: string; usage: { inputTokens: number; outputTokens: number; totalTokens: number }; model: string; audio?: string }> {
+    const messages = typeof promptOrMessages === 'string' 
+        ? [{ role: 'user', content: promptOrMessages }]
+        : promptOrMessages;
+    
+    const modelName = options.model || await getTieredModel(options.role || 'creative');
+    const isOpenRouter = modelName.includes('/');
+
+    // 1. Try OpenRouter if applicable
+    if (isOpenRouter && process.env.OPENROUTER_API_KEY) {
+        try {
+            console.log(`[LLM] Attempting OpenRouter call with ${modelName}...`);
+            
+            let openRouterMessages = options.systemInstruction 
+                ? [{ role: 'system', content: options.systemInstruction }, ...messages]
+                : messages;
+
+            // Handle image in OpenRouter (if provided)
+            if (options.image) {
+                openRouterMessages = [
+                    ...(options.systemInstruction ? [{ role: 'system', content: options.systemInstruction }] : []),
+                    {
+                        role: 'user',
+                        content: [
+                            { type: 'text', text: typeof promptOrMessages === 'string' ? promptOrMessages : messages[messages.length - 1].content },
+                            { type: 'image_url', image_url: { url: `data:${options.image.mimeType};base64,${options.image.data}` } }
+                        ]
+                    }
+                ];
+            }
+
+            const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+                    'Content-Type': 'application/json',
+                    'HTTP-Referer': 'https://iwilltravel.ai',
+                    'X-Title': 'iWillTravel',
+                },
+                body: JSON.stringify({
+                    model: modelName,
+                    messages: openRouterMessages,
+                    response_format: options.json ? { type: 'json_object' } : undefined,
+                }),
+                signal: AbortSignal.timeout(45_000), // 45s timeout — fallback to Gemini if exceeded
+            });
+
+            if (!response.ok) {
+                const error = await response.text();
+                throw new Error(`OpenRouter Error (${response.status}): ${error}`);
+            }
+
+            const data = await response.json();
+            return {
+                text: data.choices[0].message.content,
+                usage: {
+                    inputTokens: data.usage?.prompt_tokens || 0,
+                    outputTokens: data.usage?.completion_tokens || 0,
+                    totalTokens: data.usage?.total_tokens || 0
+                },
+                model: modelName
+            };
+        } catch (error) {
+            console.warn(`[LLM] OpenRouter failed, falling back to Gemini:`, error);
+            // Fall through to Gemini logic
+        }
+    }
+
+    // 2. Gemini Fallback
+    const geminiModel = options.role === 'analytical' ? 'gemini-2.0-flash' : 'gemini-2.0-flash';
+    console.log(`[LLM] Using Gemini fallback (${geminiModel})...`);
+    
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+    const model = genAI.getGenerativeModel({
+        model: geminiModel,
+        systemInstruction: options.systemInstruction,
+    }, {
+        apiVersion: 'v1beta'
+    });
+
+    const chat = model.startChat({
+        history: messages.slice(0, -1).map(m => ({
+            role: m.role === 'user' ? 'user' : 'model',
+            parts: [{ text: m.content }],
+        })),
+    });
+
+    const lastMessage = messages[messages.length - 1].content;
+    let result;
+
+    const generationConfig: any = {};
+    if (options.modalities) generationConfig.responseModalities = options.modalities;
+    if (options.speechConfig) {
+        generationConfig.speechConfig = {
+            voiceConfig: {
+                prebuiltVoiceConfig: { voiceName: options.speechConfig.voiceName },
+            },
+        };
+    }
+
+    if (options.image) {
+        result = await model.generateContent({
+            contents: [{ role: 'user', parts: [
+                { inlineData: { mimeType: options.image.mimeType, data: options.image.data } },
+                { text: lastMessage }
+            ]}],
+            generationConfig
+        });
+    } else {
+        result = await model.generateContent({
+            contents: chat.params?.history 
+                ? [...(chat.params.history as any), { role: 'user', parts: [{ text: lastMessage }] }]
+                : [{ role: 'user', parts: [{ text: lastMessage }] }],
+            generationConfig
+        });
+    }
+    
+    const usage = extractTokens(result.response);
+    const text = result.response.text?.() || '';
+    
+    // Extract audio if present
+    let audio: string | undefined;
+    if (options.modalities?.includes('AUDIO')) {
+        const candidate = result.response.candidates?.[0];
+        const audioPart = candidate?.content?.parts?.find((p: any) => p.inlineData?.data);
+        audio = audioPart?.inlineData?.data;
+    }
+
+    return {
+        text,
+        usage,
+        model: geminiModel,
+        audio
+    };
+}
+
+/**
+ * Universal LLM streamer with OpenRouter -> Gemini fallback.
+ * Returns a ReadableStream of text chunks.
+ */
+export async function streamContent(
+    promptOrMessages: string | { role: string; content: string }[],
+    options: {
+        model?: string;
+        role?: 'creative' | 'analytical';
+        systemInstruction?: string;
+    } = {}
+): Promise<{ stream: ReadableStream; model: string; getUsage: () => Promise<{ inputTokens: number; outputTokens: number; totalTokens: number }> }> {
+    const messages = typeof promptOrMessages === 'string' 
+        ? [{ role: 'user', content: promptOrMessages }]
+        : promptOrMessages;
+
+    const modelName = options.model || await getTieredModel(options.role || 'creative');
+    const isOpenRouter = modelName.includes('/');
+
+    // 1. Try OpenRouter Streaming
+    if (isOpenRouter && process.env.OPENROUTER_API_KEY) {
+        try {
+            console.log(`[LLM] Attempting OpenRouter Stream with ${modelName}...`);
+            const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    model: modelName,
+                    messages: options.systemInstruction 
+                        ? [{ role: 'system', content: options.systemInstruction }, ...messages]
+                        : messages,
+                    stream: true,
+                }),
+            });
+
+            if (!response.ok) throw new Error(`OpenRouter Stream failed: ${response.status}`);
+
+            const reader = response.body?.getReader();
+            const encoder = new TextEncoder();
+            const decoder = new TextDecoder();
+            
+            let usage = { inputTokens: 0, outputTokens: 0, totalTokens: 0 };
+
+            const stream = new ReadableStream({
+                async start(controller) {
+                    if (!reader) return controller.close();
+                    try {
+                        while (true) {
+                            const { done, value } = await reader.read();
+                            if (done) break;
+                            const chunk = decoder.decode(value);
+                            const lines = chunk.split('\n').filter(l => l.trim().startsWith('data: '));
+                            for (const line of lines) {
+                                const dataStr = line.replace('data: ', '').trim();
+                                if (dataStr === '[DONE]') continue;
+                                try {
+                                    const data = JSON.parse(dataStr);
+                                    const text = data.choices[0]?.delta?.content || '';
+                                    if (text) controller.enqueue(encoder.encode(text));
+                                    if (data.usage) usage = { 
+                                        inputTokens: data.usage.prompt_tokens, 
+                                        outputTokens: data.usage.completion_tokens, 
+                                        totalTokens: data.usage.total_tokens 
+                                    };
+                                } catch {}
+                            }
+                        }
+                    } finally {
+                        controller.close();
+                    }
+                }
+            });
+
+            return { stream, model: modelName, getUsage: async () => usage };
+        } catch (err) {
+            console.error(`[LLM] OpenRouter Stream failed, falling back to Gemini:`, err);
+        }
+    }
+
+    // 2. Gemini Fallback Streaming
+    const geminiModel = options.role === 'analytical' ? 'gemini-flash-latest' : 'gemini-pro-latest';
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+    const model = genAI.getGenerativeModel({
+        model: geminiModel,
+        systemInstruction: options.systemInstruction,
+    });
+
+    const chat = model.startChat({
+        history: messages.slice(0, -1).map(m => ({
+            role: m.role === 'user' ? 'user' : 'model',
+            parts: [{ text: m.content }],
+        })),
+    });
+
+    const lastMessage = messages[messages.length - 1].content;
+    const result = await chat.sendMessageStream(lastMessage);
+    const encoder = new TextEncoder();
+
+    const stream = new ReadableStream({
+        async start(controller) {
+            for await (const chunk of result.stream) {
+                const text = chunk.text();
+                if (text) controller.enqueue(encoder.encode(text));
+            }
+            controller.close();
+        }
+    });
+
+    return { 
+        stream, 
+        model: geminiModel, 
+        getUsage: async () => extractTokens(await result.response) 
+    };
+}
+
 // ─── Cost Calculation ─────────────────────────────────────────────────────────
 
 /**
@@ -96,7 +398,7 @@ export function calculateCost(
     inputTokens: number,
     outputTokens: number,
 ): number {
-    const pricing = MODEL_PRICING[model] || MODEL_PRICING['gemini-2.5-flash'];
+    const pricing = MODEL_PRICING[model] || MODEL_PRICING['gemini-flash-latest'];
     const inputCost = (inputTokens / 1_000_000) * pricing.input;
     const outputCost = (outputTokens / 1_000_000) * pricing.output;
     return inputCost + outputCost;
@@ -157,5 +459,55 @@ export async function logAiUsage(params: LogUsageParams): Promise<void> {
         }
     } catch (err) {
         console.error('[AI Config] Failed to log AI usage:', err);
+    }
+}
+
+// ─── Pipeline Run Logger ──────────────────────────────────────────────────────
+
+interface LogPipelineRunParams {
+    userId: string | null;
+    destination: string;
+    days: number;
+    budget?: string;
+    travelStyle?: string;
+    totalMs: number;
+    success: boolean;
+    errorMessage?: string;
+    agentLogs: Array<{ agent: string; durationMs: number; status: string; details?: string; timestamp: string }>;
+    inputTokens?: number;
+    outputTokens?: number;
+    model?: string;
+}
+
+/**
+ * Persist a full pipeline execution record (all 8 agent logs) to
+ * `agent_pipeline_logs` for benchmarking and thesis evidence.
+ * Fire-and-forget — never throws.
+ */
+export async function logPipelineRun(params: LogPipelineRunParams): Promise<void> {
+    try {
+        const supabase = createAdminClient();
+        const { error } = await supabase.from('agent_pipeline_logs').insert({
+            user_id:       params.userId,
+            destination:   params.destination,
+            days:          params.days,
+            budget:        params.budget,
+            travel_style:  params.travelStyle,
+            total_ms:      params.totalMs,
+            success:       params.success,
+            error_message: params.errorMessage,
+            agent_logs:    params.agentLogs,
+            input_tokens:  params.inputTokens ?? 0,
+            output_tokens: params.outputTokens ?? 0,
+            model_used:    params.model,
+        });
+
+        if (error) {
+            console.error('[Pipeline Log] Insert failed:', error.message);
+        } else {
+            console.log(`[Pipeline Log] Saved run for ${params.destination} (${params.totalMs}ms, ${params.agentLogs.length} agents)`);
+        }
+    } catch (err) {
+        console.error('[Pipeline Log] Failed to persist:', err);
     }
 }

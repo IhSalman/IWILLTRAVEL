@@ -1,0 +1,401 @@
+{
+  "capturedAt": "2026-05-13T21:52:11.670Z",
+  "destination": "Kuopio, Finland",
+  "source": "Google Places API (New)",
+  "discoveryDurationMs": 1466,
+  "totalDiscovered": 28,
+  "venues": [
+    {
+      "placeId": "ChIJ58hzYYuwhEYRxV4BZ2D6wYw",
+      "name": "Old Kuopio Museum",
+      "address": "Kirkkokatu 22, 70100 Kuopio, Finland",
+      "rating": 4.4,
+      "totalRatings": 536,
+      "priceLevel": null,
+      "types": [
+        "museum"
+      ],
+      "openNow": false,
+      "lat": 62.8890366,
+      "lng": 27.685177099999997
+    },
+    {
+      "placeId": "ChIJvxFQJJ26hEYRe57JkbZJJrc",
+      "name": "Puijo tower",
+      "address": "Puijontie 135, 70300 Kuopio, Finland",
+      "rating": 4.4,
+      "totalRatings": 4807,
+      "priceLevel": null,
+      "types": [
+        "tourist attraction"
+      ],
+      "openNow": false,
+      "lat": 62.90953179999999,
+      "lng": 27.6553069
+    },
+    {
+      "placeId": "ChIJHyJS-IqwhEYRnslHHY6xDsQ",
+      "name": "Museum of Kuopio",
+      "address": "Museokatu 1, 70100 Kuopio, Finland",
+      "rating": 4.4,
+      "totalRatings": 830,
+      "priceLevel": null,
+      "types": [
+        "museum"
+      ],
+      "openNow": false,
+      "lat": 62.892457,
+      "lng": 27.686541899999998
+    },
+    {
+      "placeId": "ChIJ45tGVhO6hEYRrctwySVdTN8",
+      "name": "Neulamäki Watch Tower",
+      "address": "Taapelitie 16, 70150 Kuopio, Finland",
+      "rating": 4.4,
+      "totalRatings": 212,
+      "priceLevel": null,
+      "types": [
+        "scenic spot"
+      ],
+      "openNow": true,
+      "lat": 62.888389800000006,
+      "lng": 27.5945469
+    },
+    {
+      "placeId": "ChIJZRyNZYmwhEYR6sO-T0qPOtA",
+      "name": "Kuopio Market",
+      "address": "Kauppakatu 45, 70110 Kuopio, Finland",
+      "rating": 4.4,
+      "totalRatings": 6464,
+      "priceLevel": null,
+      "types": [
+        "market"
+      ],
+      "openNow": true,
+      "lat": 62.89253790000001,
+      "lng": 27.6782224
+    },
+    {
+      "placeId": "ChIJi2YfXIewhEYRWnv6kKOUC6Y",
+      "name": "RIISA- Orthodox Church Museum of Finland",
+      "address": "Karjalankatu 1, 70110 Kuopio, Finland",
+      "rating": 4.5,
+      "totalRatings": 325,
+      "priceLevel": null,
+      "types": [
+        "museum"
+      ],
+      "openNow": false,
+      "lat": 62.8989275,
+      "lng": 27.6660586
+    },
+    {
+      "placeId": "ChIJJT_DC4WwhEYRP98S36_01mU",
+      "name": "Valkeisenlammen puisto",
+      "address": "Valkeisenkatu 10, 70600 Kuopio, Finland",
+      "rating": 4.5,
+      "totalRatings": 852,
+      "priceLevel": null,
+      "types": [
+        "park"
+      ],
+      "openNow": true,
+      "lat": 62.8905811,
+      "lng": 27.660194299999997
+    },
+    {
+      "placeId": "ChIJmWgXzL67hEYRO-vOQ5BgJWs",
+      "name": "Neulamäki Nature Preserve",
+      "address": "70150 Kuopio, Finland",
+      "rating": 4.8,
+      "totalRatings": 47,
+      "priceLevel": null,
+      "types": [
+        "nature preserve"
+      ],
+      "openNow": true,
+      "lat": 62.87612799999999,
+      "lng": 27.6064448
+    },
+    {
+      "placeId": "ChIJoR6U5jPIhEYRJy74Sr8DuPY",
+      "name": "Kuopio Animal Park",
+      "address": "Rantasuontie 39, 70870 Hiltulanlahti, Finland",
+      "rating": 4.5,
+      "totalRatings": 943,
+      "priceLevel": null,
+      "types": [
+        "zoo"
+      ],
+      "openNow": false,
+      "lat": 62.75115830000001,
+      "lng": 27.552516699999998
+    },
+    {
+      "placeId": "ChIJy-u8m6q3hEYRs27lUyinzXY",
+      "name": "Vanuvuori Observation Tower",
+      "address": "Koirakaarre 70, 70870 Hiltulanlahti, Finland",
+      "rating": 4.6,
+      "totalRatings": 105,
+      "priceLevel": null,
+      "types": [
+        "scenic spot"
+      ],
+      "openNow": true,
+      "lat": 62.8040198,
+      "lng": 27.6288114
+    },
+    {
+      "placeId": "ChIJQUeulhtFg0YRSsxx4sAQmRA",
+      "name": "Tahko Observation Tower",
+      "address": "Pehkuntie, 73320 Kuopio, Finland",
+      "rating": 4.6,
+      "totalRatings": 79,
+      "priceLevel": null,
+      "types": [
+        "observation deck"
+      ],
+      "openNow": true,
+      "lat": 63.2863701,
+      "lng": 28.019671
+    },
+    {
+      "placeId": "ChIJU6nTARCxhEYRGfCrNLzOq98",
+      "name": "Bellanpuisto",
+      "address": "Siikaranta 8, 70620 Kuopio, Finland",
+      "rating": 4.6,
+      "totalRatings": 116,
+      "priceLevel": null,
+      "types": [
+        "miniature golf course"
+      ],
+      "openNow": false,
+      "lat": 62.8738021,
+      "lng": 27.660695999999998
+    },
+    {
+      "placeId": "ChIJlROsQy2xhEYRsf-3gRted1M",
+      "name": "Greasy Spoon Drink & Bite",
+      "address": "Kauppakatu 22, 70100 Kuopio, Finland",
+      "rating": 4.7,
+      "totalRatings": 136,
+      "priceLevel": null,
+      "types": [
+        "bar"
+      ],
+      "openNow": true,
+      "lat": 62.891610699999994,
+      "lng": 27.6804103
+    },
+    {
+      "placeId": "ChIJVUqA3pWxhEYRZLvT6XC9J_Y",
+      "name": "Hemingway’s Kuopio",
+      "address": "Kauppakatu 18, 70100 Kuopio, Finland",
+      "rating": 4.5,
+      "totalRatings": 4,
+      "priceLevel": null,
+      "types": [
+        "restaurant"
+      ],
+      "openNow": true,
+      "lat": 62.891640499999994,
+      "lng": 27.681489
+    },
+    {
+      "placeId": "ChIJ75M1VIqwhEYRXXu0y0vN3ig",
+      "name": "Restaurant Isä Camillo",
+      "address": "Kauppakatu 25-27, 70100 Kuopio, Finland",
+      "rating": 4.4,
+      "totalRatings": 975,
+      "priceLevel": "moderate",
+      "types": [
+        "restaurant"
+      ],
+      "openNow": false,
+      "lat": 62.892153900000004,
+      "lng": 27.685716499999998
+    },
+    {
+      "placeId": "ChIJu228o3OxhEYRMPl_UUg-m8M",
+      "name": "Gallá Kitchen & Bar",
+      "address": "Puijonkatu 32, 70110 Kuopio, Finland",
+      "rating": 4.6,
+      "totalRatings": 295,
+      "priceLevel": "moderate",
+      "types": [
+        "restaurant"
+      ],
+      "openNow": false,
+      "lat": 62.896345499999995,
+      "lng": 27.677564999999998
+    },
+    {
+      "placeId": "ChIJi9jqHPWwhEYRhXLRP2dBNnI",
+      "name": "Ravintola Boka",
+      "address": "Koljonniemenkatu 2, 70110 Kuopio, Finland",
+      "rating": 4.6,
+      "totalRatings": 780,
+      "priceLevel": "moderate",
+      "types": [
+        "restaurant"
+      ],
+      "openNow": false,
+      "lat": 62.8900982,
+      "lng": 27.695422599999997
+    },
+    {
+      "placeId": "ChIJJROuGomwhEYR2QVA9U7u2WY",
+      "name": "Viking Restaurant Harald",
+      "address": "Tulliportinkatu 44, 70110 Kuopio, Finland",
+      "rating": 4.4,
+      "totalRatings": 1066,
+      "priceLevel": "expensive",
+      "types": [
+        "scandinavian restaurant"
+      ],
+      "openNow": false,
+      "lat": 62.8929282,
+      "lng": 27.6760438
+    },
+    {
+      "placeId": "ChIJ34Nj6oqwhEYRyW72V8qCjpg",
+      "name": "Kuzina Wine & Daily",
+      "address": "Kauppakatu 13, 70100 Kuopio, Finland",
+      "rating": 4.8,
+      "totalRatings": 279,
+      "priceLevel": "moderate",
+      "types": [
+        "restaurant"
+      ],
+      "openNow": false,
+      "lat": 62.892304200000005,
+      "lng": 27.6896877
+    },
+    {
+      "placeId": "ChIJP1y1fACxhEYR20rh2tBUJOY",
+      "name": "Bibimbap Ravintola Kuopio",
+      "address": "Kauppakeskus Apaja, Kauppakatu 45, 70110 Kuopio, Finland",
+      "rating": 4.9,
+      "totalRatings": 164,
+      "priceLevel": null,
+      "types": [
+        "asian restaurant"
+      ],
+      "openNow": false,
+      "lat": 62.8919758,
+      "lng": 27.6784517
+    },
+    {
+      "placeId": "ChIJxX9_rPSwhEYRVDDbI-BeAsI",
+      "name": "Per Brahe memorial",
+      "address": "Hallituskatu 12, 70100 Kuopio, Finland",
+      "rating": 3,
+      "totalRatings": 6,
+      "priceLevel": null,
+      "types": [
+        "tourist attraction"
+      ],
+      "openNow": true,
+      "lat": 62.8884178,
+      "lng": 27.6887883
+    },
+    {
+      "placeId": "ChIJz3HsWQCxhEYREMtcm8EVwZQ",
+      "name": "Kuopio",
+      "address": "70100 Kuopio, Finland",
+      "rating": null,
+      "totalRatings": 0,
+      "priceLevel": null,
+      "types": [
+        "tourist attraction"
+      ],
+      "openNow": null,
+      "lat": 62.8965859,
+      "lng": 27.6785574
+    },
+    {
+      "placeId": "ChIJZSfGIwCxhEYRA81_AdO2FpI",
+      "name": "Winter War and Continuation War Memorial",
+      "address": "70110 Kuopio, Finland",
+      "rating": 4.7,
+      "totalRatings": 3,
+      "priceLevel": null,
+      "types": [
+        "tourist attraction"
+      ],
+      "openNow": true,
+      "lat": 62.8941113,
+      "lng": 27.6684526
+    },
+    {
+      "placeId": "ChIJQRgzUfexhEYR8ou2bPl6t6Y",
+      "name": "Kelloniemen Pumppu",
+      "address": "Kellonkierto, 70460 Kuopio, Finland",
+      "rating": 4.1,
+      "totalRatings": 17,
+      "priceLevel": null,
+      "types": [
+        "tourist attraction"
+      ],
+      "openNow": true,
+      "lat": 62.9230853,
+      "lng": 27.725525299999997
+    },
+    {
+      "placeId": "ChIJ2wWEEQCxhEYRN-lj7ZBPN0M",
+      "name": "Pohjoiskärki",
+      "address": "Nuotta-apajantie 40, 70840 Kuopio, Finland",
+      "rating": 5,
+      "totalRatings": 1,
+      "priceLevel": null,
+      "types": [
+        "tourist attraction"
+      ],
+      "openNow": null,
+      "lat": 62.8716635,
+      "lng": 27.6986726
+    },
+    {
+      "placeId": "ChIJyU1HegexhEYR8OUaxXJPj7g",
+      "name": "Niirala Rhododendron Park",
+      "address": "70600 Kuopio, Finland",
+      "rating": 4.3,
+      "totalRatings": 93,
+      "priceLevel": null,
+      "types": [
+        "park"
+      ],
+      "openNow": true,
+      "lat": 62.888444199999995,
+      "lng": 27.657438
+    },
+    {
+      "placeId": "ChIJ1enTDF-whEYRwAv05d3P-2E",
+      "name": "Breakwater Kuopio Harbour",
+      "address": "70100 Kuopio, Finland",
+      "rating": 4.6,
+      "totalRatings": 58,
+      "priceLevel": null,
+      "types": [
+        "park"
+      ],
+      "openNow": true,
+      "lat": 62.89263150000001,
+      "lng": 27.7024314
+    },
+    {
+      "placeId": "ChIJG7bTFZCxhEYRtgp6XArz9s8",
+      "name": "Metkapakopelit Oy",
+      "address": "Asemakatu 14, 70100 Kuopio, Finland",
+      "rating": 5,
+      "totalRatings": 105,
+      "priceLevel": null,
+      "types": [
+        "amusement center"
+      ],
+      "openNow": null,
+      "lat": 62.896687699999994,
+      "lng": 27.683650699999998
+    }
+  ]
+}

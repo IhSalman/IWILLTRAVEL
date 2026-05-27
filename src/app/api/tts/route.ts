@@ -77,10 +77,12 @@ export async function POST(req: Request) {
         const audioBuffer = await response.arrayBuffer();
 
         // Deduct usage (1 TTS call ~= 1 minute)
-        if (useCredits) {
-            await deductCredits(user.id, 1);
-        } else {
-            await deductUsage(user.id, 'voice_minutes', 1);
+        if (user) {
+            if (useCredits) {
+                await deductCredits(user.id, 1);
+            } else {
+                await deductUsage(user.id, 'voice_minutes', 1);
+            }
         }
 
         return new Response(audioBuffer, {

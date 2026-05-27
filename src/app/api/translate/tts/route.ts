@@ -1,28 +1,15 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenAI } from '@google/genai';
 import { requireAuth } from '@/utils/auth';
+import { generateContent, logAiUsage } from '@/utils/ai-config';
 
 const MAX_TEXT_LENGTH = 500;
-const ALLOWED_VOICES = new Set(['Puck', 'Kore', 'Charon', 'Fenrir']);
+const ALLOWED_VOICES = new Set(['Puck', 'Kore', 'Charon', 'Fenrir', 'Aoede', 'Helios']);
 
-/**
- * POST /api/translate/tts
- * Body: { text: string; voice?: 'Puck' | 'Kore' | 'Charon' | 'Fenrir' }
- * Returns: { audio: string }  — base64-encoded raw PCM (Int16, 24 kHz, mono)
- */
 export async function POST(req: Request) {
-    // Security: require authentication to protect Gemini API credits
     const authResult = await requireAuth();
     if ('error' in authResult) return authResult.error;
 
     try {
-        if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === 'placeholder_gemini_key') {
-            return NextResponse.json({ error: 'TTS service is not configured' }, { status: 500 });
-        }
-
-        // Initialize SDK inside the handler — avoids build-time crash if env is missing
-        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-
         let body: any;
         try {
             body = await req.json();
@@ -43,33 +30,28 @@ export async function POST(req: Request) {
             );
         }
 
-        // Validate voice name against whitelist to prevent injection
         const safeVoice = ALLOWED_VOICES.has(voice) ? voice : 'Kore';
 
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash-preview-tts',
-            contents: [{ parts: [{ text: text.trim() }] }],
-            config: {
-                responseModalities: ['AUDIO'],
-                speechConfig: {
-                    voiceConfig: {
-                        prebuiltVoiceConfig: { voiceName: safeVoice },
-                    },
-                },
-            },
-        } as any);
+        const { audio, usage, model } = await generateContent(text.trim(), {
+            role: 'analytical',
+            modalities: ['AUDIO'],
+            speechConfig: { voiceName: safeVoice }
+        });
 
-        const part = response.candidates?.[0]?.content?.parts?.[0] as any;
-        const base64Audio = part?.inlineData?.data;
-
-        if (!base64Audio) {
+        if (!audio) {
             return NextResponse.json({ error: 'No audio returned from TTS model' }, { status: 502 });
         }
 
-        return NextResponse.json({ audio: base64Audio });
+        logAiUsage({
+            userId: authResult.user.id,
+            featureType: 'tts',
+            ...usage,
+            model,
+        }).catch(() => {});
+
+        return NextResponse.json({ audio });
     } catch (error) {
-        console.error('[TTS API Error]', error);
-        // Security: never leak internal error details to the client
+        console.error('TTS error:', error);
         return NextResponse.json({ error: 'TTS generation failed' }, { status: 500 });
     }
 }

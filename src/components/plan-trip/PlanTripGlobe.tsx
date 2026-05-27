@@ -122,6 +122,13 @@ export function PlanTripGlobe() {
             <Canvas
                 camera={{ position: [0, 0, 5], fov: 45 }}
                 gl={{ antialias: true, alpha: true }}
+                onCreated={() => {
+                    const originalWarn = console.warn.bind(console);
+                    console.warn = (...args) => {
+                        if (typeof args[0] === 'string' && args[0].includes('THREE.Clock')) return;
+                        originalWarn(...args);
+                    };
+                }}
             >
                 <Suspense fallback={null}>
                     {/* Subtle lighting since the earth is self-illuminating */}

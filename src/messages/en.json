@@ -18,8 +18,8 @@
         "signUp": "Sign Up"
     },
     "Metadata": {
-        "title": "iWillTravel - AI Powered Travel Discovery",
-        "description": "Find the perfect destination based on cost, safety, weather, and your travel style."
+        "title": "iWillTravel - Agentic AI Travel Planner & Discovery Tool",
+        "description": "Find your perfect destination, generate AI-powered daily itineraries, compare flight and hotel prices, and get real-time visa intelligence for your next big trip."
     },
     "HomePage": {
         "title": "Design Your <span className=\"bg-clip-text text-transparent bg-gradient-to-r from-primary via-blue-400 to-sky-600\">Perfect Trip</span> with AI",

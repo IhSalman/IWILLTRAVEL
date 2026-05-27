@@ -1,0 +1,10 @@
+pipeline,day,time_slot,place_name,verified,found_as,address,rating,reviews,note
+Before DGHP (Plain LLM),1,morning,Puijo Tower (Puijon torni),YES,Puijo tower,"Puijontie 135, 70300 Kuopio, Finland",4.4,4802,VERIFIED
+Before DGHP (Plain LLM),1,afternoon,Kuopio Museum (Kuopion museo),YES,Museum of Kuopio,"Museokatu 1, 70100 Kuopio, Finland",4.4,825,VERIFIED
+Before DGHP (Plain LLM),1,evening,Restaurant Isä Camillo,YES,Restaurant Isä Camillo,"Kauppakatu 25-27, 70100 Kuopio, Finland",4.4,974,VERIFIED
+Before DGHP (Plain LLM),2,morning,Kuopio Harbor Lake Saimaa Cruise,YES,Kuopion Roll Risteilyt,"70100 Kuopio, Finland",4.4,256,VERIFIED
+Before DGHP (Plain LLM),2,afternoon,Orthodox Church Museum of Finland (RIISA),YES,RIISA- Orthodox Church Museum of Finland,"Karjalankatu 1, 70110 Kuopio, Finland",4.5,324,VERIFIED
+Before DGHP (Plain LLM),2,evening,Restaurant Sampo,YES,Muikkuravintola Sampo,"Kauppakatu 13, 70100 Kuopio, Finland",4.5,1588,VERIFIED
+Before DGHP (Plain LLM),3,morning,Kuopio Art Museum (Kuopion taidemuseo),YES,Kuopio Art Museum,"Kauppakatu 35, 70100 Kuopio, Finland",4.3,500,VERIFIED
+Before DGHP (Plain LLM),3,afternoon,Kuopio Cathedral (Kuopion tuomiokirkko),YES,Kuopio Cathedral,"Vuorikatu 17, 70100 Kuopio, Finland",4.4,322,VERIFIED
+Before DGHP (Plain LLM),3,evening,Restaurant Kummeli,YES,Ravintola Kummisetä,"Minna Canthin katu 44, 70100 Kuopio, Finland",4.2,549,VERIFIED

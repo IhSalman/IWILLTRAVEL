@@ -2,48 +2,134 @@
  * SaaS Plan Limits Configuration
  *
  * Central source of truth for all plan-based limits.
- * Used by usage.ts and require-plan.ts to enforce quotas.
+ * Tiers: free → starter → pro → enterprise
+ *
+ * Design philosophy: Limit quantity on free, not usefulness.
+ * Day caps removed — they feel artificial and hurt adoption.
  */
 
-export type PlanType = 'free' | 'pro' | 'nomads_pro';
+export type PlanType = 'free' | 'starter' | 'pro' | 'enterprise';
 
 export interface PlanLimits {
+    /** -1 = unlimited */
     maxItinerariesPerMonth: number;
+    /** Total lifetime itineraries. -1 = unlimited */
+    maxItinerariesTotal: number;
+    /** No longer used for gating — kept for display only. -1 = unlimited */
     maxItineraryDays: number;
+    /** Voice translation minutes per month. -1 = unlimited */
     voiceMinutesPerMonth: number;
-    translationTokensPerMonth: number; // -1 = unlimited
+    /** Translation tokens per month. -1 = unlimited */
+    translationTokensPerMonth: number;
+    canExportPDF: boolean;
+    hasPriorityModel: boolean;
+    hasWhiteLabel: boolean;
+    hasSustainabilityScore: boolean;
+    hasLiveFlightData: boolean;
+    hasLiveHotelData: boolean;
+    canSaveAndShare: boolean;
+    hasApiAccess: boolean;
+    hasTeamSeats: boolean;
 }
 
 export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
+    /**
+     * Free — "Try it"
+     * DEV MODE: Unlimited. Change maxItinerariesPerMonth back to 2 before going live.
+     */
     free: {
-        maxItinerariesPerMonth: 1,
-        maxItineraryDays: 3,
+        maxItinerariesPerMonth: -1, // TODO: set back to 2 for production
+        maxItinerariesTotal: -1,
+        maxItineraryDays: -1,
         voiceMinutesPerMonth: 0,
-        translationTokensPerMonth: 1000,
+        translationTokensPerMonth: 0,
+        canExportPDF: false,
+        hasPriorityModel: false,
+        hasWhiteLabel: false,
+        hasSustainabilityScore: false,
+        hasLiveFlightData: false,
+        hasLiveHotelData: false,
+        canSaveAndShare: false,
+        hasApiAccess: false,
+        hasTeamSeats: false,
     },
+
+    /**
+     * Starter — €6/mo — "Occasional traveler"
+     * Unlimited itineraries, save & share, hotels, PDF export.
+     * Bridge between free and pro for light users.
+     */
+    starter: {
+        maxItinerariesPerMonth: -1,
+        maxItinerariesTotal: -1,
+        maxItineraryDays: -1,
+        voiceMinutesPerMonth: 0,
+        translationTokensPerMonth: 0,
+        canExportPDF: true,
+        hasPriorityModel: true,
+        hasWhiteLabel: false,
+        hasSustainabilityScore: false,
+        hasLiveFlightData: false,
+        hasLiveHotelData: true,
+        canSaveAndShare: true,
+        hasApiAccess: false,
+        hasTeamSeats: false,
+    },
+
+    /**
+     * Pro — €12/mo — "Serious traveler" ⭐ Most Popular
+     * Everything in Starter + live flights, voice translation, ESG scoring.
+     * The conversion target — positioned as the obvious choice.
+     */
     pro: {
-        maxItinerariesPerMonth: 10,
-        maxItineraryDays: 12,
-        voiceMinutesPerMonth: 30,
-        translationTokensPerMonth: -1, // unlimited
+        maxItinerariesPerMonth: -1,
+        maxItinerariesTotal: -1,
+        maxItineraryDays: -1,
+        voiceMinutesPerMonth: 10,
+        translationTokensPerMonth: -1,
+        canExportPDF: true,
+        hasPriorityModel: true,
+        hasWhiteLabel: false,
+        hasSustainabilityScore: true,
+        hasLiveFlightData: true,
+        hasLiveHotelData: true,
+        canSaveAndShare: true,
+        hasApiAccess: false,
+        hasTeamSeats: false,
     },
-    nomads_pro: {
-        maxItinerariesPerMonth: 30,
-        maxItineraryDays: 9999, // effectively unlimited
-        voiceMinutesPerMonth: 600,
-        translationTokensPerMonth: -1, // unlimited
+
+    /**
+     * Enterprise — Custom pricing — "Teams & B2B"
+     * White-label, API access, team seats, dedicated support.
+     * Contact form → custom quote.
+     */
+    enterprise: {
+        maxItinerariesPerMonth: -1,
+        maxItinerariesTotal: -1,
+        maxItineraryDays: -1,
+        voiceMinutesPerMonth: -1,
+        translationTokensPerMonth: -1,
+        canExportPDF: true,
+        hasPriorityModel: true,
+        hasWhiteLabel: true,
+        hasSustainabilityScore: true,
+        hasLiveFlightData: true,
+        hasLiveHotelData: true,
+        canSaveAndShare: true,
+        hasApiAccess: true,
+        hasTeamSeats: true,
     },
 };
 
 /**
- * Credit pack definitions (for reference / validation).
+ * Monthly subscription pricing (EUR).
  */
-export const CREDIT_PACKS = [
-    { name: 'Starter',     credits: 300,  priceEur: 10  },
-    { name: 'Explorer',    credits: 1000, priceEur: 35  },
-    { name: 'Nomad Pack',  credits: 2500, priceEur: 70  },
-    { name: 'Ultra',       credits: 5000, priceEur: 130 },
-] as const;
+export const PLAN_PRICING = {
+    free:       { monthly: 0,  yearly: 0   },
+    starter:    { monthly: 6,  yearly: 60  }, // €5/mo billed annually
+    pro:        { monthly: 12, yearly: 115 }, // €9.55/mo billed annually
+    enterprise: { monthly: 0,  yearly: 0   }, // Custom — contact sales
+} as const;
 
 /**
  * Helper to get the current billing period string (YYYY-MM).
@@ -54,3 +140,12 @@ export function getCurrentPeriod(): string {
     const month = String(now.getUTCMonth() + 1).padStart(2, '0');
     return `${year}-${month}`;
 }
+
+/**
+ * Credit pack options for manual top-ups.
+ */
+export const CREDIT_PACKS = [
+    { name: 'Starter', priceEur: 2,  credits: 50 },
+    { name: 'Traveler', priceEur: 5,  credits: 150 },
+    { name: 'Expert', priceEur: 10, credits: 400 },
+] as const;

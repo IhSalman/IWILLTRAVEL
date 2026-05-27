@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { requireAuth } from '@/utils/auth';
-import { getActiveModel, extractTokens, logAiUsage } from '@/utils/ai-config';
+import { generateContent, logAiUsage } from '@/utils/ai-config';
 
 const MAX_CONTENT_LENGTH = 5_000;
 
@@ -11,11 +10,6 @@ export async function POST(req: Request) {
     if ('error' in authResult) return authResult.error;
 
     try {
-        const apiKey = process.env.GEMINI_API_KEY;
-        if (!apiKey) {
-            return NextResponse.json({ error: 'GEMINI_API_KEY is not configured' }, { status: 500 });
-        }
-
         const { content, type } = await req.json();
 
         if (!content || typeof content !== 'string') {
@@ -29,15 +23,6 @@ export async function POST(req: Request) {
             );
         }
 
-        const activeModelName = await getActiveModel();
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({
-            model: activeModelName,
-            generationConfig: {
-                responseMimeType: 'application/json',
-            },
-        });
-
         const systemPrompt = `You are a travel content analyzer. Given a travel post, extract:
 1. travel_style: one of "budget", "luxury", "backpacking", "family", "solo", "couple", "group" (or null)
 2. season: one of "spring", "summer", "autumn", "winter" (or null if unclear)
@@ -50,22 +35,23 @@ Respond with ONLY valid JSON in this format:
 Post Content:
 ${content}`;
 
-        const result = await model.generateContent(systemPrompt);
-        const response = result.response;
+        const result = await generateContent(systemPrompt, { 
+            role: 'analytical', 
+            json: true 
+        });
 
         // Log token usage
-        const tokens = extractTokens(response);
         logAiUsage({
             userId: authResult.user.id,
             featureType: 'tag-post',
-            inputTokens: tokens.inputTokens,
-            outputTokens: tokens.outputTokens,
-            totalTokens: tokens.totalTokens,
-            model: activeModelName,
+            inputTokens: result.usage.inputTokens,
+            outputTokens: result.usage.outputTokens,
+            totalTokens: result.usage.totalTokens,
+            model: result.model,
         }).catch(() => {});
 
         try {
-            return NextResponse.json(JSON.parse(response.text().trim()));
+            return NextResponse.json(JSON.parse(result.text.trim()));
         } catch {
             console.error('JSON Parse Error in tag-post route');
             return NextResponse.json({ error: 'Failed to parse AI response' }, { status: 500 });

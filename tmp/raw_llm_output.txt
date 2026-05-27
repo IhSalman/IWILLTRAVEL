@@ -1,0 +1,64 @@
+{
+  "days": [
+    {
+      "day": 1,
+      "activities": [
+        {
+          "time": "morning",
+          "name": "Puijo Tower (Puijon torni)",
+          "description": "Ascend this iconic observation tower for panoramic views of Kuopio and the surrounding lake district."
+        },
+        {
+          "time": "afternoon",
+          "name": "Kuopio Museum (Kuopion museo)",
+          "description": "Explore the natural history and cultural heritage of the Kuopio region within this fascinating museum."
+        },
+        {
+          "time": "evening",
+          "name": "Restaurant Isä Camillo",
+          "description": "Enjoy a delightful dinner with a blend of Italian and Finnish flavors in a cozy city center setting."
+        }
+      ]
+    },
+    {
+      "day": 2,
+      "activities": [
+        {
+          "time": "morning",
+          "name": "Kuopio Harbor Lake Saimaa Cruise",
+          "description": "Take a scenic boat trip on Lake Saimaa departing from Kuopio harbor to admire the beautiful archipelago and Finnish Lakeland nature."
+        },
+        {
+          "time": "afternoon",
+          "name": "Orthodox Church Museum of Finland (RIISA)",
+          "description": "Discover the rich history and art of the Orthodox Church in Finland through its extensive collection of icons and artifacts."
+        },
+        {
+          "time": "evening",
+          "name": "Restaurant Sampo",
+          "description": "Savor traditional Finnish cuisine, including local fish dishes, in a long-standing restaurant known for its authentic atmosphere."
+        }
+      ]
+    },
+    {
+      "day": 3,
+      "activities": [
+        {
+          "time": "morning",
+          "name": "Kuopio Art Museum (Kuopion taidemuseo)",
+          "description": "Immerse yourself in Finnish art from the 19th century to the present day at this regional art museum."
+        },
+        {
+          "time": "afternoon",
+          "name": "Kuopio Cathedral (Kuopion tuomiokirkko)",
+          "description": "Visit this impressive neoclassical cathedral, a prominent landmark in Kuopio, and admire its architecture."
+        },
+        {
+          "time": "evening",
+          "name": "Restaurant Kummeli",
+          "description": "Conclude your trip with a memorable dinner at Restaurant Kummeli, known for its quality ingredients and pleasant ambiance."
+        }
+      ]
+    }
+  ]
+}

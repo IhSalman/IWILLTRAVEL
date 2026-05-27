@@ -1,9 +1,18 @@
 /**
- * Shared TypeScript types for the 9-Agent Itinerary System
+ * Shared TypeScript types for the 8-Agent Itinerary System
  * 
- * Each agent has strictly typed input/output interfaces.
- * Data flows: Input → Agent1 → Agent2 → ... → Agent9 → FinalItinerary
+ * Standardized 8-Agent Sequential Pipeline:
+ * Agent 1: Discovery    -> Grounding data acquisition
+ * Agent 2: Planning     -> Strategic skeleton generation
+ * Agent 3: Research     -> Market procurement (Flights/Hotels)
+ * Agent 4: Finance      -> Economic audit & optimization
+ * Agent 5: Experience   -> Cultural & local enrichment
+ * Agent 6: Logistics    -> Spatial/Route optimization
+ * Agent 7: ESG          -> Sustainability scoring
+ * Agent 8: Composer     -> Final synthesis & narrative
  */
+
+import type { ESGReport } from '@/lib/esg-calculator';
 
 // ─── USER INPUT ──────────────────────────────────────────────────────────────
 
@@ -20,26 +29,40 @@ export interface AgentInput {
     originCity?: string;
     includeFlights?: boolean;
     includeHotels?: boolean;
-    customBudget?: number;     // exact amount in user's currency
-    currency?: string;         // e.g. 'USD', 'EUR', 'BDT', 'INR'
+    customBudget?: number;     
+    currency?: string;         
+    discoveredVenues?: any[];  // Grounding pool from Agent 1
 }
 
-// ─── AGENT 1: TRAVEL PLANNING AGENT ─────────────────────────────────────────
+// ─── AGENT 1: DISCOVERY ──────────────────────────────────────────────────────
+
+export interface DiscoveryResult {
+    venues: any[];
+    source: string;
+    timestamp: string;
+    error?: string;
+}
+
+// ─── AGENT 2: PLANNING ───────────────────────────────────────────────────────
 
 export interface PlanDay {
     day: number;
     city: string;
-    activities: string[];        // Activity names/descriptions (skeleton)
+    neighborhood: string;
+    neighborhoodDescription?: string;
+    activities: string[];
+    transitNote?: string;
 }
 
 export interface PlanResult {
     plan: PlanDay[];
-    researchPlan?: string[];     // Strategic steps the agent will take
+    researchPlan?: string[];
     error?: string;
     details?: string;
+    _tokens?: any;
 }
 
-// ─── AGENT 2: TRAVEL RESEARCH AGENT ─────────────────────────────────────────
+// ─── AGENT 3: RESEARCH ───────────────────────────────────────────────────────
 
 export interface Flight {
     from: string;
@@ -49,12 +72,12 @@ export interface Flight {
     airline?: string;
     duration?: string;
     stops?: number;
-    departureTime?: string;
-    source?: string;           // 'Kiwi' | 'Amadeus'
-    bookingUrl?: string;       // direct booking link
-    returnDate?: string;
-    arrivalTime?: string;
+    source?: string;
+    bookingUrl?: string;
     cabin?: string;
+    isEstimate?: boolean;
+    tier?: 'budget' | 'value' | 'premium';
+    comparisonLinks?: any;
 }
 
 export interface Hotel {
@@ -62,15 +85,15 @@ export interface Hotel {
     name: string;
     price: number;
     rating?: number;
-    roomType?: string;
-    source?: string;           // 'Kiwi' | 'Amadeus'
+    stars?: number;
+    source?: string;
     bookingUrl?: string;
-    stars?: number;            // 1-5 star classification
-    reviewScore?: number;      // guest review score (0-10)
-    location?: string;         // neighbourhood / address
-    amenities?: string[];      // e.g. ['WiFi', 'Pool', 'Breakfast']
-    imageUrl?: string;
-    tag?: 'cheapest' | 'best-rated' | 'best-value';  // analysis tag
+    amenities?: string[];
+    isEstimate?: boolean;
+    tier?: 'budget' | 'mid-range' | 'luxury';
+    comparisonLinks?: any;
+    roomType?: string;
+    tag?: string;
 }
 
 export interface PlaceDetail {
@@ -84,20 +107,45 @@ export interface PlaceDetail {
     types: string[];
     lat?: number;
     lng?: number;
+    airQuality?: {
+        aqi: number;
+        category: string;
+        dominantPollutant: string;
+        color: string;
+    } | null;
 }
 
 export interface ResearchResult {
     flights: Flight[];
     hotels: Hotel[];
-    placeDetails: Record<string, PlaceDetail>;  // key = place name
-    weather?: any;                              // Monthly/Forecast data
-    currency?: { base: string; rates: Record<string, number> };
+    placeDetails: Record<string, PlaceDetail>;
+    weather?: any;
+    currency?: any;
     locationCoords?: { lat: number; lng: number };
     error?: string;
     details?: string;
 }
 
-// ─── AGENT 3: LOCAL EXPERIENCE AGENT ────────────────────────────────────────
+// ─── AGENT 4: FINANCE ────────────────────────────────────────────────────────
+
+export interface FlightAnalysis {
+    cheapestDay: string | null;
+    averagePrice: number;
+    lowestPrice: number;
+    bestOption: Flight | null;
+    recommendation: string;
+}
+
+export interface BudgetResult {
+    isWithinBudget: boolean;
+    totalCost: number;
+    flightsCost: number;
+    hotelsCost: number;
+    dailyBudgetRemaining: number;
+    adjustments: string[];
+}
+
+// ─── AGENT 5: EXPERIENCE ─────────────────────────────────────────────────────
 
 export interface PlaceSearchResult {
     name: string;
@@ -122,39 +170,23 @@ export interface ExperienceResult {
     details?: string;
 }
 
-// ─── AGENT 4: FLIGHT ANALYSIS AGENT ────────────────────────────────────────
-
-export interface FlightAnalysis {
-    cheapestDay: string | null;
-    averagePrice: number;
-    lowestPrice: number;
-    bestOption: Flight | null;
-    recommendation: string;
-    error?: string;
-}
-
-// ─── AGENT 5: BUDGET OPTIMIZATION AGENT ─────────────────────────────────────
-
-export interface BudgetResult {
-    isWithinBudget: boolean;
-    totalCost: number;
-    flightsCost: number;
-    hotelsCost: number;
-    dailyBudgetRemaining: number;
-    adjustments: string[];
-    error?: string;
-}
-
-// ─── AGENT 6: ROUTE OPTIMIZATION AGENT ──────────────────────────────────────
+// ─── AGENT 6: LOGISTICS ──────────────────────────────────────────────────────
 
 export interface OptimizedRoute {
-    optimizedRoute: string[];        // Reordered city sequence
+    optimizedRoute: string[];
     removedBacktracks: number;
     routeChanged: boolean;
     error?: string;
 }
 
-// ─── AGENT 9: FINAL ITINERARY COMPOSER ──────────────────────────────────────
+// ─── AGENT 7: SUSTAINABILITY (ESG) ──────────────────────────────────────────
+
+export interface SustainabilityResult {
+    report: ESGReport;
+    error?: string;
+}
+
+// ─── AGENT 8: COMPOSER ───────────────────────────────────────────────────────
 
 export interface FinalActivity {
     time: string;
@@ -172,12 +204,20 @@ export interface FinalActivity {
     openingHours?: string[];
     source: string;
     transportNote: string;
-}
-
-export interface FinalDayResources {
-    whereToEat: { label: string; url: string; photoUrl?: string; rating?: number; lat?: number; lng?: number }[];
-    experiences: { label: string; url: string; lat?: number; lng?: number }[];
-    transportTip: string;
+    bookingUrl?: string;
+    lat?: number;
+    lng?: number;
+    transitToNextMinutes?: number;
+    transitToNextMode?: string;
+    transitToNextKm?: number;
+    mealNearby?: string;
+    accessibilityNote?: string;
+    airQuality?: {
+        aqi: number;
+        category: string;
+        dominantPollutant: string;
+        color: string;
+    } | null;
 }
 
 export interface FinalDay {
@@ -187,7 +227,7 @@ export interface FinalDay {
     difficulty: 'high' | 'medium' | 'low';
     pace: string;
     activities: FinalActivity[];
-    dayResources: FinalDayResources;
+    dayResources: any;
 }
 
 export interface FinalItinerary {
@@ -199,27 +239,14 @@ export interface FinalItinerary {
     localCustoms: string[];
     safetyAdvice: string[];
     budgetTips: string[];
-    realityCheck: {
-        crowds: { level: 'high' | 'medium' | 'low'; description: string };
-        physical: { level: 'high' | 'medium' | 'low'; description: string };
-        weather: string[];
-    };
+    realityCheck: any;
     days: FinalDay[];
-    budgetBreakdown: {
-        totalEstimate: string;
-        savingTips: string[];
-        currencyCode?: string;
-        conversionRate?: number;
-    };
-    flightInfo?: {
-        bestOption: Flight | null;
-        analysis: string;
-    };
+    budgetBreakdown: any;
+    flightInfo?: any;
     hotelInfo?: Hotel[];
-    weatherForecast?: any;
+    esgReport?: ESGReport;
+    _tokens?: any;
 }
-
-// ─── COMPOSER MERGED INPUT ──────────────────────────────────────────────────
 
 export interface ComposerInput {
     input: AgentInput;
@@ -229,13 +256,20 @@ export interface ComposerInput {
     flightAnalysis: FlightAnalysis;
     budgetCheck: BudgetResult;
     optimizedRoute: OptimizedRoute;
+    sustainability: SustainabilityResult;
 }
 
-// ─── PIPELINE LOG ───────────────────────────────────────────────────────────
+// ─── STREAMING ───────────────────────────────────────────────────────────────
 
 export interface AgentLog {
     agent: string;
     durationMs: number;
     status: 'success' | 'error' | 'skipped';
     details?: string;
+    timestamp: string;
 }
+
+export type StreamEvent =
+    | { event: 'log'; data: AgentLog }
+    | { event: 'result'; data: any }
+    | { event: 'error'; data: { message: string } };

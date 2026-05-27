@@ -82,7 +82,7 @@ export default async function AdminDashboardPage() {
             <div>
                 <h1 className="text-3xl font-bold tracking-tight">Dashboard Overview</h1>
                 <p className="text-muted-foreground mt-2">
-                    Analytics and statistics for iWillTravel AI.
+                    Analytics and statistics for iWillTravel.
                 </p>
             </div>
 

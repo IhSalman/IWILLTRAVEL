@@ -13,6 +13,8 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { GlassCard } from '@/components/landing/GlassCard';
 import { ParticleField } from '@/components/landing/ParticleField';
+import { FAQSection } from '@/components/landing/FAQSection';
+import { JapanLeadMagnet } from '@/components/landing/JapanLeadMagnet';
 
 // Lazy-load 3D globe to avoid SSR issues
 const LandingGlobe = dynamic(
@@ -182,10 +184,6 @@ const testimonials = [
 ];
 
 export default function Home() {
-    const [newsletterEmail, setNewsletterEmail] = useState('');
-    const [isSubscribing, setIsSubscribing] = useState(false);
-    const [newsletterStatus, setNewsletterStatus] = useState<'idle' | 'success' | 'error'>('idle');
-    const [newsletterMessage, setNewsletterMessage] = useState('');
     const [activeAgent, setActiveAgent] = useState(0);
     const heroRef = useRef<HTMLElement>(null);
     const mouseX = useMotionValue(0);
@@ -238,35 +236,14 @@ export default function Home() {
         };
     }, [mouseX, mouseY]);
 
-    const handleSubscribe = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!newsletterEmail) return;
-        setIsSubscribing(true);
-        setNewsletterStatus('idle');
-        try {
-            const res = await fetch('/api/newsletter', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: newsletterEmail }),
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || 'Failed to subscribe');
-            setNewsletterStatus('success');
-            setNewsletterMessage(data.message === 'Already subscribed!' ? "You're already on the list! ✈️" : 'Welcome aboard! Check your inbox. ✈️');
-            setNewsletterEmail('');
-        } catch (error: any) {
-            setNewsletterStatus('error');
-            setNewsletterMessage(error.message || 'Something went wrong. Please try again.');
-        } finally {
-            setIsSubscribing(false);
-        }
-    };
-
+    // Hero parallax
     const fadeUp = {
-        hidden: { opacity: 0, y: 30 },
+        hidden: { opacity: 0, y: 40, filter: 'blur(12px)' },
         visible: (i = 0) => ({
-            opacity: 1, y: 0,
-            transition: { duration: 0.6, delay: i * 0.1, ease: 'easeOut' as const }
+            opacity: 1, y: 0, filter: 'blur(0px)',
+            transition: { 
+                type: 'spring' as const, bounce: 0, duration: 0.9, delay: i * 0.15 
+            }
         })
     };
 
@@ -300,31 +277,32 @@ export default function Home() {
                         >
                             <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold"
                                 style={{
-                                    background: 'rgba(99,102,241,0.15)',
-                                    border: '1px solid rgba(99,102,241,0.4)',
-                                    color: '#A5B4FC',
+                                    background: 'rgba(0,255,179,0.1)',
+                                    border: '1px solid rgba(0,255,179,0.3)',
+                                    color: '#00FFB3',
                                 }}>
-                                <Zap className="w-3.5 h-3.5" />
-                                6 AI Agents Working for You
-                                <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                                <Sparkles className="w-3.5 h-3.5" />
+                                Solo travelers, nomads & explorers — free to start
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#00FFB3] animate-pulse" />
                             </span>
                         </motion.div>
 
                         {/* Headline */}
                         <motion.h1
                             variants={fadeUp} initial="hidden" animate="visible" custom={1}
-                            className="text-5xl md:text-6xl xl:text-7xl font-black tracking-tight leading-[1.05] mb-6"
+                            className="text-5xl md:text-6xl xl:text-8xl font-black tracking-tighter leading-[0.9] mb-6"
                             style={{ color: '#F0F4FF' }}
                         >
-                            Travel Planned by{' '}
+                            Plan Your Trip{' '}
                             <span className="block"
                                 style={{
-                                    background: 'linear-gradient(135deg, #00D4FF 0%, #6366F1 50%, #00FFB3 100%)',
+                                    background: 'linear-gradient(135deg, #00D4FF 0%, #6366F1 50%, #B4A7FF 100%)',
                                     WebkitBackgroundClip: 'text',
                                     WebkitTextFillColor: 'transparent',
                                     backgroundClip: 'text',
+                                    filter: 'drop-shadow(0px 4px 32px rgba(0, 212, 255, 0.35))'
                                 }}>
-                                Agentic AI
+                                in Minutes.
                             </span>
                         </motion.h1>
 
@@ -334,8 +312,8 @@ export default function Home() {
                             className="text-lg md:text-xl leading-relaxed mb-10 max-w-lg"
                             style={{ color: 'rgba(176,184,204,0.85)' }}
                         >
-                            Six specialized AI agents collaborate to plan your perfect trip — from itineraries
-                            to visa checks, real-time flights, hotel comparisons, live translation, and traveler intel.
+                            Tell us where you want to go. We handle the day-by-day plan, visa requirements,
+                            flights, hotels, translations — and surface the hidden gems most travelers never find.
                         </motion.p>
 
                         {/* CTAs */}
@@ -518,19 +496,19 @@ export default function Home() {
                     >
                         <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold mb-6"
                             style={{ background: 'rgba(0,212,255,0.1)', border: '1px solid rgba(0,212,255,0.25)', color: '#00D4FF' }}>
-                            <Bot className="w-3.5 h-3.5" />
-                            Multi-Agent Architecture
+                            <Zap className="w-3.5 h-3.5" />
+                            How it works in 60 seconds
                         </span>
                         <h2 className="text-4xl md:text-5xl font-black mb-5"
                             style={{ color: '#F0F4FF' }}>
-                            Six Agents. One{' '}
+                            One prompt.{' '}
                             <span style={{ background: 'linear-gradient(90deg, #00D4FF, #6366F1)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-                                Perfect Trip.
+                                Your entire trip.
                             </span>
                         </h2>
                         <p className="text-lg max-w-2xl mx-auto" style={{ color: 'rgba(176,184,204,0.75)' }}>
-                            Our AI agents work in parallel, each specializing in a different aspect of your travel — 
-                            then synthesize everything into one seamless plan.
+                            Six specialized AI modules run behind the scenes — you just see a complete,
+                            ready-to-use travel plan the moment you hit generate.
                         </p>
                     </motion.div>
 
@@ -899,62 +877,14 @@ export default function Home() {
             </section>
 
             {/* ═══════════════════════════════════════════ */}
-            {/* NEWSLETTER SECTION                         */}
+            {/* FAQ SECTION                                */}
             {/* ═══════════════════════════════════════════ */}
-            <section className="py-28 px-4">
-                <div className="max-w-2xl mx-auto">
-                    <GlassCard className="p-10 text-center" glowColor="0, 212, 255" tilt={false}>
-                        <div className="w-16 h-16 rounded-3xl mx-auto mb-6 flex items-center justify-center"
-                            style={{ background: 'rgba(0,212,255,0.15)', border: '1px solid rgba(0,212,255,0.2)' }}>
-                            <Send className="w-7 h-7 text-cyan-400" />
-                        </div>
-                        <h2 className="text-3xl font-black text-white mb-3">Stay in the Loop</h2>
-                        <p className="mb-8" style={{ color: 'rgba(176,184,204,0.7)' }}>
-                            Get weekly AI travel tips, destination guides, and early feature access.
-                        </p>
-                        <form onSubmit={handleSubscribe} className="flex gap-3">
-                            <input
-                                type="email"
-                                placeholder="you@example.com"
-                                value={newsletterEmail}
-                                onChange={(e) => setNewsletterEmail(e.target.value)}
-                                disabled={isSubscribing}
-                                required
-                                className="flex-1 px-4 py-3 rounded-xl text-sm outline-none"
-                                style={{
-                                    background: 'rgba(255,255,255,0.06)',
-                                    border: '1px solid rgba(255,255,255,0.12)',
-                                    color: 'white',
-                                }}
-                            />
-                            <Button type="submit" disabled={isSubscribing}
-                                className="rounded-xl px-6 font-bold flex-shrink-0"
-                                style={{
-                                    background: 'linear-gradient(135deg, #00D4FF, #6366F1)',
-                                    color: 'white',
-                                    border: 'none',
-                                }}>
-                                {isSubscribing ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Subscribe'}
-                            </Button>
-                        </form>
-                        {newsletterStatus === 'success' && (
-                            <p className="text-xs text-emerald-400 mt-3 flex items-center justify-center gap-1.5">
-                                <CheckCircle2 className="w-3.5 h-3.5" /> {newsletterMessage}
-                            </p>
-                        )}
-                        {newsletterStatus === 'error' && (
-                            <p className="text-xs text-red-400 mt-3 flex items-center justify-center gap-1.5">
-                                <AlertCircle className="w-3.5 h-3.5" /> {newsletterMessage}
-                            </p>
-                        )}
-                        {newsletterStatus === 'idle' && (
-                            <p className="text-[11px] mt-3" style={{ color: 'rgba(176,184,204,0.35)' }}>
-                                No spam. Unsubscribe any time.
-                            </p>
-                        )}
-                    </GlassCard>
-                </div>
-            </section>
+            <FAQSection />
+
+            {/* ═══════════════════════════════════════════ */}
+            {/* LEAD MAGNET / NEWSLETTER SECTION            */}
+            {/* ═══════════════════════════════════════════ */}
+            <JapanLeadMagnet />
 
             {/* ═══════════════════════════════════════════ */}
             {/* FINAL CTA SECTION                          */}

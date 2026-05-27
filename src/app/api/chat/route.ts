@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import { getActiveModel, logAiUsage } from '@/utils/ai-config';
+import { streamContent, logAiUsage } from '@/utils/ai-config';
 
 const MAX_MESSAGES = 50;
 const MAX_MESSAGE_LENGTH = 2_000;
@@ -46,10 +45,7 @@ export async function POST(req: Request) {
             }
         }
 
-        const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-        if (!GEMINI_API_KEY) {
-            return NextResponse.json({ error: 'AI service not configured' }, { status: 500 });
-        }
+        // (Unified AI utility handles key logic internally)
 
         const systemPrompt = `You are a senior travel consultant at a premium travel agency. You have deep destination expertise and deliver a seamless trip planning experience.
 
@@ -89,44 +85,31 @@ When ready (destination, duration, budget, traveller type, interests gathered or
 </TRIP_PLAN>
 Only output the JSON after explicit confirmation.`;
 
-        // Security: use the SDK which sends API key via headers, not URL query strings
-        const activeModelName = await getActiveModel();
-        const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-        const model = genAI.getGenerativeModel({
-            model: activeModelName,
-            generationConfig: {
-                temperature: 0.7,
-                topP: 0.95,
-                topK: 40,
-                maxOutputTokens: 2048,
-            },
-        });
-
-        // Build chat history for the SDK
-        const chatHistory = [
-            { role: 'user' as const, parts: [{ text: systemPrompt }] },
-            { role: 'model' as const, parts: [{ text: 'Understood. Ready to help plan trips.' }] },
-            ...messages.slice(0, -1).map((m: any) => ({
-                role: (m.role === 'assistant' ? 'model' : 'user') as 'model' | 'user',
-                parts: [{ text: String(m.content) }],
+        // Use universal streaming utility
+        const { stream: aiStream, model: finalModel, getUsage } = await streamContent(
+            messages.map((m: any) => ({ 
+                role: m.role === 'assistant' ? 'assistant' : 'user', 
+                content: String(m.content) 
             })),
-        ];
+            { 
+                systemInstruction: systemPrompt,
+                role: 'creative'
+            }
+        );
 
-        const lastMessage = messages[messages.length - 1];
-
-        const chat = model.startChat({ history: chatHistory });
-        const result = await chat.sendMessageStream(String(lastMessage.content));
-
-        // Stream the response using SSE format
+        // Transform internal raw stream into SSE format for the client
         const encoder = new TextEncoder();
+        const decoder = new TextDecoder();
+        const reader = aiStream.getReader();
+
         const stream = new ReadableStream({
             async start(controller) {
-                let totalChunks = 0;
                 try {
-                    for await (const chunk of result.stream) {
-                        const text = chunk.text();
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+                        const text = decoder.decode(value);
                         if (text) {
-                            totalChunks++;
                             const sseData = `data: ${JSON.stringify({ candidates: [{ content: { parts: [{ text }] } }] })}\n\n`;
                             controller.enqueue(encoder.encode(sseData));
                         }
@@ -134,15 +117,14 @@ Only output the JSON after explicit confirmation.`;
                     controller.close();
 
                     // Log usage after stream completes
-                    const response = await result.response;
-                    const meta = response?.usageMetadata;
+                    const usage = await getUsage();
                     logAiUsage({
                         userId: user!.id,
                         featureType: 'chat',
-                        inputTokens: meta?.promptTokenCount ?? 0,
-                        outputTokens: meta?.candidatesTokenCount ?? 0,
-                        totalTokens: meta?.totalTokenCount ?? 0,
-                        model: activeModelName,
+                        inputTokens: usage.inputTokens,
+                        outputTokens: usage.outputTokens,
+                        totalTokens: usage.totalTokens,
+                        model: finalModel,
                     }).catch(() => {});
                 } catch (err) {
                     console.error('Stream error:', err);

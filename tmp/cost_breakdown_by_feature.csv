@@ -1,0 +1,6 @@
+feature_type,call_count,total_cost_usd,avg_cost_usd,total_tokens,avg_tokens
+itinerary,53,0.192859,0.003639,210145,3965
+translate,18,0.000558,0.000031,5611,312
+ocr,1,0.000433,0.000433,2408,2408
+visa,4,0.004879,0.001220,6065,1516
+agent_itinerary,22,0.036396,0.001654,92961,4226

@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { GoogleGenerativeAI } from '@google/generative-ai'
 import { getCache, setCache } from '@/utils/cache'
-import { getActiveModel, extractTokens, logAiUsage } from '@/utils/ai-config'
+import { generateContent, logAiUsage } from '@/utils/ai-config'
 import { requirePlan } from '@/utils/require-plan'
 import { deductUsage, deductCredits } from '@/utils/usage'
 import crypto from 'node:crypto'
@@ -32,7 +31,7 @@ const ItinerarySchema = z.object({
 export async function POST(req: Request) {
   try {
     // 1. Authenticate + Plan Validation
-    const planResult = await requirePlan('itinerary', { days: undefined }); // days checked after parse
+    const planResult = await requirePlan('itinerary', { days: undefined });
     if ('error' in planResult) return planResult.error;
     const { user, plan, useCredits } = planResult;
 
@@ -72,9 +71,8 @@ export async function POST(req: Request) {
       )
     }
 
-    // Re-check with actual days (requirePlan was called without days for auth)
-    const { requirePlan: requirePlanFn } = await import('@/utils/require-plan');
-    const dayCheck = await requirePlanFn('itinerary', { days: data.days });
+    // Re-check with actual days
+    const dayCheck = await requirePlan('itinerary', { days: data.days });
     if ('error' in dayCheck) return dayCheck.error;
 
     // 4. Build Persona & Context
@@ -97,19 +95,6 @@ export async function POST(req: Request) {
       cultural: 'Cultural immersion: Museums, historical sites, local traditions, authentic experiences.'
     }[data.travelStyle]
 
-    // 5. AI Generation
-    const GEMINI_API_KEY = process.env.GEMINI_API_KEY
-    if (!GEMINI_API_KEY) {
-      return NextResponse.json({ error: 'AI service not configured' }, { status: 500 })
-    }
-
-    const activeModelName = await getActiveModel()
-    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY)
-    const model = genAI.getGenerativeModel({
-      model: activeModelName,
-      generationConfig: { responseMimeType: 'application/json' }
-    })
-
     const placeContext = data.placeResearch ? `
 REAL DATA FROM GOOGLE PLACES:
 - Rating: ${data.placeResearch.rating}/5 (${data.placeResearch.totalRatings} reviews)
@@ -119,20 +104,18 @@ REAL DATA FROM GOOGLE PLACES:
 Use this real data to make recommendations more specific and accurate.
 ` : ''
 
-    const systemPrompt = `You are WanderPlan AI, an expert travel planner with deep destination knowledge. Generate a professional, research-driven JSON travel plan.
+    const systemPrompt = `You are iWillTravel, an expert travel planner. Generate a professional, research-driven JSON travel plan.
 
 TRAVELER PROFILE: ${travelerPersona} ${budgetContext} ${styleContext}
 Interests: ${data.interests.join(', ') || 'General sightseeing'}. Accommodation: ${data.accommodation}. Transport: ${data.transport}.
-Dietary: ${data.dietaryPrefs.join(', ') || 'None'}. Accessibility: ${data.accessibilityNeeds.join(', ') || 'None'}.
-Start Time Preference: ${data.startTimePreference}. Special Requests: ${data.specialRequests || 'None'}
 DESTINATION: ${data.city.name}, ${data.city.country} — ${data.days} days.
 ${placeContext}
 
-Return ONLY a valid JSON object matching this EXACT structure (no markdown, no extra text):
+Return ONLY a valid JSON object matching this EXACT structure:
 {
   "title": "Evocative trip title",
-  "overview": "2-3 sentence destination overview tailored to the traveler profile",
-  "bestTimeToVisit": "Best season/months to visit and why",
+  "overview": "2-3 sentence overview",
+  "bestTimeToVisit": "Best months to visit",
   "whyThisPlan": ["Reason 1", "Reason 2", "Reason 3", "Reason 4"],
   "travelTips": ["Tip 1", "Tip 2", "Tip 3", "Tip 4", "Tip 5"],
   "localCustoms": ["Custom 1", "Custom 2", "Custom 3"],
@@ -147,109 +130,88 @@ Return ONLY a valid JSON object matching this EXACT structure (no markdown, no e
     {
       "day": 1,
       "theme": "Theme for the day",
-      "areaFocus": "Main neighbourhood covered",
+      "areaFocus": "Main neighbourhood",
       "difficulty": "high|medium|low",
       "pace": "easy|moderate|packed",
       "activities": [
         {
           "time": "Morning|Late Morning|Afternoon|Early Evening|Evening|Late Evening",
           "title": "Activity Name",
-          "description": "2-3 sentences tailored to the traveler profile.",
+          "description": "2-3 sentences.",
           "duration": "2 hours",
-          "cost": "€15 per person",
-          "tip": "Expert insider tip",
-          "transportNote": "How to get there from previous stop"
+          "cost": "€15",
+          "tip": "Insider tip",
+          "transportNote": "How to get there"
         }
       ],
       "dayResources": {
         "whereToEat": [{ "label": "...", "url": "https://..." }],
         "experiences": [{ "label": "...", "url": "https://..." }],
-        "transportTip": "Practical transport note for this area."
+        "transportTip": "Transport note."
       }
     }
   ],
   "budgetBreakdown": {
-    "totalEstimate": "€X–€Y per person for entire trip",
+    "totalEstimate": "€X–€Y",
     "savingTips": ["Tip 1", "Tip 2", "Tip 3"]
   }
 }
 
 Rules:
 - Activities per day: 4-6 for Packed, 3-4 for Moderate, 2-3 for Relaxed
-- time field MUST be one of: "Morning", "Late Morning", "Afternoon", "Early Evening", "Evening", "Late Evening"
-- Include a "Lunch Break" or "Rest" activity slot at midday
-- Cost must be specific (e.g. "Free", "€12", "$25-30")
-- Duration must be specific (e.g. "1.5 hours", "45 minutes")
-- Do NOT name specific restaurants or hotels anywhere in the JSON
-- Do NOT include markdown code blocks in your response`
+- Do NOT name specific restaurants or hotels
+- Return ONLY valid JSON, no markdown`
 
     console.log('Generating itinerary for:', data.city.name)
 
-    // Run AI generation — keep resultAI in outer scope for token logging
-    let rawContent: string
-    let tokenMeta = { inputTokens: 0, outputTokens: 0, totalTokens: 0 }
-
-    try {
-      const resultAI = await model.generateContent(systemPrompt)
-      const responseAI = resultAI.response
-      rawContent = responseAI.text()
-      tokenMeta = extractTokens(responseAI)
-      console.log('AI Response received, length:', rawContent.length)
-    } catch (aiError) {
-      const message = aiError instanceof Error ? aiError.message : 'Check model availability'
-      console.error('Gemini API Error details:', aiError)
-      throw new Error(`Gemini AI Error: ${message}`)
-    }
+    const { text: rawContent, usage, model } = await generateContent(systemPrompt, {
+        role: 'creative',
+        json: true
+    });
 
     let itinerary: any
     try {
       itinerary = JSON.parse(rawContent)
     } catch {
-      console.error('Initial JSON Parse Error, attempting recovery...')
       const jsonMatch = rawContent.match(/\{[\s\S]*\}/)
       if (jsonMatch) {
         try {
           itinerary = JSON.parse(jsonMatch[0])
         } catch {
-          console.error('Recovery failed. Raw AI Content:', rawContent)
           throw new Error('AI returned invalid JSON format')
         }
       } else {
-        console.error('Raw AI Content:', rawContent)
         throw new Error('AI returned invalid JSON format')
       }
     }
 
     if (!itinerary || !itinerary.days || !Array.isArray(itinerary.days)) {
-      console.error('Invalid itinerary structure:', itinerary)
       throw new Error('AI returned an incomplete itinerary structure')
     }
 
-    // 6. Log Usage with accurate cost calculation
+    // 6. Log Usage
     await logAiUsage({
-      userId: user.id,
+      userId: user?.id || 'guest',
       featureType: 'itinerary',
-      inputTokens: tokenMeta.inputTokens,
-      outputTokens: tokenMeta.outputTokens,
-      totalTokens: tokenMeta.totalTokens,
-      model: activeModelName,
+      ...usage,
+      model,
       requestData: { city: data.city.name, days: data.days, budget: data.budget },
     })
 
     // 7. Deduct usage / credits
-    if (useCredits || dayCheck.useCredits) {
-      await deductCredits(user.id, 1);
-    } else {
-      await deductUsage(user.id, 'itinerary');
+    if (user) {
+      if (useCredits || dayCheck.useCredits) {
+        await deductCredits(user.id, 1);
+      } else {
+        await deductUsage(user.id, 'itinerary');
+      }
     }
 
     await setCache(cacheKey, itinerary);
-
     return NextResponse.json({ itinerary })
 
   } catch (error) {
     console.error('Generate Itinerary Error:', error)
-    // Security: never leak internal error details to the client
     return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 })
   }
 }

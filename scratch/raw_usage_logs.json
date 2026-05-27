@@ -1,0 +1,977 @@
+[
+  {
+    "id": "b6ec194d-586a-48e4-8824-12a73f461b64",
+    "user_id": "96fb434c-b0ee-45bf-a0a0-c446c408a33e",
+    "feature_type": "agent_itinerary",
+    "tokens_used": 9070,
+    "cost_estimate": 0.0069753,
+    "request_data": {
+      "days": 3,
+      "destination": "kuopio"
+    },
+    "created_at": "2026-05-04T22:20:49.935297+00:00",
+    "input_tokens": 4343,
+    "output_tokens": 4727,
+    "model_used": "google/gemma-4-31b-it"
+  },
+  {
+    "id": "30f1aaf3-4e11-41c5-a266-f35e4f0110ac",
+    "user_id": "96fb434c-b0ee-45bf-a0a0-c446c408a33e",
+    "feature_type": "agent_itinerary",
+    "tokens_used": 9823,
+    "cost_estimate": 0.0073101,
+    "request_data": {
+      "days": 3,
+      "destination": "kuopio"
+    },
+    "created_at": "2026-05-04T22:00:49.525194+00:00",
+    "input_tokens": 4975,
+    "output_tokens": 4848,
+    "model_used": "google/gemma-4-31b-it"
+  },
+  {
+    "id": "f9e83b43-6c06-481c-b589-3bc109042a3c",
+    "user_id": "96fb434c-b0ee-45bf-a0a0-c446c408a33e",
+    "feature_type": "itinerary",
+    "tokens_used": 1869,
+    "cost_estimate": 0.0010394,
+    "request_data": {
+      "days": 3,
+      "agent": "9-agent-v3",
+      "budget": "moderate",
+      "agentLogs": [
+        {
+          "ms": 6732,
+          "agent": "TravelPlanning",
+          "status": "success"
+        },
+        {
+          "ms": 1499,
+          "agent": "TravelResearch",
+          "status": "success"
+        },
+        {
+          "ms": 1499,
+          "agent": "LocalExperience",
+          "status": "success"
+        },
+        {
+          "ms": 1,
+          "agent": "FlightAnalysis",
+          "status": "success"
+        },
+        {
+          "ms": 0,
+          "agent": "BudgetOptimization",
+          "status": "success"
+        },
+        {
+          "ms": 0,
+          "agent": "RouteOptimization",
+          "status": "success"
+        },
+        {
+          "ms": 35567,
+          "agent": "FinalComposer",
+          "status": "success"
+        }
+      ],
+      "pipelineMs": 45372,
+      "destination": "Kuopio "
+    },
+    "created_at": "2026-05-04T02:26:29.098535+00:00",
+    "input_tokens": 464,
+    "output_tokens": 374,
+    "model_used": "gemini-2.5-flash"
+  },
+  {
+    "id": "1ee965ca-ec89-4f66-8b5b-653964a20e6d",
+    "user_id": "96fb434c-b0ee-45bf-a0a0-c446c408a33e",
+    "feature_type": "agent_itinerary",
+    "tokens_used": 4183,
+    "cost_estimate": 0.003,
+    "request_data": {
+      "days": 1,
+      "destination": "cumilla"
+    },
+    "created_at": "2026-05-03T20:57:34.939291+00:00",
+    "input_tokens": 2244,
+    "output_tokens": 1939,
+    "model_used": "google/gemma-4-31b-it"
+  },
+  {
+    "id": "c436ddae-027b-475a-8cbb-c9f25c7bea16",
+    "user_id": "96fb434c-b0ee-45bf-a0a0-c446c408a33e",
+    "feature_type": "agent_itinerary",
+    "tokens_used": 4971,
+    "cost_estimate": 0.001606825,
+    "request_data": {
+      "days": 2,
+      "destination": "silinjarvi,tahko"
+    },
+    "created_at": "2026-05-02T04:22:48.397336+00:00",
+    "input_tokens": 597,
+    "output_tokens": 589,
+    "model_used": "gemini-2.5-flash"
+  },
+  {
+    "id": "0671a025-90f0-4b1b-b0e2-c63599ed3ea2",
+    "user_id": "96fb434c-b0ee-45bf-a0a0-c446c408a33e",
+    "feature_type": "agent_itinerary",
+    "tokens_used": 4919,
+    "cost_estimate": 0.001639325,
+    "request_data": {
+      "days": 3,
+      "destination": "kuopio,silinjarvi"
+    },
+    "created_at": "2026-05-02T02:03:18.137779+00:00",
+    "input_tokens": 597,
+    "output_tokens": 602,
+    "model_used": "gemini-2.5-flash"
+  },
+  {
+    "id": "10d78332-c31c-4bc4-b228-afe36506d10e",
+    "user_id": "96fb434c-b0ee-45bf-a0a0-c446c408a33e",
+    "feature_type": "agent_itinerary",
+    "tokens_used": 3214,
+    "cost_estimate": 0.00122865,
+    "request_data": {
+      "days": 3,
+      "destination": "cumilla"
+    },
+    "created_at": "2026-05-02T00:26:20.606474+00:00",
+    "input_tokens": 594,
+    "output_tokens": 438,
+    "model_used": "gemini-2.5-flash"
+  },
+  {
+    "id": "cf45e9a4-e7f4-4156-b8d5-56bc65e274bd",
+    "user_id": "96fb434c-b0ee-45bf-a0a0-c446c408a33e",
+    "feature_type": "agent_itinerary",
+    "tokens_used": 5460,
+    "cost_estimate": 0.0028893249999999994,
+    "request_data": {
+      "days": 3,
+      "destination": "kuopio"
+    },
+    "created_at": "2026-04-30T23:09:28.593626+00:00",
+    "input_tokens": 597,
+    "output_tokens": 1102,
+    "model_used": "gemini-2.5-flash"
+  },
+  {
+    "id": "831f6f1a-54c0-4822-92df-dfb8f1d7d04d",
+    "user_id": "96fb434c-b0ee-45bf-a0a0-c446c408a33e",
+    "feature_type": "agent_itinerary",
+    "tokens_used": 7870,
+    "cost_estimate": 0.0033100000000000004,
+    "request_data": {
+      "days": 3,
+      "destination": "kuopio,silinarvi"
+    },
+    "created_at": "2026-04-30T22:20:43.849873+00:00",
+    "input_tokens": 600,
+    "output_tokens": 1270,
+    "model_used": "gemini-2.5-flash"
+  },
+  {
+    "id": "d1625652-cebd-4899-bbef-b7efed6f5dd7",
+    "user_id": "96fb434c-b0ee-45bf-a0a0-c446c408a33e",
+    "feature_type": "agent_itinerary",
+    "tokens_used": 2849,
+    "cost_estimate": 0.001456625,
+    "request_data": {
+      "days": 2,
+      "destination": "helsinki"
+    },
+    "created_at": "2026-04-14T17:49:50.900072+00:00",
+    "input_tokens": 585,
+    "output_tokens": 530,
+    "model_used": "gemini-2.5-flash"
+  },
+  {
+    "id": "8a94e0ee-1b49-4e72-9094-213221fd7f3c",
+    "user_id": "96fb434c-b0ee-45bf-a0a0-c446c408a33e",
+    "feature_type": "agent_itinerary",
+    "tokens_used": 3893,
+    "cost_estimate": 0.00078275,
+    "request_data": {
+      "days": 1,
+      "destination": "kuopio"
+    },
+    "created_at": "2026-04-14T16:35:12.818991+00:00",
+    "input_tokens": 590,
+    "output_tokens": 260,
+    "model_used": "gemini-2.5-flash"
+  },
+  {
+    "id": "1af76cfc-7ffd-4b29-8683-18b4e47fc76b",
+    "user_id": "96fb434c-b0ee-45bf-a0a0-c446c408a33e",
+    "feature_type": "agent_itinerary",
+    "tokens_used": 3379,
+    "cost_estimate": 0.00149525,
+    "request_data": {
+      "days": 2,
+      "destination": "tokyo"
+    },
+    "created_at": "2026-04-14T16:30:58.486274+00:00",
+    "input_tokens": 590,
+    "output_tokens": 545,
+    "model_used": "gemini-2.5-flash"
+  },
+  {
+    "id": "55773087-50da-46e6-a5d0-28fb0ee17ba7",
+    "user_id": "96fb434c-b0ee-45bf-a0a0-c446c408a33e",
+    "feature_type": "agent_itinerary",
+    "tokens_used": 2267,
+    "cost_estimate": 0.00136525,
+    "request_data": {
+      "days": 2,
+      "destination": "kuopio"
+    },
+    "created_at": "2026-04-14T16:18:31.957854+00:00",
+    "input_tokens": 590,
+    "output_tokens": 493,
+    "model_used": "gemini-2.5-flash"
+  },
+  {
+    "id": "7f1287bd-bac4-4594-a009-092f0579f5e9",
+    "user_id": "96fb434c-b0ee-45bf-a0a0-c446c408a33e",
+    "feature_type": "agent_itinerary",
+    "tokens_used": 3291,
+    "cost_estimate": 0.00159525,
+    "request_data": {
+      "days": 2,
+      "destination": "kuopio"
+    },
+    "created_at": "2026-04-14T16:11:27.112855+00:00",
+    "input_tokens": 590,
+    "output_tokens": 585,
+    "model_used": "gemini-2.5-flash"
+  },
+  {
+    "id": "b51d70cd-8045-4a96-a57b-35141f15a61f",
+    "user_id": "96fb434c-b0ee-45bf-a0a0-c446c408a33e",
+    "feature_type": "agent_itinerary",
+    "tokens_used": 5050,
+    "cost_estimate": 0.002358875,
+    "request_data": {
+      "days": 2,
+      "destination": "kuopio"
+    },
+    "created_at": "2026-04-14T15:49:07.65179+00:00",
+    "input_tokens": 595,
+    "output_tokens": 890,
+    "model_used": "gemini-2.5-flash"
+  },
+  {
+    "id": "cf2ff29f-85ee-4c08-a65c-868002a9b525",
+    "user_id": "96fb434c-b0ee-45bf-a0a0-c446c408a33e",
+    "feature_type": "agent_itinerary",
+    "tokens_used": 3973,
+    "cost_estimate": 0.0011586499999999998,
+    "request_data": {
+      "days": 2,
+      "destination": "argentina"
+    },
+    "created_at": "2026-04-14T09:27:06.479168+00:00",
+    "input_tokens": 594,
+    "output_tokens": 410,
+    "model_used": "gemini-2.5-flash"
+  },
+  {
+    "id": "59050ad0-fcc4-4d59-bb5f-a0ef05336b2f",
+    "user_id": "96fb434c-b0ee-45bf-a0a0-c446c408a33e",
+    "feature_type": "translate",
+    "tokens_used": 187,
+    "cost_estimate": 0.000038874999999999996,
+    "request_data": {},
+    "created_at": "2026-04-14T07:43:26.610604+00:00",
+    "input_tokens": 95,
+    "output_tokens": 7,
+    "model_used": "gemini-2.5-flash"
+  },
+  {
+    "id": "440f22f0-d66e-4a4e-a5e0-0bfae0d70746",
+    "user_id": "96fb434c-b0ee-45bf-a0a0-c446c408a33e",
+    "feature_type": "translate",
+    "tokens_used": 146,
+    "cost_estimate": 0.0000232,
+    "request_data": {},
+    "created_at": "2026-04-14T07:42:53.068142+00:00",
+    "input_tokens": 92,
+    "output_tokens": 1,
+    "model_used": "gemini-2.5-flash"
+  },
+  {
+    "id": "0da30f81-97bd-4c8a-87ac-8674abe6d1fa",
+    "user_id": "96fb434c-b0ee-45bf-a0a0-c446c408a33e",
+    "feature_type": "translate",
+    "tokens_used": 194,
+    "cost_estimate": 0.000033425,
+    "request_data": {},
+    "created_at": "2026-04-14T07:42:38.970427+00:00",
+    "input_tokens": 93,
+    "output_tokens": 5,
+    "model_used": "gemini-2.5-flash"
+  },
+  {
+    "id": "18efdbdb-6019-4c02-9d51-e43c6d2cbb7f",
+    "user_id": "96fb434c-b0ee-45bf-a0a0-c446c408a33e",
+    "feature_type": "translate",
+    "tokens_used": 201,
+    "cost_estimate": 0.000043625,
+    "request_data": {},
+    "created_at": "2026-04-14T07:42:19.824104+00:00",
+    "input_tokens": 105,
+    "output_tokens": 8,
+    "model_used": "gemini-2.5-flash"
+  },
+  {
+    "id": "175f57cf-0b24-45a5-bcdb-967cbdf3b25d",
+    "user_id": "96fb434c-b0ee-45bf-a0a0-c446c408a33e",
+    "feature_type": "translate",
+    "tokens_used": 179,
+    "cost_estimate": 0.000032724999999999996,
+    "request_data": {},
+    "created_at": "2026-04-14T07:41:59.235664+00:00",
+    "input_tokens": 101,
+    "output_tokens": 4,
+    "model_used": "gemini-2.5-flash"
+  },
+  {
+    "id": "9e383b09-c766-49fc-817f-00eb92b530c6",
+    "user_id": "96fb434c-b0ee-45bf-a0a0-c446c408a33e",
+    "feature_type": "agent_itinerary",
+    "tokens_used": 6659,
+    "cost_estimate": 0.003468425,
+    "request_data": {
+      "days": 4,
+      "destination": "saudi arab"
+    },
+    "created_at": "2026-04-14T06:13:29.785652+00:00",
+    "input_tokens": 593,
+    "output_tokens": 1334,
+    "model_used": "gemini-2.5-flash"
+  },
+  {
+    "id": "ba5d11f4-efa6-4399-b429-72cd59fae446",
+    "user_id": "96fb434c-b0ee-45bf-a0a0-c446c408a33e",
+    "feature_type": "agent_itinerary",
+    "tokens_used": 3144,
+    "cost_estimate": 0.0012429750000000001,
+    "request_data": {
+      "days": 2,
+      "destination": "germany"
+    },
+    "created_at": "2026-04-13T17:37:50.529945+00:00",
+    "input_tokens": 591,
+    "output_tokens": 444,
+    "model_used": "gemini-2.5-flash"
+  },
+  {
+    "id": "109a8c15-294d-4189-8771-7d853ea21bff",
+    "user_id": "96fb434c-b0ee-45bf-a0a0-c446c408a33e",
+    "feature_type": "agent_itinerary",
+    "tokens_used": 6084,
+    "cost_estimate": 0.0010366,
+    "request_data": {
+      "days": 2,
+      "destination": "Jyväskylä"
+    },
+    "created_at": "2026-04-10T00:05:20.873133+00:00",
+    "input_tokens": 596,
+    "output_tokens": 361,
+    "model_used": "gemini-2.5-flash"
+  },
+  {
+    "id": "cea30410-b4a3-4b17-bf6e-3a05f691da68",
+    "user_id": "96fb434c-b0ee-45bf-a0a0-c446c408a33e",
+    "feature_type": "agent_itinerary",
+    "tokens_used": 2648,
+    "cost_estimate": 0.00098365,
+    "request_data": {
+      "days": 1,
+      "destination": "SAVOLINNA"
+    },
+    "created_at": "2026-04-09T23:51:52.992549+00:00",
+    "input_tokens": 594,
+    "output_tokens": 340,
+    "model_used": "gemini-2.5-flash"
+  },
+  {
+    "id": "8225831f-c84f-4d1f-80ad-d25d704b64da",
+    "user_id": "96fb434c-b0ee-45bf-a0a0-c446c408a33e",
+    "feature_type": "agent_itinerary",
+    "tokens_used": 3168,
+    "cost_estimate": 0.001191375,
+    "request_data": {
+      "days": 1,
+      "destination": "KUOPIO"
+    },
+    "created_at": "2026-04-09T23:02:39.921454+00:00",
+    "input_tokens": 595,
+    "output_tokens": 423,
+    "model_used": "gemini-2.5-flash"
+  },
+  {
+    "id": "a2aa3fb5-f370-4317-ab68-148ef61b01f4",
+    "user_id": "96fb434c-b0ee-45bf-a0a0-c446c408a33e",
+    "feature_type": "agent_itinerary",
+    "tokens_used": 4602,
+    "cost_estimate": 0.00218615,
+    "request_data": {
+      "days": 1,
+      "destination": "kuopio"
+    },
+    "created_at": "2026-04-09T22:47:38.382544+00:00",
+    "input_tokens": 594,
+    "output_tokens": 821,
+    "model_used": "gemini-2.5-flash"
+  },
+  {
+    "id": "ddb77ec7-a3fd-4f3a-b64a-0f248c31d461",
+    "user_id": "96fb434c-b0ee-45bf-a0a0-c446c408a33e",
+    "feature_type": "agent_itinerary",
+    "tokens_used": 5633,
+    "cost_estimate": 0.0017713750000000002,
+    "request_data": {
+      "days": 2,
+      "destination": "cameroon"
+    },
+    "created_at": "2026-04-09T02:38:52.215014+00:00",
+    "input_tokens": 595,
+    "output_tokens": 655,
+    "model_used": "gemini-2.5-flash"
+  },
+  {
+    "id": "18a9b6ce-8946-4d98-9127-2e9cdb7011fe",
+    "user_id": "96fb434c-b0ee-45bf-a0a0-c446c408a33e",
+    "feature_type": "agent_itinerary",
+    "tokens_used": 3793,
+    "cost_estimate": 0.0012057,
+    "request_data": {
+      "days": 2,
+      "destination": "latvia"
+    },
+    "created_at": "2026-04-09T02:34:17.126061+00:00",
+    "input_tokens": 592,
+    "output_tokens": 429,
+    "model_used": "gemini-2.5-flash"
+  },
+  {
+    "id": "b86e0815-091a-4bc6-bcc3-4cfcd0af933b",
+    "user_id": "96fb434c-b0ee-45bf-a0a0-c446c408a33e",
+    "feature_type": "itinerary",
+    "tokens_used": 1754,
+    "cost_estimate": 0.000921675,
+    "request_data": {
+      "days": 2,
+      "agent": "9-agent-v3",
+      "budget": "budget",
+      "agentLogs": [
+        {
+          "ms": 7539,
+          "agent": "TravelPlanning",
+          "status": "success"
+        },
+        {
+          "ms": 1313,
+          "agent": "TravelResearch",
+          "status": "success"
+        },
+        {
+          "ms": 1313,
+          "agent": "LocalExperience",
+          "status": "success"
+        },
+        {
+          "ms": 0,
+          "agent": "FlightAnalysis",
+          "status": "success"
+        },
+        {
+          "ms": 0,
+          "agent": "BudgetOptimization",
+          "status": "success"
+        },
+        {
+          "ms": 1,
+          "agent": "RouteOptimization",
+          "status": "success"
+        },
+        {
+          "ms": 24045,
+          "agent": "FinalComposer",
+          "status": "success"
+        }
+      ],
+      "pipelineMs": 34086,
+      "destination": "Real madrid"
+    },
+    "created_at": "2026-04-08T07:40:51.229757+00:00",
+    "input_tokens": 463,
+    "output_tokens": 327,
+    "model_used": "gemini-2.5-flash"
+  },
+  {
+    "id": "19e82568-54ce-4faf-96b2-8381f6fa81af",
+    "user_id": "96fb434c-b0ee-45bf-a0a0-c446c408a33e",
+    "feature_type": "itinerary",
+    "tokens_used": 1550,
+    "cost_estimate": 0.0007084999999999999,
+    "request_data": {
+      "days": 2,
+      "agent": "9-agent-v3",
+      "budget": "moderate",
+      "agentLogs": [
+        {
+          "ms": 6065,
+          "agent": "TravelPlanning",
+          "status": "success"
+        },
+        {
+          "ms": 1009,
+          "agent": "TravelResearch",
+          "status": "success"
+        },
+        {
+          "ms": 1009,
+          "agent": "LocalExperience",
+          "status": "success"
+        },
+        {
+          "ms": 0,
+          "agent": "FlightAnalysis",
+          "status": "success"
+        },
+        {
+          "ms": 0,
+          "agent": "BudgetOptimization",
+          "status": "success"
+        },
+        {
+          "ms": 1,
+          "agent": "RouteOptimization",
+          "status": "success"
+        },
+        {
+          "ms": 22107,
+          "agent": "FinalComposer",
+          "status": "success"
+        }
+      ],
+      "pipelineMs": 31241,
+      "destination": "Manitoba"
+    },
+    "created_at": "2026-04-08T07:35:14.006566+00:00",
+    "input_tokens": 460,
+    "output_tokens": 242,
+    "model_used": "gemini-2.5-flash"
+  },
+  {
+    "id": "3d08e6c8-f02d-4aa8-b3e7-349cc0b3c692",
+    "user_id": "96fb434c-b0ee-45bf-a0a0-c446c408a33e",
+    "feature_type": "itinerary",
+    "tokens_used": 1752,
+    "cost_estimate": 0.0008609999999999999,
+    "request_data": {
+      "days": 3,
+      "agent": "9-agent-v3",
+      "budget": "moderate",
+      "agentLogs": [
+        {
+          "ms": 7873,
+          "agent": "TravelPlanning",
+          "status": "success"
+        },
+        {
+          "ms": 1361,
+          "agent": "TravelResearch",
+          "status": "success"
+        },
+        {
+          "ms": 1361,
+          "agent": "LocalExperience",
+          "status": "success"
+        },
+        {
+          "ms": 0,
+          "agent": "FlightAnalysis",
+          "status": "success"
+        },
+        {
+          "ms": 0,
+          "agent": "BudgetOptimization",
+          "status": "success"
+        },
+        {
+          "ms": 1,
+          "agent": "RouteOptimization",
+          "status": "success"
+        },
+        {
+          "ms": 37853,
+          "agent": "FinalComposer",
+          "status": "success"
+        }
+      ],
+      "pipelineMs": 48315,
+      "destination": "Perth"
+    },
+    "created_at": "2026-04-08T06:56:46.637815+00:00",
+    "input_tokens": 460,
+    "output_tokens": 303,
+    "model_used": "gemini-2.5-flash"
+  },
+  {
+    "id": "2b68ea2b-3fae-42da-a6d6-72270d290e03",
+    "user_id": "96fb434c-b0ee-45bf-a0a0-c446c408a33e",
+    "feature_type": "agent_itinerary",
+    "tokens_used": 3483,
+    "cost_estimate": 0.00133585,
+    "request_data": {
+      "days": 3,
+      "destination": "perth"
+    },
+    "created_at": "2026-04-08T06:50:51.509504+00:00",
+    "input_tokens": 526,
+    "output_tokens": 487,
+    "model_used": "gemini-2.5-flash"
+  },
+  {
+    "id": "b92eaeb2-4815-42ff-9e4d-477fc91ea1d6",
+    "user_id": "96fb434c-b0ee-45bf-a0a0-c446c408a33e",
+    "feature_type": "itinerary",
+    "tokens_used": 1827,
+    "cost_estimate": 0.0009616749999999999,
+    "request_data": {
+      "days": 3,
+      "agent": "9-agent-v3",
+      "budget": "moderate",
+      "agentLogs": [
+        {
+          "ms": 9658,
+          "agent": "TravelPlanning",
+          "status": "success"
+        },
+        {
+          "ms": 1428,
+          "agent": "TravelResearch",
+          "status": "success"
+        },
+        {
+          "ms": 1428,
+          "agent": "LocalExperience",
+          "status": "success"
+        },
+        {
+          "ms": 1,
+          "agent": "FlightAnalysis",
+          "status": "success"
+        },
+        {
+          "ms": 0,
+          "agent": "BudgetOptimization",
+          "status": "success"
+        },
+        {
+          "ms": 0,
+          "agent": "RouteOptimization",
+          "status": "success"
+        },
+        {
+          "ms": 25178,
+          "agent": "FinalComposer",
+          "status": "success"
+        }
+      ],
+      "pipelineMs": 37091,
+      "destination": "Manitoba"
+    },
+    "created_at": "2026-04-08T06:40:15.068615+00:00",
+    "input_tokens": 463,
+    "output_tokens": 343,
+    "model_used": "gemini-2.5-flash"
+  },
+  {
+    "id": "7785cbdc-9c17-41b8-978c-ea8d38a163aa",
+    "user_id": "96fb434c-b0ee-45bf-a0a0-c446c408a33e",
+    "feature_type": "itinerary",
+    "tokens_used": 1657,
+    "cost_estimate": 0.0008085000000000001,
+    "request_data": {
+      "days": 3,
+      "agent": "9-agent-v3",
+      "budget": "luxury",
+      "agentLogs": [
+        {
+          "ms": 6588,
+          "agent": "TravelPlanning",
+          "status": "success"
+        },
+        {
+          "ms": 1397,
+          "agent": "TravelResearch",
+          "status": "success"
+        },
+        {
+          "ms": 1397,
+          "agent": "LocalExperience",
+          "status": "success"
+        },
+        {
+          "ms": 1,
+          "agent": "FlightAnalysis",
+          "status": "success"
+        },
+        {
+          "ms": 0,
+          "agent": "BudgetOptimization",
+          "status": "success"
+        },
+        {
+          "ms": 0,
+          "agent": "RouteOptimization",
+          "status": "success"
+        },
+        {
+          "ms": 19716,
+          "agent": "FinalComposer",
+          "status": "success"
+        }
+      ],
+      "pipelineMs": 29149,
+      "destination": "Cumilla"
+    },
+    "created_at": "2026-04-08T06:36:03.935978+00:00",
+    "input_tokens": 460,
+    "output_tokens": 282,
+    "model_used": "gemini-2.5-flash"
+  },
+  {
+    "id": "42b9268b-f51a-4392-9b07-7371921f3b98",
+    "user_id": "96fb434c-b0ee-45bf-a0a0-c446c408a33e",
+    "feature_type": "agent_itinerary",
+    "tokens_used": 2611,
+    "cost_estimate": 0.0010869999999999999,
+    "request_data": {
+      "days": 3,
+      "destination": "rajshahi"
+    },
+    "created_at": "2026-04-06T15:40:34.73067+00:00",
+    "input_tokens": 520,
+    "output_tokens": 388,
+    "model_used": "gemini-2.5-flash"
+  },
+  {
+    "id": "88774576-c17f-4538-88ab-398225575780",
+    "user_id": "96fb434c-b0ee-45bf-a0a0-c446c408a33e",
+    "feature_type": "itinerary",
+    "tokens_used": 2228,
+    "cost_estimate": 0.00095495,
+    "request_data": {
+      "days": 2,
+      "agent": "9-agent-v3",
+      "budget": "budget",
+      "agentLogs": [
+        {
+          "ms": 8293,
+          "agent": "TravelPlanning",
+          "status": "success"
+        },
+        {
+          "ms": 1143,
+          "agent": "TravelResearch",
+          "status": "success"
+        },
+        {
+          "ms": 1143,
+          "agent": "LocalExperience",
+          "status": "success"
+        },
+        {
+          "ms": 1,
+          "agent": "FlightAnalysis",
+          "status": "success"
+        },
+        {
+          "ms": 1,
+          "agent": "BudgetOptimization",
+          "status": "success"
+        },
+        {
+          "ms": 0,
+          "agent": "RouteOptimization",
+          "status": "success"
+        },
+        {
+          "ms": 31377,
+          "agent": "FinalComposer",
+          "status": "success"
+        }
+      ],
+      "pipelineMs": 41330,
+      "destination": "TOKYO"
+    },
+    "created_at": "2026-04-05T22:00:45.969258+00:00",
+    "input_tokens": 522,
+    "output_tokens": 335,
+    "model_used": "gemini-2.5-flash"
+  },
+  {
+    "id": "0bd706b3-d572-4f37-934d-514903f748fe",
+    "user_id": "96fb434c-b0ee-45bf-a0a0-c446c408a33e",
+    "feature_type": "itinerary",
+    "tokens_used": 3055,
+    "cost_estimate": 0.00124495,
+    "request_data": {
+      "days": 2,
+      "agent": "9-agent-v3",
+      "budget": "budget",
+      "agentLogs": [
+        {
+          "ms": 11432,
+          "agent": "TravelPlanning",
+          "status": "success"
+        },
+        {
+          "ms": 1071,
+          "agent": "TravelResearch",
+          "status": "success"
+        },
+        {
+          "ms": 1071,
+          "agent": "LocalExperience",
+          "status": "success"
+        },
+        {
+          "ms": 0,
+          "agent": "FlightAnalysis",
+          "status": "success"
+        },
+        {
+          "ms": 1,
+          "agent": "BudgetOptimization",
+          "status": "success"
+        },
+        {
+          "ms": 1,
+          "agent": "RouteOptimization",
+          "status": "success"
+        },
+        {
+          "ms": 22549,
+          "agent": "FinalComposer",
+          "status": "success"
+        }
+      ],
+      "pipelineMs": 35626,
+      "destination": "DHAKA"
+    },
+    "created_at": "2026-04-05T21:55:28.007289+00:00",
+    "input_tokens": 522,
+    "output_tokens": 451,
+    "model_used": "gemini-2.5-flash"
+  },
+  {
+    "id": "59f44c0b-8a1d-4604-a4b5-b0227118c1a4",
+    "user_id": "96fb434c-b0ee-45bf-a0a0-c446c408a33e",
+    "feature_type": "itinerary",
+    "tokens_used": 0,
+    "cost_estimate": 0,
+    "request_data": {
+      "days": 3,
+      "agent": "4-agent-v4",
+      "budget": "budget",
+      "agentLogs": [
+        {
+          "ms": 362,
+          "agent": "Data Fetcher",
+          "status": "success"
+        },
+        {
+          "ms": 6834,
+          "agent": "Strategy Planner",
+          "status": "success"
+        },
+        {
+          "ms": 13785,
+          "agent": "Local Guide",
+          "status": "success"
+        },
+        {
+          "ms": 16986,
+          "agent": "Route Planner",
+          "status": "success"
+        },
+        {
+          "ms": 5544,
+          "agent": "Reviewer",
+          "status": "success"
+        },
+        {
+          "ms": 35449,
+          "agent": "Itinerary Writer",
+          "status": "success"
+        }
+      ],
+      "pipelineMs": 79629,
+      "destination": "tokyo"
+    },
+    "created_at": "2026-04-05T21:20:48.8968+00:00",
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "model_used": "gemini-2.5-flash"
+  },
+  {
+    "id": "80998307-0666-4dfe-8d80-221732cbea2a",
+    "user_id": "96fb434c-b0ee-45bf-a0a0-c446c408a33e",
+    "feature_type": "itinerary",
+    "tokens_used": 0,
+    "cost_estimate": 0,
+    "request_data": {
+      "days": 3,
+      "agent": "4-agent-v4",
+      "budget": "luxury",
+      "agentLogs": [
+        {
+          "ms": 356,
+          "agent": "Data Fetcher",
+          "status": "success"
+        },
+        {
+          "ms": 8999,
+          "agent": "Strategy Planner",
+          "status": "success"
+        },
+        {
+          "ms": 9372,
+          "agent": "Local Guide",
+          "status": "success"
+        },
+        {
+          "ms": 16395,
+          "agent": "Route Planner",
+          "status": "success"
+        },
+        {
+          "ms": 4489,
+          "agent": "Reviewer",
+          "status": "success"
+        },
+        {
+          "ms": 34316,
+          "agent": "Itinerary Writer",
+          "status": "success"
+        }
+      ],
+      "pipelineMs": 74470,
+      "destination": "cumilla"
+    },
+    "created_at": "2026-04-05T21:14:50.184791+00:00",
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "model_used": "gemini-2.5-flash"
+  }
+]

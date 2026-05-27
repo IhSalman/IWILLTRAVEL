@@ -1,20 +1,5 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { createAdminClient } from '@/utils/supabase/admin';
-import { getActiveModel } from '@/utils/ai-config';
-
-function getGemini() {
-    const key = process.env.GEMINI_API_KEY;
-    if (!key) throw new Error('GEMINI_API_KEY not configured');
-    return new GoogleGenerativeAI(key);
-}
-
-async function getJsonModel() {
-    const activeModelName = await getActiveModel();
-    return getGemini().getGenerativeModel({
-        model: activeModelName,
-        generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 8192 },
-    });
-}
+import { generateContent } from '@/utils/ai-config';
 
 /** Safely parse JSON from an LLM response, stripping markdown fences. */
 function safeParseLLM(raw: string): any {
@@ -67,9 +52,8 @@ Return ONLY JSON matching exactly:
   ],
   "itinerary": "Detailed day-by-day suggested itinerary based on real data. Use markdown formatting."
 }`;
-    const jsonModel = await getJsonModel();
-    const result = await jsonModel.generateContent(prompt);
-    return safeParseLLM(result.response.text());
+    const { text } = await generateContent(prompt);
+    return safeParseLLM(text);
 }
 
 // ---------------------------------------------------------
@@ -100,9 +84,8 @@ Return ONLY a JSON matching exactly:
   "food_image_query": "${city.toLowerCase()},food",
   "food_alt": "${city} local food"
 }`;
-    const jsonModel = await getJsonModel();
-    const result = await jsonModel.generateContent(prompt);
-    return safeParseLLM(result.response.text());
+    const { text } = await generateContent(prompt);
+    return safeParseLLM(text);
 }
 
 // ---------------------------------------------------------
@@ -126,9 +109,8 @@ Return ONLY a JSON matching exactly:
     "Tip 3 (e.g. things to avoid)"
   ]
 }`;
-    const jsonModel3 = await getJsonModel();
-    const result = await jsonModel3.generateContent(prompt);
-    return safeParseLLM(result.response.text());
+    const { text } = await generateContent(prompt);
+    return safeParseLLM(text);
 }
 
 // ---------------------------------------------------------
@@ -175,9 +157,8 @@ Return ONLY a JSON matching exactly:
   "seoTitle": "[SEO Title]",
   "seoKeywords": "${city}, travel guide, best places, itinerary"
 }`;
-    const jsonModel4 = await getJsonModel();
-    const result = await jsonModel4.generateContent(prompt);
-    return safeParseLLM(result.response.text());
+    const { text } = await generateContent(prompt);
+    return safeParseLLM(text);
 }
 
 // ---------------------------------------------------------
@@ -205,9 +186,8 @@ Return ONLY JSON matching the EXACT same schema as the existing blog content, bu
     "food_image_url": "...",
     "tips": ["..."]
 }`;
-    const jsonModel5 = await getJsonModel();
-    const result = await jsonModel5.generateContent(prompt);
-    return safeParseLLM(result.response.text());
+    const { text } = await generateContent(prompt);
+    return safeParseLLM(text);
 }
 
 // ---------------------------------------------------------

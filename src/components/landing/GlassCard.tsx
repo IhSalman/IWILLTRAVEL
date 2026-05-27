@@ -40,8 +40,8 @@ export function GlassCard({ children, className = '', glowColor = '0, 212, 255',
         const card = cardRef.current;
         if (!card) return;
         card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0px)';
-        card.style.boxShadow = '0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08)';
-        card.style.background = 'rgba(255,255,255,0.04)';
+        card.style.boxShadow = 'inset 0 1px 1px rgba(255,255,255,0.15), inset 0 -1px 1px rgba(0,0,0,0.25), 0 10px 40px rgba(0,0,0,0.1)';
+        card.style.background = 'linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01))';
     };
 
     return (
@@ -49,10 +49,10 @@ export function GlassCard({ children, className = '', glowColor = '0, 212, 255',
             ref={cardRef}
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
-            className={`relative rounded-2xl border border-white/10 backdrop-blur-xl transition-transform duration-200 ease-out ${className}`}
+            className={`relative rounded-2xl border border-white/5 backdrop-blur-2xl transition-transform duration-200 ease-out ${className}`}
             style={{
-                background: 'rgba(255,255,255,0.04)',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08)',
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01))',
+                boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.15), inset 0 -1px 1px rgba(0,0,0,0.25), 0 10px 40px rgba(0,0,0,0.1)',
                 willChange: 'transform',
             }}
         >

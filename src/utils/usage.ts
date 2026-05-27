@@ -137,26 +137,20 @@ export async function checkItineraryQuota(
     const usage = await getOrCreateUsage(userId);
     const credits = await getCreditBalance(userId);
 
-    // Check max days allowed
-    if (requestedDays > planInfo.limits.maxItineraryDays) {
-        if (credits.balance >= 1) {
-            return { allowed: true, creditsAvailable: credits.balance }; // Credits bypass day limits
-        }
+    // Check max days allowed (-1 = unlimited)
+    if (planInfo.limits.maxItineraryDays !== -1 && requestedDays > planInfo.limits.maxItineraryDays) {
         return {
             allowed: false,
-            reason: `Your ${planInfo.plan} plan supports up to ${planInfo.limits.maxItineraryDays}-day itineraries. Upgrade your plan or use credits.`,
+            reason: `Your ${planInfo.plan === 'free' ? 'Explorer' : planInfo.plan} plan supports up to ${planInfo.limits.maxItineraryDays}-day itineraries. Upgrade to plan a longer trip.`,
             upgradeRequired: true,
         };
     }
 
     // Check monthly itinerary quota
-    if (usage.itinerariesGenerated >= planInfo.limits.maxItinerariesPerMonth) {
-        if (credits.balance >= 1) {
-            return { allowed: true, creditsAvailable: credits.balance }; // Use credits as overflow
-        }
+    if (planInfo.limits.maxItinerariesPerMonth !== -1 && usage.itinerariesGenerated >= planInfo.limits.maxItinerariesPerMonth) {
         return {
             allowed: false,
-            reason: `You've used all ${planInfo.limits.maxItinerariesPerMonth} itineraries for this month. Upgrade or buy credits.`,
+            reason: `You've used all ${planInfo.limits.maxItinerariesPerMonth} itinerary${planInfo.limits.maxItinerariesPerMonth === 1 ? '' : ' generations'} for this month. Upgrade to get more.`,
             upgradeRequired: true,
         };
     }
@@ -191,26 +185,18 @@ export async function checkVoiceQuota(userId: string, minutesNeeded: number = 1)
     const planInfo = await getUserPlan(userId);
     const usage = await getOrCreateUsage(userId);
 
-    if (planInfo.limits.voiceMinutesPerMonth <= 0 && planInfo.plan === 'free') {
-        const credits = await getCreditBalance(userId);
-        if (credits.balance >= minutesNeeded) {
-            return { allowed: true, creditsAvailable: credits.balance };
-        }
+    if (planInfo.limits.voiceMinutesPerMonth <= 0) {
         return {
             allowed: false,
-            reason: 'Voice translation is not available on the Free plan. Upgrade or buy credits.',
+            reason: 'Voice translation is not available on your current plan. Upgrade to Pro or Nomads.',
             upgradeRequired: true,
         };
     }
 
-    if (usage.voiceMinutesUsed + minutesNeeded > planInfo.limits.voiceMinutesPerMonth) {
-        const credits = await getCreditBalance(userId);
-        if (credits.balance >= minutesNeeded) {
-            return { allowed: true, creditsAvailable: credits.balance };
-        }
+    if (planInfo.limits.voiceMinutesPerMonth !== -1 && usage.voiceMinutesUsed + minutesNeeded > planInfo.limits.voiceMinutesPerMonth) {
         return {
             allowed: false,
-            reason: `Voice minutes limit reached (${planInfo.limits.voiceMinutesPerMonth} min/month). Upgrade or buy credits.`,
+            reason: `You've used your ${planInfo.limits.voiceMinutesPerMonth} voice minutes for this month. Upgrade to Nomads for 30 min/month.`,
             upgradeRequired: true,
         };
     }

@@ -4,10 +4,6 @@ import { getRecommendations } from '../travel-intelligence/agents';
 import { getCache, setCache } from '@/utils/cache';
 
 export async function POST(req: Request) {
-    // Require authentication to protect Gemini API credits
-    const authResult = await requireAuth();
-    if ('error' in authResult) return authResult.error;
-
     try {
         const body = await req.json();
         const { budget, month, interests } = body;
@@ -20,10 +16,23 @@ export async function POST(req: Request) {
 
         const CACHE_KEY = `travel_recs_${budget}_${month}_${interests}`.toLowerCase().replace(/[^a-z0-9]+/g, '_');
         
+        // Always serve cached results to anyone (public) — cache-first strategy
         const cachedData = await getCache(CACHE_KEY);
         if (cachedData) {
-            console.log('[API] /api/travel-recommendation served from Supabase Cache');
+            console.log('[API] /api/travel-recommendation served from Cache (public)');
             return NextResponse.json(cachedData);
+        }
+
+        // For fresh AI calls, require authentication to protect Gemini API credits
+        const authResult = await requireAuth();
+        if ('error' in authResult) {
+            return NextResponse.json(
+                { 
+                    error: 'Sign in to unlock personalised AI recommendations',
+                    requiresAuth: true 
+                },
+                { status: 401 }
+            );
         }
 
         const data = await getRecommendations(budget, month, interests);

@@ -51,13 +51,13 @@ export async function POST(req: Request) {
           </div>
         </div>
         <div style="padding: 20px; background: #f1f5f9; text-align: center; color: #94a3b8; font-size: 12px;">
-          <p style="margin: 0;">This trip was shared via WanderPlan AI Travel Planner</p>
+          <p style="margin: 0;">This trip was shared via iWillTravel</p>
         </div>
       </div>
     `;
 
     const { data, error } = await resend.emails.send({
-      from: 'WanderPlan AI <onboarding@resend.dev>',
+      from: 'iWillTravel <onboarding@resend.dev>',
       to: recipients,
       subject: `${safeSenderName} shared a trip with you: ${safeTripTitle}`,
       html,

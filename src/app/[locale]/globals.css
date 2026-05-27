@@ -1,7 +1,9 @@
+@import url('https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
 @layer base {
   :root {
     /* ═══════════════════════════════════════════════════════════
@@ -143,12 +145,55 @@
   }
 }
 
+@layer components {
+  .glass-premium {
+    @apply backdrop-blur-xl bg-white/5 border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)];
+  }
+  
+  .glass-card {
+    @apply backdrop-blur-md bg-card/10 border border-white/5 shadow-2xl;
+  }
+
+  .glass-card-dark {
+    @apply backdrop-blur-xl bg-black/20 border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.4)];
+  }
+
+  .nav-link-active {
+    @apply bg-primary/10 text-primary shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] ring-1 ring-primary/20;
+  }
+
+  .nav-link-inactive {
+    @apply text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-200;
+  }
+
+  .text-glow-sky {
+    text-shadow: 0 0 20px rgba(13, 162, 231, 0.5);
+  }
+
+  .premium-gradient-bg {
+    background: radial-gradient(circle at top left, rgba(13, 162, 231, 0.1), transparent),
+                radial-gradient(circle at bottom right, rgba(99, 102, 241, 0.1), transparent);
+  }
+}
+
 @layer base {
   * {
     @apply border-border;
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground selection:bg-primary/20;
+    font-feature-settings: "ss01", "ss02", "cv01", "cv11";
+  }
+
+  /* Custom Premium Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-primary/20 rounded-full hover:bg-primary/40 transition-colors;
   }
 }

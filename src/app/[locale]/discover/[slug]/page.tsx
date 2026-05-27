@@ -56,7 +56,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         return { title: 'Destination Not Found' };
     }
 
-    const title = dest.meta_title || `${dest.name}, ${dest.country} Travel Guide | Travel AI`;
+    const title = dest.meta_title || `${dest.name}, ${dest.country} Travel Guide | iWillTravel`;
     const description = dest.meta_description || `Discover the best of ${dest.name}. Detailed travel guides, costs, tips, and attractions.`;
     const headerImage = dest.image_url || 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&q=80';
 
@@ -68,7 +68,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
             description,
             images: [headerImage],
             type: 'website',
-            siteName: 'Travel AI',
+            siteName: 'iWillTravel',
         },
         twitter: {
             card: 'summary_large_image',

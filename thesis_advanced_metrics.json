@@ -1,0 +1,76 @@
+{
+  "summary": {
+    "totalItineraries": 102,
+    "totalActivities": 833,
+    "groundedActivities": 0,
+    "groundingPercentage": "0.0%"
+  },
+  "distributions": {
+    "budget": {
+      "null": 2,
+      "budget": 35,
+      "Backpacker": 3,
+      "moderate": 51,
+      "luxury": 8,
+      "custom": 3
+    },
+    "travelStyle": {
+      "null": 2,
+      "relaxed": 16,
+      "balanced": 53,
+      "Moderate": 1,
+      "Relaxed": 2,
+      "adventure": 28
+    },
+    "travelerType": {
+      "single": 82,
+      "family": 7,
+      "Family": 1,
+      "Solo": 2,
+      "couple": 10
+    }
+  },
+  "agentAverages": {},
+  "topLocations": [
+    [
+      "Coastal Charms & Culinary Delights: Cox's Bazar Adventure",
+      3
+    ],
+    [
+      "Roman Rhapsody: A Family Adventure on a Budget",
+      2
+    ],
+    [
+      "Cumilla Cultural & Culinary Canvas: A Solo Explorer's Budget Adventure",
+      2
+    ],
+    [
+      "Cumilla Cultural & Culinary Quest: Kalakachua & Beyond",
+      2
+    ],
+    [
+      "3 Days of Maltese Charm: Ancient Trails & Island Culture",
+      2
+    ],
+    [
+      "Chittagong's Coastal & Hilltop Romance: A 5-Day Adventure for Two",
+      2
+    ],
+    [
+      "A Parisian Solo Sojourn: Culture & Culinary Delights",
+      2
+    ],
+    [
+      "Cumilla Unveiled: A Solo Explorer's 6-Day Adventure",
+      2
+    ],
+    [
+      "Cumilla & Sylhet: A Couple's Cultural-Nature Escape",
+      2
+    ],
+    [
+      "Cumilla's Ancient Echoes & Vibrant Evening",
+      2
+    ]
+  ]
+}

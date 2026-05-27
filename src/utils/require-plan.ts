@@ -21,11 +21,12 @@ import {
     type UserPlanInfo,
     type QuotaResult,
 } from './usage';
+import { PLAN_LIMITS } from './plan-limits';
 
 type FeatureType = 'itinerary' | 'translation' | 'voice';
 
 interface PlanSuccess {
-    user: User;
+    user: User | null;
     supabase: SupabaseClient;
     plan: UserPlanInfo;
     useCredits: boolean; // true if quota exceeded but credits are available
@@ -39,6 +40,7 @@ interface PlanOptions {
     days?: number;         // For itinerary requests
     minutes?: number;      // For voice TTS requests
     tokens?: number;       // For translation requests
+    allowGuest?: boolean;  // Allow unauthenticated requests for the "Small Win" funnel
 }
 
 export async function requirePlan(
@@ -50,6 +52,15 @@ export async function requirePlan(
     const { data: { user }, error } = await supabase.auth.getUser();
 
     if (error || !user) {
+        if (options.allowGuest) {
+            // Guest mode: Give them the free tier limits so they can experience the "Small win"
+            return {
+                user: null,
+                supabase,
+                plan: { plan: 'free', limits: { ...PLAN_LIMITS.free, maxItineraryDays: 14 }, status: 'active', billingCycle: null } as UserPlanInfo,
+                useCredits: false
+            };
+        }
         return { error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) };
     }
 

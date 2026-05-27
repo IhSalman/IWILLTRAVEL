@@ -1,0 +1,16 @@
+{
+  "name": "IWILLTRAVEL",
+  "short_name": "IWILLTRAVEL",
+  "description": "Agentic Travel Superapp for the 2026 traveler.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#8B5CF6",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}

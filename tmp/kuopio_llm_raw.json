@@ -1,0 +1,91 @@
+{
+  "days": [
+    {
+      "day": 1,
+      "activities": [
+        {
+          "time": "morning",
+          "name": "Arrival & Kuopio Market Square (Kauppatori)",
+          "address": "Kauppakatu 45, Kuopio",
+          "opening_hours": "Always open (stalls typically Mon-Fri 7-17, Sat 7-15)",
+          "cost_eur": "0",
+          "description": "Arrive in Kuopio, check into your budget accommodation (hostel or guesthouse). Start your exploration at the bustling Market Square, the heart of Kuopio. Observe local life, browse stalls, and soak in the atmosphere. Grab a cheap coffee or pastry from a market vendor."
+        },
+        {
+          "time": "afternoon",
+          "name": "Kuopio Cathedral",
+          "address": "Kirkkokatu 1, Kuopio",
+          "opening_hours": "Mon-Fri 10-16 (check seasonal variations)",
+          "cost_eur": "0",
+          "description": "Visit the impressive Kuopio Cathedral, an Evangelical Lutheran church built in the early 19th century. Admire its neoclassical architecture and peaceful interior. It's a short walk from the Market Square."
+        },
+        {
+          "time": "late afternoon",
+          "name": "Puijo Tower",
+          "address": "Puijontie 135, Kuopio",
+          "opening_hours": "Daily 10-20 (check seasonal variations)",
+          "cost_eur": "8",
+          "description": "Take a local bus or enjoy a scenic walk up to Puijo Hill. Ascend the iconic Puijo Tower for breathtaking panoramic views of Kuopio, Lake Kallavesi, and the surrounding forests. There's also a cafe at the top if you want to enjoy the view longer."
+        },
+        {
+          "time": "evening",
+          "name": "Budget Dinner & Lakeside Stroll",
+          "address": "Kuopio Harbor (Matkustajasatama), Kuopio",
+          "opening_hours": "Always open",
+          "cost_eur": "5-15",
+          "description": "Grab a budget-friendly dinner from a supermarket (e.g., K-Supermarket, S-market) or a local fast-food joint. Afterwards, enjoy a relaxing stroll along the Kuopio Harbor, watching the boats and enjoying the evening glow over the lake."
+        }
+      ]
+    },
+    {
+      "day": 2,
+      "activities": [
+        {
+          "time": "morning",
+          "name": "Väinölänniemi Park & Beach",
+          "address": "Väinölänniemenkatu, Kuopio",
+          "opening_hours": "Always open",
+          "cost_eur": "0",
+          "description": "Spend your morning at Väinölänniemi, a beautiful park peninsula perfect for a leisurely walk. Enjoy the green spaces, sandy beach (if weather permits, even for a quick dip!), and lake views. It's a popular spot for locals to relax."
+        },
+        {
+          "time": "afternoon",
+          "name": "Kuopio Museum",
+          "address": "Museokatu 1, Kuopio",
+          "opening_hours": "Tue-Fri 10-17, Sat-Sun 11-16 (check current schedule)",
+          "cost_eur": "10",
+          "description": "Delve into the history and natural history of North Savo at the Kuopio Museum. It's housed in a beautiful Art Nouveau building and offers insights into the region's past and biodiversity. This is one of the main cultural attractions."
+        },
+        {
+          "time": "evening",
+          "name": "Self-catering Dinner & Relaxation",
+          "address": "Your accommodation or local park",
+          "opening_hours": "N/A",
+          "cost_eur": "5-10",
+          "description": "For a truly budget-friendly evening, buy groceries from a local supermarket and prepare your own dinner at your accommodation's kitchen facilities. Enjoy a quiet evening, perhaps reading or planning your next day, after a day of exploration."
+        }
+      ]
+    },
+    {
+      "day": 3,
+      "activities": [
+        {
+          "time": "morning",
+          "name": "Kuopio Market Hall (Kauppahalli) & Kalakukko Tasting",
+          "address": "Kauppakatu 45, Kuopio",
+          "opening_hours": "Mon-Fri 8-17, Sat 8-15",
+          "cost_eur": "0-10",
+          "description": "Explore Kuopio's historic Market Hall, located next to the Market Square. It's a charming building with various vendors selling local delicacies, fresh produce, and baked goods. Don't miss the chance to try a traditional 'kalakukko' (fish pie) from one of the stalls, a hearty and affordable local specialty for breakfast or lunch."
+        },
+        {
+          "time": "afternoon",
+          "name": "Walk along the Passenger Harbor & Departure",
+          "address": "Matkustajasatama, Kuopio",
+          "opening_hours": "Always open",
+          "cost_eur": "0",
+          "description": "Enjoy a final leisurely walk along the Kuopio Passenger Harbor. Watch the ferries and boats, perhaps grab a last Finnish coffee. Depending on your departure time, you can revisit a favorite spot or do some last-minute souvenir shopping before heading to the bus or train station for your onward journey."
+        }
+      ]
+    }
+  ]
+}

@@ -1,159 +1,134 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useTransform, useMotionValue, useSpring } from 'framer-motion';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ThumbsUp, MessageSquare, Share2, MapPin, Map, Plane, FileText, Lightbulb, Loader2, Sparkles, Heart } from 'lucide-react';
+import { ThumbsUp, MessageSquare, Share2, MapPin, Map, Plane, FileText, Lightbulb, Loader2, Sparkles, Heart, Globe, Navigation2, Compass } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 
-// Aurora Background component
-const AuroraBackground = () => (
-    <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden bg-[#03080F]">
+// Ethereal Environment Background Component
+const EtherealEnvironment = () => (
+    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-[#03080F]">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(13,162,231,0.05),transparent_70%)]" />
         <motion.div
-            className="absolute top-[-10%] left-[-10%] w-[60vw] h-[60vw] rounded-full mix-blend-screen filter blur-[100px] bg-gradient-to-tr from-[#FF007F]/20 to-[#FF8C00]/20"
+            className="absolute top-[-20%] left-[-10%] w-[80vw] h-[80vw] rounded-full mix-blend-screen filter blur-[120px] bg-gradient-to-tr from-[#0da2e7]/10 via-transparent to-transparent"
             animate={{
-                x: [0, 50, 0],
-                y: [0, 30, 0],
-                scale: [1, 1.1, 1],
+                x: [0, 30, 0],
+                y: [0, 50, 0],
+                rotate: [0, 45, 0],
             }}
-            transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut' }}
+            transition={{ duration: 25, repeat: Infinity, ease: 'linear' }}
         />
         <motion.div
-            className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] rounded-full mix-blend-screen filter blur-[120px] bg-gradient-to-bl from-[#00D4FF]/20 to-[#6366F1]/20"
+            className="absolute bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] rounded-full mix-blend-screen filter blur-[150px] bg-gradient-to-bl from-[#6366F1]/10 via-transparent to-transparent"
             animate={{
-                x: [0, -40, 0],
-                y: [0, -40, 0],
-                scale: [1, 1.2, 1],
+                x: [0, -50, 0],
+                y: [0, -30, 0],
+                rotate: [0, -45, 0],
             }}
-            transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+            transition={{ duration: 30, repeat: Infinity, ease: 'linear', delay: 2 }}
         />
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay pointer-events-none" />
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.15] mix-blend-overlay" />
     </div>
 );
 
-// Polaroid Post Component
-const PolaroidCard = ({ post, index, onLike }: { post: any; index: number; onLike?: (id: any) => void }) => {
-    const [likeBursts, setLikeBursts] = useState<number[]>([]);
-    const [localLikes, setLocalLikes] = useState<number>(post.likes);
+// Premium Gallery Card Component
+const PremiumGalleryCard = ({ post, index }: { post: any; index: number }) => {
     const [isHovered, setIsHovered] = useState(false);
+    const [isLiked, setIsLiked] = useState(false);
+    const [localLikes, setLocalLikes] = useState<number>(post.likes || 0);
 
     const handleLike = (e: React.MouseEvent) => {
         e.stopPropagation();
-        const id = Date.now();
-        setLikeBursts((prev: number[]) => [...prev, id]);
-        setLocalLikes((prev: number) => prev + 1);
-        onLike && onLike(post.id);
-        
-        setTimeout(() => {
-            setLikeBursts((prev: number[]) => prev.filter(b => b !== id));
-        }, 1500);
+        setIsLiked(!isLiked);
+        setLocalLikes(prev => isLiked ? prev - 1 : prev + 1);
     };
-
-    // Calculate a random slight rotation for the polaroid based on index to make it look scattered
-    const baseRotation = (index % 5 - 2) * 3; // -6 to +6 degrees
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 50, rotateZ: baseRotation - 10 }}
-            animate={{ opacity: 1, y: 0, rotateZ: baseRotation }}
-            whileHover={{ scale: 1.05, rotateZ: 0, zIndex: 50, y: -10 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-            className="relative transform-style-3d group perspective-1000 w-full mb-8 inline-block"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.05, duration: 0.8, ease: [0.21, 0.47, 0.32, 0.98] }}
+            className="relative group break-inside-avoid mb-8"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
-            {/* The Polaroid */}
-            <div className="bg-[#fcfcfc] p-4 pb-6 rounded-sm shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/50 transition-shadow duration-500 group-hover:shadow-[0_40px_80px_rgba(0,0,0,0.6)] relative z-10 before:content-[''] before:absolute before:inset-0 before:bg-gradient-to-tr before:from-transparent before:via-white/20 before:to-transparent before:pointer-events-none before:opacity-0 group-hover:before:opacity-100 before:transition-opacity">
-                
-                {/* Image Area - Either an actual image or a colorful gradient placeholder based on location */}
-                <div className="aspect-square bg-gradient-to-br from-gray-800 to-gray-900 overflow-hidden relative mb-4 shadow-inner">
+            <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-white/5 backdrop-blur-sm transition-all duration-500 group-hover:border-white/20 group-hover:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)] group-hover:-translate-y-2">
+                {/* Image / Gradient Section */}
+                <div className="relative aspect-[4/5] overflow-hidden">
                     {post.image ? (
-                        <img src={post.image} alt="Travel" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                        <img 
+                            src={post.image} 
+                            alt={post.location} 
+                            className="w-full h-full object-cover transition-transform duration-1000 ease-out group-hover:scale-110"
+                        />
                     ) : (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-gradient-to-br from-[#1a1c29] to-[#0a0c10]">
-                            {/* Abstract landscape representation */}
-                            <div className="absolute bottom-0 w-full h-1/3 bg-gradient-to-t from-black/50 to-transparent" />
-                            <MapPin className="w-12 h-12 text-white/20 mb-4" />
-                            <h3 className="text-xl font-bold text-white/50 uppercase tracking-widest">{post.location}</h3>
+                        <div className="w-full h-full bg-gradient-to-br from-[#1a1c29] via-[#0a0c10] to-[#03080f] flex flex-col items-center justify-center p-8 text-center">
+                            <Compass className="w-12 h-12 text-primary/20 mb-4 animate-pulse" />
+                            <h3 className="text-xl font-medium text-white/40 tracking-widest uppercase">{post.location}</h3>
                         </div>
                     )}
                     
-                    {/* Hover Overlay for Interactions */}
-                    <div className={`absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center gap-4 transition-all duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
+                    {/* Glass Overlay on Hover */}
+                    <div className={`absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-opacity duration-500 ${isHovered ? 'opacity-100' : 'opacity-0'}`} />
+                    
+                    {/* Top Badges */}
+                    <div className="absolute top-4 left-4 flex gap-2">
+                        <div className="glass-premium px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase text-white/80">
+                            {post.category || 'Trip'}
+                        </div>
+                    </div>
+
+                    {/* Interaction Buttons Overlay */}
+                    <div className={`absolute inset-0 flex items-center justify-center gap-4 transition-all duration-500 transform ${isHovered ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
                         <Button 
                             variant="secondary" 
                             size="icon" 
-                            className="rounded-full w-12 h-12 bg-white/20 hover:bg-[#FF007F]/80 border border-white/30 text-white shadow-xl transition-all hover:scale-110"
+                            className={`rounded-full w-12 h-12 glass-premium hover:bg-white/20 border-white/20 transition-all ${isLiked ? 'text-[#FF007F] scale-110' : 'text-white'}`}
                             onClick={handleLike}
                         >
-                            <Heart className={`w-5 h-5 ${likeBursts.length > 0 ? 'fill-current text-white' : ''}`} />
+                            <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
                         </Button>
                         <Button 
                             variant="secondary" 
                             size="icon" 
-                            className="rounded-full w-12 h-12 bg-white/20 hover:bg-[#00D4FF]/80 border border-white/30 text-white shadow-xl transition-all hover:scale-110"
+                            className="rounded-full w-12 h-12 glass-premium hover:bg-white/20 border-white/20 text-white"
                         >
                             <MessageSquare className="w-5 h-5" />
                         </Button>
                     </div>
-
-                    {/* Like Bursts Animation container */}
-                    <div className="absolute inset-0 pointer-events-none flex items-center justify-center overflow-visible">
-                        <AnimatePresence>
-                            {likeBursts.map(id => (
-                                <motion.div
-                                    key={id}
-                                    initial={{ scale: 0, opacity: 1, y: 0 }}
-                                    animate={{ 
-                                        scale: [1, 1.5, 2, 2.5], 
-                                        opacity: [1, 0.8, 0],
-                                        y: -100,
-                                        x: (Math.random() - 0.5) * 100
-                                    }}
-                                    exit={{ opacity: 0 }}
-                                    transition={{ duration: 1, ease: 'easeOut' }}
-                                    className="absolute"
-                                >
-                                    <Heart className="w-12 h-12 text-[#FF007F] fill-current filter drop-shadow-[0_0_10px_rgba(255,0,127,0.8)]" />
-                                </motion.div>
-                            ))}
-                        </AnimatePresence>
-                    </div>
                 </div>
 
-                {/* Polaroid Text Area */}
-                <div className="space-y-3 px-2">
-                    <p className="font-mono text-gray-800 font-medium leading-relaxed min-h-[60px] text-sm">
-                        "{post.content.length > 120 ? post.content.substring(0, 120) + '...' : post.content}"
-                    </p>
-                    
-                    <div className="flex items-center justify-between border-t border-gray-200 pt-3">
+                {/* Content Area */}
+                <div className="p-6 space-y-4">
+                    <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <Avatar className="w-8 h-8 ring-2 ring-gray-100 shadow-sm">
+                            <Avatar className="w-8 h-8 border border-white/10 ring-2 ring-[#00D4FF]/20">
                                 <AvatarImage src={post.author.avatar} />
-                                <AvatarFallback className="bg-gray-200 text-gray-800 text-xs font-bold">{post.author.name.charAt(0)}</AvatarFallback>
+                                <AvatarFallback className="bg-white/10 text-white text-xs">{post.author.name[0]}</AvatarFallback>
                             </Avatar>
                             <div className="flex flex-col">
-                                <span className="text-xs font-bold text-gray-900">{post.author.name}</span>
-                                <span className="text-[9px] text-gray-500 uppercase tracking-wider font-mono">{post.time}</span>
+                                <span className="text-xs font-bold text-white/90">{post.author.name}</span>
+                                <span className="text-[10px] text-white/40 uppercase tracking-tighter">{post.time}</span>
                             </div>
                         </div>
-                        
-                        <div className="flex flex-col items-end">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-[#FF007F] px-2 py-0.5 rounded-sm bg-[#FF007F]/10">
-                                {post.category}
-                            </span>
-                            <div className="flex items-center gap-1 mt-1 text-gray-400 text-[10px] font-bold">
-                                <Heart className="w-3 h-3" /> {localLikes}
-                            </div>
+                        <div className="flex items-center gap-1.5 text-white/40 text-[10px] font-bold">
+                            <Heart className={`w-3.5 h-3.5 ${isLiked ? 'text-[#FF007F] fill-current' : ''}`} />
+                            <span>{localLikes}</span>
                         </div>
                     </div>
+
+                    <p className="text-sm text-white/70 leading-relaxed line-clamp-3 font-medium italic">
+                        "{post.content}"
+                    </p>
+
+                    <div className="flex items-center gap-2 text-[#00D4FF] text-[10px] font-bold uppercase tracking-widest pt-2">
+                        <MapPin className="w-3 h-3" />
+                        <span>{post.location}</span>
+                    </div>
                 </div>
-                
-                {/* Vintage tape top center */}
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-16 h-6 bg-white/40 backdrop-blur-md rotate-[-2deg] shadow-sm border border-white/20" />
             </div>
         </motion.div>
     );
@@ -203,7 +178,7 @@ export default function CommunityPage() {
                         id, post_type, destination_city, destination_country,
                         highlights, tip_text, visa_tips, helpful_count,
                         created_at, user_id,
-                        profiles ( full_name, username, avatar_url )
+                        profiles!user_id ( full_name, username, avatar_url )
                     `)
                     .order('created_at', { ascending: false });
 
@@ -265,7 +240,7 @@ export default function CommunityPage() {
             onMouseLeave={handleMouseLeave}
             ref={containerRef}
         >
-            <AuroraBackground />
+            <EtherealEnvironment />
 
             {/* Content Container */}
             <div className="container max-w-7xl mx-auto px-4 relative z-10">
@@ -338,7 +313,7 @@ export default function CommunityPage() {
                         <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-8 space-y-8 pb-32">
                             <AnimatePresence>
                                 {filteredPosts.map((post, index) => (
-                                    <PolaroidCard 
+                                    <PremiumGalleryCard 
                                         key={post.id} 
                                         post={post} 
                                         index={index} 

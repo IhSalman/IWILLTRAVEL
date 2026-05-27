@@ -1,0 +1,767 @@
+{
+  "capturedAt": "2026-05-13T21:52:11.667Z",
+  "destination": "Kuopio, Finland",
+  "totalDurationMs": 1466,
+  "queriesExecuted": 5,
+  "rawApiResponses": [
+    {
+      "query": "top attractions in Kuopio, Finland",
+      "durationMs": 376,
+      "venueCount": 8,
+      "raw": {
+        "places": [
+          {
+            "id": "ChIJ58hzYYuwhEYRxV4BZ2D6wYw",
+            "formattedAddress": "Kirkkokatu 22, 70100 Kuopio, Finland",
+            "location": {
+              "latitude": 62.8890366,
+              "longitude": 27.685177099999997
+            },
+            "rating": 4.4,
+            "userRatingCount": 536,
+            "displayName": {
+              "text": "Old Kuopio Museum",
+              "languageCode": "en"
+            },
+            "currentOpeningHours": {
+              "openNow": false
+            },
+            "primaryType": "museum"
+          },
+          {
+            "id": "ChIJvxFQJJ26hEYRe57JkbZJJrc",
+            "formattedAddress": "Puijontie 135, 70300 Kuopio, Finland",
+            "location": {
+              "latitude": 62.90953179999999,
+              "longitude": 27.6553069
+            },
+            "rating": 4.4,
+            "userRatingCount": 4807,
+            "displayName": {
+              "text": "Puijo tower",
+              "languageCode": "en"
+            },
+            "currentOpeningHours": {
+              "openNow": false
+            },
+            "primaryType": "tourist_attraction"
+          },
+          {
+            "id": "ChIJHyJS-IqwhEYRnslHHY6xDsQ",
+            "formattedAddress": "Museokatu 1, 70100 Kuopio, Finland",
+            "location": {
+              "latitude": 62.892457,
+              "longitude": 27.686541899999998
+            },
+            "rating": 4.4,
+            "userRatingCount": 830,
+            "displayName": {
+              "text": "Museum of Kuopio",
+              "languageCode": "en"
+            },
+            "currentOpeningHours": {
+              "openNow": false
+            },
+            "primaryType": "museum"
+          },
+          {
+            "id": "ChIJ45tGVhO6hEYRrctwySVdTN8",
+            "formattedAddress": "Taapelitie 16, 70150 Kuopio, Finland",
+            "location": {
+              "latitude": 62.888389800000006,
+              "longitude": 27.5945469
+            },
+            "rating": 4.4,
+            "userRatingCount": 212,
+            "displayName": {
+              "text": "Neulamäki Watch Tower",
+              "languageCode": "en"
+            },
+            "currentOpeningHours": {
+              "openNow": true
+            },
+            "primaryType": "scenic_spot"
+          },
+          {
+            "id": "ChIJZRyNZYmwhEYR6sO-T0qPOtA",
+            "formattedAddress": "Kauppakatu 45, 70110 Kuopio, Finland",
+            "location": {
+              "latitude": 62.89253790000001,
+              "longitude": 27.6782224
+            },
+            "rating": 4.4,
+            "userRatingCount": 6464,
+            "displayName": {
+              "text": "Kuopio Market",
+              "languageCode": "en"
+            },
+            "currentOpeningHours": {
+              "openNow": true
+            },
+            "primaryType": "market"
+          },
+          {
+            "id": "ChIJi2YfXIewhEYRWnv6kKOUC6Y",
+            "formattedAddress": "Karjalankatu 1, 70110 Kuopio, Finland",
+            "location": {
+              "latitude": 62.8989275,
+              "longitude": 27.6660586
+            },
+            "rating": 4.5,
+            "userRatingCount": 325,
+            "displayName": {
+              "text": "RIISA- Orthodox Church Museum of Finland",
+              "languageCode": "en"
+            },
+            "currentOpeningHours": {
+              "openNow": false
+            },
+            "primaryType": "museum"
+          },
+          {
+            "id": "ChIJJT_DC4WwhEYRP98S36_01mU",
+            "formattedAddress": "Valkeisenkatu 10, 70600 Kuopio, Finland",
+            "location": {
+              "latitude": 62.8905811,
+              "longitude": 27.660194299999997
+            },
+            "rating": 4.5,
+            "userRatingCount": 852,
+            "displayName": {
+              "text": "Valkeisenlammen puisto",
+              "languageCode": "fi"
+            },
+            "currentOpeningHours": {
+              "openNow": true
+            },
+            "primaryType": "park"
+          },
+          {
+            "id": "ChIJmWgXzL67hEYRO-vOQ5BgJWs",
+            "formattedAddress": "70150 Kuopio, Finland",
+            "location": {
+              "latitude": 62.87612799999999,
+              "longitude": 27.6064448
+            },
+            "rating": 4.8,
+            "userRatingCount": 47,
+            "displayName": {
+              "text": "Neulamäki Nature Preserve",
+              "languageCode": "en"
+            },
+            "currentOpeningHours": {
+              "openNow": true
+            },
+            "primaryType": "nature_preserve"
+          }
+        ]
+      }
+    },
+    {
+      "query": "best things to do in Kuopio, Finland",
+      "durationMs": 367,
+      "venueCount": 8,
+      "raw": {
+        "places": [
+          {
+            "id": "ChIJoR6U5jPIhEYRJy74Sr8DuPY",
+            "formattedAddress": "Rantasuontie 39, 70870 Hiltulanlahti, Finland",
+            "location": {
+              "latitude": 62.75115830000001,
+              "longitude": 27.552516699999998
+            },
+            "rating": 4.5,
+            "userRatingCount": 943,
+            "displayName": {
+              "text": "Kuopio Animal Park",
+              "languageCode": "en"
+            },
+            "currentOpeningHours": {
+              "openNow": false
+            },
+            "primaryType": "zoo"
+          },
+          {
+            "id": "ChIJZRyNZYmwhEYR6sO-T0qPOtA",
+            "formattedAddress": "Kauppakatu 45, 70110 Kuopio, Finland",
+            "location": {
+              "latitude": 62.89253790000001,
+              "longitude": 27.6782224
+            },
+            "rating": 4.4,
+            "userRatingCount": 6464,
+            "displayName": {
+              "text": "Kuopio Market",
+              "languageCode": "en"
+            },
+            "currentOpeningHours": {
+              "openNow": true
+            },
+            "primaryType": "market"
+          },
+          {
+            "id": "ChIJHyJS-IqwhEYRnslHHY6xDsQ",
+            "formattedAddress": "Museokatu 1, 70100 Kuopio, Finland",
+            "location": {
+              "latitude": 62.892457,
+              "longitude": 27.686541899999998
+            },
+            "rating": 4.4,
+            "userRatingCount": 830,
+            "displayName": {
+              "text": "Museum of Kuopio",
+              "languageCode": "en"
+            },
+            "currentOpeningHours": {
+              "openNow": false
+            },
+            "primaryType": "museum"
+          },
+          {
+            "id": "ChIJvxFQJJ26hEYRe57JkbZJJrc",
+            "formattedAddress": "Puijontie 135, 70300 Kuopio, Finland",
+            "location": {
+              "latitude": 62.90953179999999,
+              "longitude": 27.6553069
+            },
+            "rating": 4.4,
+            "userRatingCount": 4807,
+            "displayName": {
+              "text": "Puijo tower",
+              "languageCode": "en"
+            },
+            "currentOpeningHours": {
+              "openNow": false
+            },
+            "primaryType": "tourist_attraction"
+          },
+          {
+            "id": "ChIJy-u8m6q3hEYRs27lUyinzXY",
+            "formattedAddress": "Koirakaarre 70, 70870 Hiltulanlahti, Finland",
+            "location": {
+              "latitude": 62.8040198,
+              "longitude": 27.6288114
+            },
+            "rating": 4.6,
+            "userRatingCount": 105,
+            "displayName": {
+              "text": "Vanuvuori Observation Tower",
+              "languageCode": "en"
+            },
+            "currentOpeningHours": {
+              "openNow": true
+            },
+            "primaryType": "scenic_spot"
+          },
+          {
+            "id": "ChIJ58hzYYuwhEYRxV4BZ2D6wYw",
+            "formattedAddress": "Kirkkokatu 22, 70100 Kuopio, Finland",
+            "location": {
+              "latitude": 62.8890366,
+              "longitude": 27.685177099999997
+            },
+            "rating": 4.4,
+            "userRatingCount": 536,
+            "displayName": {
+              "text": "Old Kuopio Museum",
+              "languageCode": "en"
+            },
+            "currentOpeningHours": {
+              "openNow": false
+            },
+            "primaryType": "museum"
+          },
+          {
+            "id": "ChIJQUeulhtFg0YRSsxx4sAQmRA",
+            "formattedAddress": "Pehkuntie, 73320 Kuopio, Finland",
+            "location": {
+              "latitude": 63.2863701,
+              "longitude": 28.019671
+            },
+            "rating": 4.6,
+            "userRatingCount": 79,
+            "displayName": {
+              "text": "Tahko Observation Tower",
+              "languageCode": "en"
+            },
+            "currentOpeningHours": {
+              "openNow": true
+            },
+            "primaryType": "observation_deck"
+          },
+          {
+            "id": "ChIJU6nTARCxhEYRGfCrNLzOq98",
+            "formattedAddress": "Siikaranta 8, 70620 Kuopio, Finland",
+            "location": {
+              "latitude": 62.8738021,
+              "longitude": 27.660695999999998
+            },
+            "rating": 4.6,
+            "userRatingCount": 116,
+            "displayName": {
+              "text": "Bellanpuisto",
+              "languageCode": "fi"
+            },
+            "currentOpeningHours": {
+              "openNow": false
+            },
+            "primaryType": "miniature_golf_course"
+          }
+        ]
+      }
+    },
+    {
+      "query": "highly rated restaurants in Kuopio, Finland",
+      "durationMs": 285,
+      "venueCount": 8,
+      "raw": {
+        "places": [
+          {
+            "id": "ChIJlROsQy2xhEYRsf-3gRted1M",
+            "formattedAddress": "Kauppakatu 22, 70100 Kuopio, Finland",
+            "location": {
+              "latitude": 62.891610699999994,
+              "longitude": 27.6804103
+            },
+            "rating": 4.7,
+            "userRatingCount": 136,
+            "displayName": {
+              "text": "Greasy Spoon Drink & Bite",
+              "languageCode": "fi"
+            },
+            "currentOpeningHours": {
+              "openNow": true
+            },
+            "primaryType": "bar"
+          },
+          {
+            "id": "ChIJVUqA3pWxhEYRZLvT6XC9J_Y",
+            "formattedAddress": "Kauppakatu 18, 70100 Kuopio, Finland",
+            "location": {
+              "latitude": 62.891640499999994,
+              "longitude": 27.681489
+            },
+            "rating": 4.5,
+            "userRatingCount": 4,
+            "displayName": {
+              "text": "Hemingway’s Kuopio",
+              "languageCode": "fi"
+            },
+            "currentOpeningHours": {
+              "openNow": true
+            },
+            "primaryType": "restaurant"
+          },
+          {
+            "id": "ChIJ75M1VIqwhEYRXXu0y0vN3ig",
+            "formattedAddress": "Kauppakatu 25-27, 70100 Kuopio, Finland",
+            "location": {
+              "latitude": 62.892153900000004,
+              "longitude": 27.685716499999998
+            },
+            "rating": 4.4,
+            "priceLevel": "PRICE_LEVEL_MODERATE",
+            "userRatingCount": 975,
+            "displayName": {
+              "text": "Restaurant Isä Camillo",
+              "languageCode": "en"
+            },
+            "currentOpeningHours": {
+              "openNow": false
+            },
+            "primaryType": "restaurant"
+          },
+          {
+            "id": "ChIJu228o3OxhEYRMPl_UUg-m8M",
+            "formattedAddress": "Puijonkatu 32, 70110 Kuopio, Finland",
+            "location": {
+              "latitude": 62.896345499999995,
+              "longitude": 27.677564999999998
+            },
+            "rating": 4.6,
+            "priceLevel": "PRICE_LEVEL_MODERATE",
+            "userRatingCount": 295,
+            "displayName": {
+              "text": "Gallá Kitchen & Bar",
+              "languageCode": "fi"
+            },
+            "currentOpeningHours": {
+              "openNow": false
+            },
+            "primaryType": "restaurant"
+          },
+          {
+            "id": "ChIJi9jqHPWwhEYRhXLRP2dBNnI",
+            "formattedAddress": "Koljonniemenkatu 2, 70110 Kuopio, Finland",
+            "location": {
+              "latitude": 62.8900982,
+              "longitude": 27.695422599999997
+            },
+            "rating": 4.6,
+            "priceLevel": "PRICE_LEVEL_MODERATE",
+            "userRatingCount": 780,
+            "displayName": {
+              "text": "Ravintola Boka",
+              "languageCode": "en"
+            },
+            "currentOpeningHours": {
+              "openNow": false
+            },
+            "primaryType": "restaurant"
+          },
+          {
+            "id": "ChIJJROuGomwhEYR2QVA9U7u2WY",
+            "formattedAddress": "Tulliportinkatu 44, 70110 Kuopio, Finland",
+            "location": {
+              "latitude": 62.8929282,
+              "longitude": 27.6760438
+            },
+            "rating": 4.4,
+            "priceLevel": "PRICE_LEVEL_EXPENSIVE",
+            "userRatingCount": 1066,
+            "displayName": {
+              "text": "Viking Restaurant Harald",
+              "languageCode": "en"
+            },
+            "currentOpeningHours": {
+              "openNow": false
+            },
+            "primaryType": "scandinavian_restaurant"
+          },
+          {
+            "id": "ChIJ34Nj6oqwhEYRyW72V8qCjpg",
+            "formattedAddress": "Kauppakatu 13, 70100 Kuopio, Finland",
+            "location": {
+              "latitude": 62.892304200000005,
+              "longitude": 27.6896877
+            },
+            "rating": 4.8,
+            "priceLevel": "PRICE_LEVEL_MODERATE",
+            "userRatingCount": 279,
+            "displayName": {
+              "text": "Kuzina Wine & Daily",
+              "languageCode": "fi"
+            },
+            "currentOpeningHours": {
+              "openNow": false
+            },
+            "primaryType": "restaurant"
+          },
+          {
+            "id": "ChIJP1y1fACxhEYR20rh2tBUJOY",
+            "formattedAddress": "Kauppakeskus Apaja, Kauppakatu 45, 70110 Kuopio, Finland",
+            "location": {
+              "latitude": 62.8919758,
+              "longitude": 27.6784517
+            },
+            "rating": 4.9,
+            "userRatingCount": 164,
+            "displayName": {
+              "text": "Bibimbap Ravintola Kuopio",
+              "languageCode": "en"
+            },
+            "currentOpeningHours": {
+              "openNow": false
+            },
+            "primaryType": "asian_restaurant"
+          }
+        ]
+      }
+    },
+    {
+      "query": "popular tourist spots in Kuopio, Finland",
+      "durationMs": 233,
+      "venueCount": 8,
+      "raw": {
+        "places": [
+          {
+            "id": "ChIJ45tGVhO6hEYRrctwySVdTN8",
+            "formattedAddress": "Taapelitie 16, 70150 Kuopio, Finland",
+            "location": {
+              "latitude": 62.888389800000006,
+              "longitude": 27.5945469
+            },
+            "rating": 4.4,
+            "userRatingCount": 212,
+            "displayName": {
+              "text": "Neulamäki Watch Tower",
+              "languageCode": "en"
+            },
+            "currentOpeningHours": {
+              "openNow": true
+            },
+            "primaryType": "scenic_spot"
+          },
+          {
+            "id": "ChIJvxFQJJ26hEYRe57JkbZJJrc",
+            "formattedAddress": "Puijontie 135, 70300 Kuopio, Finland",
+            "location": {
+              "latitude": 62.90953179999999,
+              "longitude": 27.6553069
+            },
+            "rating": 4.4,
+            "userRatingCount": 4807,
+            "displayName": {
+              "text": "Puijo tower",
+              "languageCode": "en"
+            },
+            "currentOpeningHours": {
+              "openNow": false
+            },
+            "primaryType": "tourist_attraction"
+          },
+          {
+            "id": "ChIJxX9_rPSwhEYRVDDbI-BeAsI",
+            "formattedAddress": "Hallituskatu 12, 70100 Kuopio, Finland",
+            "location": {
+              "latitude": 62.8884178,
+              "longitude": 27.6887883
+            },
+            "rating": 3,
+            "userRatingCount": 6,
+            "displayName": {
+              "text": "Per Brahe memorial",
+              "languageCode": "en"
+            },
+            "currentOpeningHours": {
+              "openNow": true
+            },
+            "primaryType": "tourist_attraction"
+          },
+          {
+            "id": "ChIJz3HsWQCxhEYREMtcm8EVwZQ",
+            "formattedAddress": "70100 Kuopio, Finland",
+            "location": {
+              "latitude": 62.8965859,
+              "longitude": 27.6785574
+            },
+            "displayName": {
+              "text": "Kuopio",
+              "languageCode": "pl"
+            },
+            "primaryType": "tourist_attraction"
+          },
+          {
+            "id": "ChIJHyJS-IqwhEYRnslHHY6xDsQ",
+            "formattedAddress": "Museokatu 1, 70100 Kuopio, Finland",
+            "location": {
+              "latitude": 62.892457,
+              "longitude": 27.686541899999998
+            },
+            "rating": 4.4,
+            "userRatingCount": 830,
+            "displayName": {
+              "text": "Museum of Kuopio",
+              "languageCode": "en"
+            },
+            "currentOpeningHours": {
+              "openNow": false
+            },
+            "primaryType": "museum"
+          },
+          {
+            "id": "ChIJZSfGIwCxhEYRA81_AdO2FpI",
+            "formattedAddress": "70110 Kuopio, Finland",
+            "location": {
+              "latitude": 62.8941113,
+              "longitude": 27.6684526
+            },
+            "rating": 4.7,
+            "userRatingCount": 3,
+            "displayName": {
+              "text": "Winter War and Continuation War Memorial",
+              "languageCode": "en"
+            },
+            "currentOpeningHours": {
+              "openNow": true
+            },
+            "primaryType": "tourist_attraction"
+          },
+          {
+            "id": "ChIJQRgzUfexhEYR8ou2bPl6t6Y",
+            "formattedAddress": "Kellonkierto, 70460 Kuopio, Finland",
+            "location": {
+              "latitude": 62.9230853,
+              "longitude": 27.725525299999997
+            },
+            "rating": 4.1,
+            "userRatingCount": 17,
+            "displayName": {
+              "text": "Kelloniemen Pumppu",
+              "languageCode": "fi"
+            },
+            "currentOpeningHours": {
+              "openNow": true
+            },
+            "primaryType": "tourist_attraction"
+          },
+          {
+            "id": "ChIJ2wWEEQCxhEYRN-lj7ZBPN0M",
+            "formattedAddress": "Nuotta-apajantie 40, 70840 Kuopio, Finland",
+            "location": {
+              "latitude": 62.8716635,
+              "longitude": 27.6986726
+            },
+            "rating": 5,
+            "userRatingCount": 1,
+            "displayName": {
+              "text": "Pohjoiskärki",
+              "languageCode": "en"
+            },
+            "primaryType": "tourist_attraction"
+          }
+        ]
+      }
+    },
+    {
+      "query": "hidden gems in Kuopio, Finland",
+      "durationMs": 204,
+      "venueCount": 8,
+      "raw": {
+        "places": [
+          {
+            "id": "ChIJHyJS-IqwhEYRnslHHY6xDsQ",
+            "formattedAddress": "Museokatu 1, 70100 Kuopio, Finland",
+            "location": {
+              "latitude": 62.892457,
+              "longitude": 27.686541899999998
+            },
+            "rating": 4.4,
+            "userRatingCount": 830,
+            "displayName": {
+              "text": "Museum of Kuopio",
+              "languageCode": "en"
+            },
+            "currentOpeningHours": {
+              "openNow": false
+            },
+            "primaryType": "museum"
+          },
+          {
+            "id": "ChIJvxFQJJ26hEYRe57JkbZJJrc",
+            "formattedAddress": "Puijontie 135, 70300 Kuopio, Finland",
+            "location": {
+              "latitude": 62.90953179999999,
+              "longitude": 27.6553069
+            },
+            "rating": 4.4,
+            "userRatingCount": 4807,
+            "displayName": {
+              "text": "Puijo tower",
+              "languageCode": "en"
+            },
+            "currentOpeningHours": {
+              "openNow": false
+            },
+            "primaryType": "tourist_attraction"
+          },
+          {
+            "id": "ChIJyU1HegexhEYR8OUaxXJPj7g",
+            "formattedAddress": "70600 Kuopio, Finland",
+            "location": {
+              "latitude": 62.888444199999995,
+              "longitude": 27.657438
+            },
+            "rating": 4.3,
+            "userRatingCount": 93,
+            "displayName": {
+              "text": "Niirala Rhododendron Park",
+              "languageCode": "en"
+            },
+            "currentOpeningHours": {
+              "openNow": true
+            },
+            "primaryType": "park"
+          },
+          {
+            "id": "ChIJ1enTDF-whEYRwAv05d3P-2E",
+            "formattedAddress": "70100 Kuopio, Finland",
+            "location": {
+              "latitude": 62.89263150000001,
+              "longitude": 27.7024314
+            },
+            "rating": 4.6,
+            "userRatingCount": 58,
+            "displayName": {
+              "text": "Breakwater Kuopio Harbour",
+              "languageCode": "en"
+            },
+            "currentOpeningHours": {
+              "openNow": true
+            },
+            "primaryType": "park"
+          },
+          {
+            "id": "ChIJi2YfXIewhEYRWnv6kKOUC6Y",
+            "formattedAddress": "Karjalankatu 1, 70110 Kuopio, Finland",
+            "location": {
+              "latitude": 62.8989275,
+              "longitude": 27.6660586
+            },
+            "rating": 4.5,
+            "userRatingCount": 325,
+            "displayName": {
+              "text": "RIISA- Orthodox Church Museum of Finland",
+              "languageCode": "en"
+            },
+            "currentOpeningHours": {
+              "openNow": false
+            },
+            "primaryType": "museum"
+          },
+          {
+            "id": "ChIJG7bTFZCxhEYRtgp6XArz9s8",
+            "formattedAddress": "Asemakatu 14, 70100 Kuopio, Finland",
+            "location": {
+              "latitude": 62.896687699999994,
+              "longitude": 27.683650699999998
+            },
+            "rating": 5,
+            "userRatingCount": 105,
+            "displayName": {
+              "text": "Metkapakopelit Oy",
+              "languageCode": "fi"
+            },
+            "primaryType": "amusement_center"
+          },
+          {
+            "id": "ChIJU6nTARCxhEYRGfCrNLzOq98",
+            "formattedAddress": "Siikaranta 8, 70620 Kuopio, Finland",
+            "location": {
+              "latitude": 62.8738021,
+              "longitude": 27.660695999999998
+            },
+            "rating": 4.6,
+            "userRatingCount": 116,
+            "displayName": {
+              "text": "Bellanpuisto",
+              "languageCode": "fi"
+            },
+            "currentOpeningHours": {
+              "openNow": false
+            },
+            "primaryType": "miniature_golf_course"
+          },
+          {
+            "id": "ChIJy-u8m6q3hEYRs27lUyinzXY",
+            "formattedAddress": "Koirakaarre 70, 70870 Hiltulanlahti, Finland",
+            "location": {
+              "latitude": 62.8040198,
+              "longitude": 27.6288114
+            },
+            "rating": 4.6,
+            "userRatingCount": 105,
+            "displayName": {
+              "text": "Vanuvuori Observation Tower",
+              "languageCode": "en"
+            },
+            "currentOpeningHours": {
+              "openNow": true
+            },
+            "primaryType": "scenic_spot"
+          }
+        ]
+      }
+    }
+  ]
+}

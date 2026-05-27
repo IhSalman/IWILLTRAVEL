@@ -43,12 +43,6 @@ export async function proxy(request: NextRequest) {
     const protectedPaths = [
         '/dashboard',
         '/admin',
-        '/plan-trip',
-        '/translate',
-        '/visa-hub',
-        '/community',
-        '/itineraries',
-        '/discover',
     ];
 
     /** Routes that logged-in users should not visit (login / signup pages). */

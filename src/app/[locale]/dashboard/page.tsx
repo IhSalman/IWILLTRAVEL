@@ -1,99 +1,21 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { 
-    Map, MapPin, Settings, Bookmark, CheckCircle2, MoreHorizontal, Calendar, 
+    Map, Settings, Bookmark, CheckCircle2, MoreHorizontal, Calendar, 
     LogOut, User, Loader2, Languages, Volume2, Copy, Trash2, Shield, Activity, 
-    Cpu, Globe2, Eye, Server, Radio
+    Globe2, LayoutDashboard, Compass, CreditCard, ChevronRight, PlaneTakeoff, 
+    ArrowRightLeft, History
 } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
-
-// Background Animation Component
-const HolographicBackground = () => (
-    <div className="fixed inset-0 pointer-events-none z-[0] bg-[#03080F] overflow-hidden">
-        {/* Cyber Grid */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,212,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(0,212,255,0.05)_1px,transparent_1px)] bg-[size:50px_50px] [transform:perspective(1000px)_rotateX(60deg)_translateY(-200px)_scale(2)] opacity-30 animate-[gridMove_20s_linear_infinite]" />
-        
-        {/* Pulsing Nebulas */}
-        <motion.div
-            className="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] rounded-full mix-blend-screen filter blur-[150px] bg-gradient-to-tr from-[#8B5CF6]/30 to-transparent"
-            animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3], rotate: [0, 90, 0] }}
-            transition={{ duration: 25, repeat: Infinity, ease: 'easeInOut' }}
-        />
-        <motion.div
-            className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] rounded-full mix-blend-screen filter blur-[130px] bg-gradient-to-bl from-[#00D4FF]/20 to-transparent"
-            animate={{ scale: [1, 1.3, 1], opacity: [0.2, 0.5, 0.2], rotate: [0, -90, 0] }}
-            transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-        />
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 mix-blend-overlay pointer-events-none" />
-    </div>
-);
-
-// Memory Shard Component for Itineraries
-const MemoryShard = ({ it, router }: { it: any, router: any }) => {
-    const cardRef = useRef<HTMLDivElement>(null);
-    const x = useMotionValue(0);
-    const y = useMotionValue(0);
-
-    const mouseXSpring = useSpring(x);
-    const mouseYSpring = useSpring(y);
-    const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], [10, -10]);
-    const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], [-10, 10]);
-
-    const handleMouseMove = (e: React.MouseEvent) => {
-        if (!cardRef.current) return;
-        const rect = cardRef.current.getBoundingClientRect();
-        x.set((e.clientX - rect.left) / rect.width - 0.5);
-        y.set((e.clientY - rect.top) / rect.height - 0.5);
-    };
-
-    return (
-        <motion.div
-            ref={cardRef}
-            style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-            onMouseMove={handleMouseMove}
-            onMouseLeave={() => { x.set(0); y.set(0); }}
-            whileHover={{ scale: 1.05, zIndex: 10 }}
-            className="relative cursor-pointer group perspective-1000 w-full"
-            onClick={() => router.push(`/itineraries/${it.id}`)}
-        >
-            <div className="absolute inset-0 bg-gradient-to-r from-[#00D4FF] to-[#8B5CF6] rounded-2xl blur-xl opacity-0 group-hover:opacity-30 transition-opacity duration-500" />
-            <div className="relative h-full bg-[#0A0D1A]/80 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl transition-all duration-300 before:absolute before:inset-0 before:bg-gradient-to-b before:from-white/10 before:to-transparent before:opacity-0 group-hover:before:opacity-100">
-                <div className="h-32 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-tr from-[#8B5CF6]/30 to-[#00D4FF]/30 mix-blend-overlay" />
-                    <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:10px_10px] opacity-20" />
-                    <Badge className={`absolute top-4 right-4 backdrop-blur-md border ${it.is_public ? 'bg-[#00FFB3]/20 text-[#00FFB3] border-[#00FFB3]/50' : 'bg-[#FF8C00]/20 text-[#FF8C00] border-[#FF8C00]/50'}`}>
-                        {it.is_public ? 'Public Node' : 'Encrypted'}
-                    </Badge>
-                    <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between z-10">
-                        <h3 className="text-white text-xl font-black uppercase tracking-widest drop-shadow-lg truncate">{it.title}</h3>
-                    </div>
-                </div>
-                <div className="p-5 flex justify-between items-center border-t border-white/5">
-                    <div className="text-xs text-[#00D4FF] font-mono uppercase tracking-widest flex items-center">
-                        <Calendar className="w-3 h-3 mr-2 text-white/50" />
-                        {it.start_date ? new Date(it.start_date).toLocaleDateString() : new Date(it.created_at).toLocaleDateString()}
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <span className="text-[10px] uppercase text-[#8B5CF6] border border-[#8B5CF6]/30 px-2 py-1 rounded-md bg-[#8B5CF6]/10">{it.travel_style || 'General'}</span>
-                        <Button variant="ghost" size="icon" className="w-8 h-8 rounded-full text-white/50 hover:text-white hover:bg-white/10">
-                            <MoreHorizontal className="w-4 h-4" />
-                        </Button>
-                    </div>
-                </div>
-            </div>
-        </motion.div>
-    );
-};
 
 export default function DashboardPage() {
     const supabase = createClient();
@@ -133,155 +55,196 @@ export default function DashboardPage() {
         router.push('/');
     };
 
-    // Sidebar 3D tilt tracking
-    const sidebarRef = useRef<HTMLDivElement>(null);
-    const sbX = useMotionValue(0);
-    const sbY = useMotionValue(0);
-    const sbRotateX = useTransform(useSpring(sbY), [-0.5, 0.5], [5, -5]);
-    const sbRotateY = useTransform(useSpring(sbX), [-0.5, 0.5], [-5, 5]);
-
-    const onSidebarMove = (e: React.MouseEvent) => {
-        if (!sidebarRef.current) return;
-        const rect = sidebarRef.current.getBoundingClientRect();
-        sbX.set((e.clientX - rect.left) / rect.width - 0.5);
-        sbY.set((e.clientY - rect.top) / rect.height - 0.5);
-    };
-
     if (isLoading) {
         return (
-            <div className="flex min-h-screen items-center justify-center bg-[#03080F]">
-                <div className="relative w-32 h-32 flex items-center justify-center">
-                    <motion.div animate={{ rotate: 360 }} transition={{ duration: 4, repeat: Infinity, ease: 'linear' }} className="absolute inset-0 rounded-full border-t-2 border-[#00D4FF] border-r-2 border-transparent" />
-                    <motion.div animate={{ rotate: -360 }} transition={{ duration: 3, repeat: Infinity, ease: 'linear' }} className="absolute inset-4 rounded-full border-b-2 border-[#8B5CF6] border-l-2 border-transparent" />
-                    <Cpu className="w-8 h-8 text-[#00D4FF] animate-pulse" />
-                </div>
+            <div className="flex min-h-screen items-center justify-center bg-[#09090b]">
+                <Loader2 className="w-8 h-8 text-neutral-400 animate-spin" />
             </div>
         );
     }
 
+    const greeting = () => {
+        const hour = new Date().getHours();
+        if (hour < 12) return 'Good morning';
+        if (hour < 18) return 'Good afternoon';
+        return 'Good evening';
+    };
+
+    const navItems = [
+        { id: 'overview', icon: <LayoutDashboard className="w-4 h-4" />, label: 'Overview' },
+        { id: 'itineraries', icon: <Compass className="w-4 h-4" />, label: 'My Trips' },
+        { id: 'translations', icon: <Languages className="w-4 h-4" />, label: 'Translation Log' },
+        { id: 'profile', icon: <User className="w-4 h-4" />, label: 'Account Settings' },
+    ];
+
+    const upcomingTrips = itineraries.filter(it => !it.start_date || new Date(it.start_date) >= new Date());
+    const latestTrip = itineraries[0];
+
     return (
-        <div className="min-h-screen pt-24 pb-10 px-4 md:px-8 relative text-white font-sans overflow-hidden">
-            <HolographicBackground />
+        <div className="min-h-screen bg-[#09090b] text-neutral-100 font-sans selection:bg-indigo-500/30 selection:text-indigo-200">
+            {/* Subtle Top Radial Gradient */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-indigo-500/10 blur-[120px] rounded-[100%] pointer-events-none opacity-50" />
+            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] mix-blend-overlay pointer-events-none" />
 
-            <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-8 relative z-10">
+            <div className="max-w-[1400px] mx-auto pt-24 pb-12 px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-8 relative z-10">
                 
-                {/* 3D Floating Sidebar */}
-                <motion.div 
-                    ref={sidebarRef}
-                    style={{ rotateX: sbRotateX, rotateY: sbRotateY, transformStyle: "preserve-3d" }}
-                    onMouseMove={onSidebarMove}
-                    onMouseLeave={() => { sbX.set(0); sbY.set(0); }}
-                    className="space-y-6 perspective-1000"
-                >
-                    {/* Profile Node Container */}
-                    <div className="bg-[#0A0D1A]/60 backdrop-blur-2xl border border-[#00D4FF]/20 rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(0,212,255,0.1)] relative">
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#00D4FF] to-transparent opacity-50" />
-                        
-                        <div className="h-28 relative overflow-hidden bg-gradient-to-br from-[#1A103C] to-[#0D1B2A]">
-                            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay" />
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <Activity className="w-full h-full text-[#8B5CF6]/10 animate-pulse stroke-[0.5]" />
-                            </div>
-                        </div>
-                        
-                        <div className="px-6 pb-6 relative flex flex-col items-center -mt-14">
-                            <div className="relative p-1 rounded-full bg-gradient-to-tr from-[#00D4FF] to-[#8B5CF6] mb-4 shadow-[0_0_30px_rgba(139,92,246,0.3)]">
-                                <Avatar className="w-24 h-24 border-4 border-[#03080F] bg-[#03080F]">
-                                    <AvatarImage src={profile?.avatar_url || "https://i.pravatar.cc/150?u=user123"} />
-                                    <AvatarFallback className="bg-[#03080F] text-white text-xl font-bold">{profile?.full_name?.charAt(0) || 'U'}</AvatarFallback>
-                                </Avatar>
-                                <div className="absolute bottom-1 right-1 w-4 h-4 bg-[#00FFB3] rounded-full border-2 border-[#03080F] shadow-[0_0_10px_#00FFB3]" />
-                            </div>
-
-                            <h2 className="text-2xl font-black uppercase tracking-widest text-[#E2E8F0] drop-shadow-md">{profile?.full_name}</h2>
-                            <p className="text-[#00D4FF] font-mono text-xs uppercase tracking-[0.2em] mb-4">{profile?.username}</p>
-
-                            <Badge className="bg-[#8B5CF6]/20 text-[#8B5CF6] border-[#8B5CF6]/50 mb-6 py-1 px-4 font-bold uppercase tracking-widest text-[10px]">Level 7 clearance</Badge>
-
-                            <div className="w-full space-y-3 font-mono text-xs text-white/60">
-                                <div className="flex justify-between items-center bg-white/5 p-3 rounded-lg border border-white/5 hover:border-white/20 transition-colors">
-                                    <span className="flex items-center gap-2"><Map className="w-3 h-3 text-[#00D4FF]" /> Memory Shards</span>
-                                    <span className="font-bold text-white text-sm bg-white/10 px-2 rounded">{itineraries.length}</span>
-                                </div>
-                                <div className="flex justify-between items-center bg-white/5 p-3 rounded-lg border border-white/5 hover:border-white/20 transition-colors">
-                                    <span className="flex items-center gap-2"><Languages className="w-3 h-3 text-[#8B5CF6]" /> Comms Logs</span>
-                                    <span className="font-bold text-white text-sm bg-white/10 px-2 rounded">{translations.length}</span>
-                                </div>
-                            </div>
+                {/* Minimalist Sidebar */}
+                <aside className="space-y-8">
+                    {/* User Mini Profile */}
+                    <div className="flex items-center gap-4 px-2">
+                        <Avatar className="w-12 h-12 ring-1 ring-white/10 shadow-lg">
+                            <AvatarImage src={profile?.avatar_url || "https://i.pravatar.cc/150?u=user123"} />
+                            <AvatarFallback className="bg-neutral-800 text-neutral-300 font-medium">
+                                {profile?.full_name?.charAt(0) || 'U'}
+                            </AvatarFallback>
+                        </Avatar>
+                        <div className="overflow-hidden">
+                            <h2 className="text-sm font-semibold truncate text-neutral-100">{profile?.full_name}</h2>
+                            <p className="text-xs text-neutral-400 truncate">{profile?.username}</p>
                         </div>
                     </div>
 
-                    {/* Navigation Console */}
-                    <div className="bg-[#0A0D1A]/60 backdrop-blur-2xl border border-[#8B5CF6]/20 rounded-3xl p-4 shadow-[0_0_50px_rgba(139,92,246,0.05)]">
-                        <div className="space-y-2">
-                            {[
-                                { id: 'overview', icon: <Globe2 className="w-4 h-4" />, label: 'Command Hub' },
-                                { id: 'itineraries', icon: <Server className="w-4 h-4" />, label: 'Memory Bank' },
-                                { id: 'translations', icon: <Radio className="w-4 h-4" />, label: 'Comms Feed' },
-                                { id: 'profile', icon: <Shield className="w-4 h-4" />, label: 'Security Uplink' },
-                            ].map((btn) => (
-                                <button
-                                    key={btn.id}
-                                    onClick={() => setActiveTab(btn.id)}
-                                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold uppercase tracking-widest text-xs transition-all ${
-                                        activeTab === btn.id 
-                                        ? 'bg-gradient-to-r from-[#8B5CF6]/20 to-[#00D4FF]/20 text-white border border-white/20 shadow-inner' 
-                                        : 'text-white/40 hover:text-white hover:bg-white/5'
-                                    }`}
-                                >
-                                    <span className={`${activeTab === btn.id ? 'text-[#00D4FF]' : 'text-white/30'}`}>{btn.icon}</span>
-                                    {btn.label}
-                                </button>
-                            ))}
-                            <div className="h-px bg-white/10 my-4 mx-2" />
+                    {/* Navigation */}
+                    <nav className="space-y-1">
+                        {navItems.map((item) => (
                             <button
-                                onClick={handleSignOut}
-                                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold uppercase tracking-widest text-xs text-[#FF0040]/70 hover:text-[#FF0040] hover:bg-[#FF0040]/10 transition-all"
+                                key={item.id}
+                                onClick={() => setActiveTab(item.id)}
+                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                                    activeTab === item.id 
+                                    ? 'bg-neutral-800/50 text-white shadow-sm ring-1 ring-white/10' 
+                                    : 'text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800/30'
+                                }`}
                             >
-                                <LogOut className="w-4 h-4" /> Disconnect
+                                <span className={activeTab === item.id ? 'text-indigo-400' : 'text-neutral-500'}>
+                                    {item.icon}
+                                </span>
+                                {item.label}
                             </button>
-                        </div>
-                    </div>
-                </motion.div>
+                        ))}
+                    </nav>
+
+                    <div className="h-px bg-white/5 mx-2" />
+
+                    <button
+                        onClick={handleSignOut}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-neutral-500 hover:text-red-400 hover:bg-red-400/10 transition-colors"
+                    >
+                        <LogOut className="w-4 h-4" /> Sign Out
+                    </button>
+                </aside>
 
                 {/* Main Content Area */}
-                <div className="relative min-h-[600px]">
+                <main className="min-h-[700px]">
                     <AnimatePresence mode="wait">
                         
                         {/* OVERVIEW TAB */}
                         {activeTab === 'overview' && (
                             <motion.div 
                                 key="overview"
-                                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}
-                                className="space-y-6"
+                                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}
+                                className="space-y-8"
                             >
-                                <h1 className="text-4xl lg:text-5xl font-black uppercase tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-white/40 drop-shadow-sm mb-8">
-                                    Command Hub initialized.
-                                </h1>
+                                {/* Header Section */}
+                                <div>
+                                    <h1 className="text-3xl font-bold tracking-tight text-neutral-50 mb-2">
+                                        {greeting()}, {profile?.full_name?.split(' ')[0] || 'Traveler'}.
+                                    </h1>
+                                    <p className="text-neutral-400">
+                                        You have <strong className="text-neutral-200 font-medium">{upcomingTrips.length} upcoming trips</strong> lined up.
+                                    </p>
+                                </div>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                    {/* Quick Action Widget 1 */}
-                                    <div className="bg-gradient-to-br from-[#0A0D1A]/80 to-[#1A103C]/80 backdrop-blur-xl border border-[#00D4FF]/30 rounded-3xl p-6 group cursor-pointer hover:shadow-[0_0_40px_rgba(0,212,255,0.2)] transition-all">
-                                        <div className="w-12 h-12 rounded-2xl bg-[#00D4FF]/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                                            <Map className="w-6 h-6 text-[#00D4FF]" />
+                                {/* High-level Stats */}
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                    <div className="bg-neutral-900/50 backdrop-blur-md border border-white/5 rounded-xl p-5 shadow-sm">
+                                        <div className="flex items-center gap-3 mb-2 text-neutral-400">
+                                            <Compass className="w-4 h-4 text-indigo-400" />
+                                            <span className="text-xs font-medium uppercase tracking-wider">Total Itineraries</span>
                                         </div>
-                                        <h3 className="text-white text-xl font-black uppercase tracking-widest mb-2">Initialize Run</h3>
-                                        <p className="text-white/40 font-mono text-sm leading-relaxed mb-6 h-10">Deploy AI to construct a new travel vector.</p>
-                                        <Button className="w-full bg-[#00D4FF] hover:bg-[#00D4FF]/80 text-[#03080F] font-black uppercase tracking-widest text-xs rounded-xl" onClick={() => router.push('/plan-trip')}>
-                                            Deploy Agents
-                                        </Button>
+                                        <div className="text-3xl font-semibold text-neutral-50">{itineraries.length}</div>
+                                    </div>
+                                    <div className="bg-neutral-900/50 backdrop-blur-md border border-white/5 rounded-xl p-5 shadow-sm">
+                                        <div className="flex items-center gap-3 mb-2 text-neutral-400">
+                                            <Languages className="w-4 h-4 text-emerald-400" />
+                                            <span className="text-xs font-medium uppercase tracking-wider">Translations</span>
+                                        </div>
+                                        <div className="text-3xl font-semibold text-neutral-50">{translations.length}</div>
+                                    </div>
+                                    <div className="bg-neutral-900/50 backdrop-blur-md border border-white/5 rounded-xl p-5 shadow-sm">
+                                        <div className="flex items-center gap-3 mb-2 text-neutral-400">
+                                            <Bookmark className="w-4 h-4 text-amber-400" />
+                                            <span className="text-xs font-medium uppercase tracking-wider">Saved Places</span>
+                                        </div>
+                                        <div className="text-3xl font-semibold text-neutral-50">0</div>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                                    {/* Latest Trip / Up Next (Takes up 2 columns on large screens) */}
+                                    <div className="xl:col-span-2 space-y-4">
+                                        <div className="flex justify-between items-end">
+                                            <h2 className="text-lg font-semibold text-neutral-200">Up Next</h2>
+                                            <button onClick={() => setActiveTab('itineraries')} className="text-sm text-indigo-400 hover:text-indigo-300 transition-colors flex items-center">
+                                                View all <ChevronRight className="w-4 h-4 ml-1" />
+                                            </button>
+                                        </div>
+                                        
+                                        {latestTrip ? (
+                                            <div onClick={() => router.push(`/itineraries/${latestTrip.id}`)} className="group relative bg-neutral-900/60 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden cursor-pointer shadow-sm hover:shadow-indigo-500/10 transition-all duration-300">
+                                                {/* Decorative Top Banner */}
+                                                <div className="h-32 w-full bg-neutral-800 relative overflow-hidden">
+                                                    <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-emerald-500/20 mix-blend-overlay group-hover:scale-105 transition-transform duration-700" />
+                                                    <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay" />
+                                                    <Badge className="absolute top-4 right-4 bg-neutral-950/50 backdrop-blur-md text-white border-white/10">
+                                                        Upcoming
+                                                    </Badge>
+                                                </div>
+                                                <div className="p-6">
+                                                    <h3 className="text-2xl font-bold text-neutral-50 mb-2 truncate">{latestTrip.title}</h3>
+                                                    <div className="flex flex-wrap gap-4 text-sm text-neutral-400">
+                                                        <span className="flex items-center"><Calendar className="w-4 h-4 mr-2" /> 
+                                                            {latestTrip.start_date ? new Date(latestTrip.start_date).toLocaleDateString() : new Date(latestTrip.created_at).toLocaleDateString()}
+                                                        </span>
+                                                        <span className="flex items-center"><Map className="w-4 h-4 mr-2" /> {latestTrip.travel_style || 'General'} Tour</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="bg-neutral-900/40 border border-dashed border-white/10 rounded-2xl p-8 text-center flex flex-col items-center justify-center min-h-[220px]">
+                                                <PlaneTakeoff className="w-10 h-10 text-neutral-600 mb-4" />
+                                                <h3 className="text-neutral-300 font-medium mb-1">No trips planned yet</h3>
+                                                <p className="text-sm text-neutral-500 mb-6 max-w-sm">Use our AI agent to generate a complete travel itinerary in seconds.</p>
+                                                <Button onClick={() => router.push('/plan-trip')} className="bg-white text-black hover:bg-neutral-200">
+                                                    Plan a Trip
+                                                </Button>
+                                            </div>
+                                        )}
                                     </div>
 
-                                    {/* Quick Action Widget 2 */}
-                                    <div className="bg-gradient-to-bl from-[#0A0D1A]/80 to-[#0D1B2A]/80 backdrop-blur-xl border border-[#8B5CF6]/30 rounded-3xl p-6 group cursor-pointer hover:shadow-[0_0_40px_rgba(139,92,246,0.2)] transition-all">
-                                        <div className="w-12 h-12 rounded-2xl bg-[#8B5CF6]/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                                            <Radio className="w-6 h-6 text-[#8B5CF6]" />
+                                    {/* Quick Actions / Activity */}
+                                    <div className="space-y-4">
+                                        <h2 className="text-lg font-semibold text-neutral-200">Quick Actions</h2>
+                                        <div className="grid gap-3">
+                                            <button onClick={() => router.push('/plan-trip')} className="flex items-center p-4 bg-neutral-900/50 border border-white/5 rounded-xl hover:bg-neutral-800 transition-colors group text-left">
+                                                <div className="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center mr-4 group-hover:bg-indigo-500/20 transition-colors">
+                                                    <Map className="w-5 h-5 text-indigo-400" />
+                                                </div>
+                                                <div>
+                                                    <div className="font-medium text-neutral-200">New Itinerary</div>
+                                                    <div className="text-xs text-neutral-500 mt-0.5">Let AI plan your next journey.</div>
+                                                </div>
+                                            </button>
+                                            <button onClick={() => router.push('/translate')} className="flex items-center p-4 bg-neutral-900/50 border border-white/5 rounded-xl hover:bg-neutral-800 transition-colors group text-left">
+                                                <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center mr-4 group-hover:bg-emerald-500/20 transition-colors">
+                                                    <Languages className="w-5 h-5 text-emerald-400" />
+                                                </div>
+                                                <div>
+                                                    <div className="font-medium text-neutral-200">Live Translator</div>
+                                                    <div className="text-xs text-neutral-500 mt-0.5">Real-time voice and text translation.</div>
+                                                </div>
+                                            </button>
                                         </div>
-                                        <h3 className="text-white text-xl font-black uppercase tracking-widest mb-2">Comms Uplink</h3>
-                                        <p className="text-white/40 font-mono text-sm leading-relaxed mb-6 h-10">Access real-time holographic linguistic decoder.</p>
-                                        <Button className="w-full bg-[#8B5CF6] hover:bg-[#8B5CF6]/80 text-white font-black uppercase tracking-widest text-xs rounded-xl" onClick={() => router.push('/translate')}>
-                                            Establish Link
-                                        </Button>
                                     </div>
                                 </div>
                             </motion.div>
@@ -291,28 +254,60 @@ export default function DashboardPage() {
                         {activeTab === 'itineraries' && (
                             <motion.div 
                                 key="itineraries"
-                                initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.3 }}
+                                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}
                                 className="space-y-6"
                             >
-                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-                                    <h1 className="text-4xl font-black uppercase tracking-tight text-white flex items-center gap-4">
-                                        <Server className="w-8 h-8 text-[#00D4FF]" /> Memory Bank
-                                    </h1>
-                                    <Button className="bg-[#00D4FF]/10 text-[#00D4FF] border border-[#00D4FF]/30 hover:bg-[#00D4FF] hover:text-[#03080F] rounded-xl font-bold uppercase tracking-widest text-xs transition-colors" onClick={() => router.push('/plan-trip')}>
-                                        New Upload
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
+                                    <div>
+                                        <h1 className="text-3xl font-bold tracking-tight text-neutral-50">My Trips</h1>
+                                        <p className="text-neutral-400 mt-1">Manage and view all your generated itineraries.</p>
+                                    </div>
+                                    <Button onClick={() => router.push('/plan-trip')} className="bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm">
+                                        <Map className="w-4 h-4 mr-2" /> Plan New Trip
                                     </Button>
                                 </div>
 
                                 {itineraries.length === 0 ? (
-                                    <div className="text-center py-20 bg-[#0A0D1A]/40 backdrop-blur-md rounded-3xl border border-dashed border-white/20">
-                                        <Eye className="w-12 h-12 text-white/20 mx-auto mb-4" />
-                                        <h3 className="text-2xl font-black uppercase tracking-widest text-white mb-2">Core is empty</h3>
-                                        <p className="text-white/40 font-mono text-sm">No memory shards detected in your partition.</p>
+                                    <div className="py-24 text-center">
+                                        <Compass className="w-12 h-12 text-neutral-700 mx-auto mb-4" />
+                                        <h3 className="text-xl font-medium text-neutral-300">No itineraries found</h3>
                                     </div>
                                 ) : (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                                         {itineraries.map((it) => (
-                                            <MemoryShard key={it.id} it={it} router={router} />
+                                            <div 
+                                                key={it.id} 
+                                                onClick={() => router.push(`/itineraries/${it.id}`)}
+                                                className="group bg-neutral-900/50 backdrop-blur-md border border-white/5 rounded-xl overflow-hidden hover:border-white/10 hover:bg-neutral-800/80 transition-all cursor-pointer flex flex-col h-[200px]"
+                                            >
+                                                <div className="p-5 flex-1 relative">
+                                                    <div className="flex justify-between items-start mb-4">
+                                                        <h3 className="text-lg font-semibold text-neutral-100 line-clamp-2 pr-4">{it.title}</h3>
+                                                        <button className="text-neutral-500 hover:text-neutral-200 transition-colors shrink-0">
+                                                            <MoreHorizontal className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                    
+                                                    <Badge variant="outline" className="bg-neutral-950/50 border-white/10 text-neutral-300 mb-3 font-normal">
+                                                        {it.travel_style || 'General'}
+                                                    </Badge>
+                                                    
+                                                    {it.is_public && (
+                                                        <div className="absolute top-5 right-10 flex items-center text-[10px] text-emerald-400 font-medium tracking-wide">
+                                                            <Globe2 className="w-3 h-3 mr-1" /> PUBLIC
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="px-5 py-4 bg-black/20 border-t border-white/5 flex items-center justify-between text-xs text-neutral-400 font-medium">
+                                                    <div className="flex items-center">
+                                                        <Calendar className="w-3.5 h-3.5 mr-1.5" />
+                                                        {it.start_date ? new Date(it.start_date).toLocaleDateString() : new Date(it.created_at).toLocaleDateString()}
+                                                    </div>
+                                                    <div className="text-indigo-400 group-hover:translate-x-1 transition-transform flex items-center">
+                                                        View <ChevronRight className="w-3.5 h-3.5 ml-0.5" />
+                                                    </div>
+                                                </div>
+                                            </div>
                                         ))}
                                     </div>
                                 )}
@@ -323,63 +318,78 @@ export default function DashboardPage() {
                         {activeTab === 'translations' && (
                             <motion.div 
                                 key="translations"
-                                initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.3 }}
+                                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}
                                 className="space-y-6"
                             >
-                                <div className="flex justify-between items-center mb-8">
-                                    <h1 className="text-4xl font-black uppercase tracking-tight text-white flex items-center gap-4">
-                                        <Radio className="w-8 h-8 text-[#8B5CF6]" /> Comms Feed
-                                    </h1>
-                                    <Button className="bg-[#8B5CF6]/10 text-[#8B5CF6] border border-[#8B5CF6]/30 hover:bg-[#8B5CF6] hover:text-white rounded-xl font-bold uppercase tracking-widest text-xs transition-colors" onClick={() => router.push('/translate')}>
-                                        Active Channel
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
+                                    <div>
+                                        <h1 className="text-3xl font-bold tracking-tight text-neutral-50">Translation Log</h1>
+                                        <p className="text-neutral-400 mt-1">A semantic history of your voice and text translations.</p>
+                                    </div>
+                                    <Button onClick={() => router.push('/translate')} variant="outline" className="border-white/10 hover:bg-white/5 shadow-sm">
+                                        <Languages className="w-4 h-4 mr-2" /> Open Translator
                                     </Button>
                                 </div>
 
                                 {translations.length === 0 ? (
-                                    <div className="text-center py-20 bg-[#0A0D1A]/40 backdrop-blur-md rounded-3xl border border-dashed border-white/20">
-                                        <Radio className="w-12 h-12 text-white/20 mx-auto mb-4" />
-                                        <h3 className="text-2xl font-black uppercase tracking-widest text-white mb-2">Signal lost</h3>
-                                        <p className="text-white/40 font-mono text-sm">No incoming transmissions recorded.</p>
+                                    <div className="py-24 text-center border-t border-white/5">
+                                        <History className="w-12 h-12 text-neutral-700 mx-auto mb-4" />
+                                        <h3 className="text-xl font-medium text-neutral-300">No translations yet</h3>
                                     </div>
                                 ) : (
-                                    <div className="space-y-4">
-                                        {translations.map((t, idx) => (
-                                            <motion.div 
-                                                key={t.id}
-                                                initial={{ opacity: 0, x: -20 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                transition={{ delay: idx * 0.1 }}
-                                                className="bg-[#0A0D1A]/60 backdrop-blur-xl border border-white/10 rounded-2xl p-5 hover:border-[#8B5CF6]/40 transition-colors group relative overflow-hidden"
-                                            >
-                                                {/* Scan line effect */}
-                                                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#8B5CF6]/50 to-transparent transform -translate-y-full group-hover:animate-[scan_2s_ease-in-out_infinite]" />
+                                    <div className="bg-neutral-900/30 border border-white/5 rounded-xl overflow-hidden">
+                                        <div className="hidden md:grid grid-cols-[1fr_1fr_120px] gap-6 p-4 border-b border-white/5 text-xs font-semibold text-neutral-500 uppercase tracking-wider bg-black/20">
+                                            <div>Original Text <span className="font-normal normal-case text-neutral-600 block sm:inline sm:ml-2">(Source)</span></div>
+                                            <div>Translation <span className="font-normal normal-case text-neutral-600 block sm:inline sm:ml-2">(Target)</span></div>
+                                            <div className="text-right">Action</div>
+                                        </div>
+                                        
+                                        <div className="divide-y divide-white/5">
+                                            {translations.map((t) => (
+                                                <div key={t.id} className="grid grid-cols-1 md:grid-cols-[1fr_1fr_120px] gap-4 md:gap-6 p-4 md:p-5 hover:bg-white/[0.02] transition-colors items-center group">
+                                                    
+                                                    {/* Source Item */}
+                                                    <div>
+                                                        <div className="flex items-center gap-2 mb-1.5 md:hidden">
+                                                            <Badge variant="outline" className="text-[10px] bg-neutral-950 border-white/10 text-neutral-400">{t.source_language}</Badge>
+                                                        </div>
+                                                        <p className="text-sm text-neutral-300 leading-relaxed">{t.original_text}</p>
+                                                        <div className="hidden md:block mt-2">
+                                                            <span className="text-[10px] font-medium text-neutral-500 uppercase tracking-widest">{t.source_language}</span>
+                                                        </div>
+                                                    </div>
 
-                                                <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-4 pb-4 border-b border-white/5">
-                                                    <div className="flex items-center gap-3 font-mono text-xs uppercase font-bold tracking-widest">
-                                                        <span className="text-white/40">{t.source_language}</span>
-                                                        <MoreHorizontal className="w-4 h-4 text-[#8B5CF6]" />
-                                                        <span className="text-[#00D4FF] bg-[#00D4FF]/10 px-2 py-1 rounded">{t.target_language}</span>
+                                                    {/* Mobile Divider */}
+                                                    <div className="md:hidden flex items-center justify-center py-2 text-neutral-700">
+                                                        <ArrowRightLeft className="w-4 h-4 rotate-90" />
                                                     </div>
-                                                    <span className="text-[10px] text-white/30 font-mono uppercase tracking-widest mt-2 sm:mt-0">
-                                                        {new Date(t.created_at).toLocaleDateString()} // {new Date(t.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                    </span>
-                                                </div>
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
-                                                    <div className="p-4 bg-black/40 rounded-xl border border-white/5 shadow-inner">
-                                                        <p className="text-sm text-white/70 leading-relaxed font-mono">{t.original_text}</p>
+
+                                                    {/* Target Item */}
+                                                    <div>
+                                                        <div className="flex items-center gap-2 mb-1.5 md:hidden">
+                                                            <Badge variant="outline" className="text-[10px] bg-indigo-950/30 border-indigo-500/20 text-indigo-300">{t.target_language}</Badge>
+                                                        </div>
+                                                        <p className="text-sm font-medium text-neutral-100 leading-relaxed">{t.translated_text}</p>
+                                                        <div className="hidden md:block mt-2">
+                                                            <span className="text-[10px] font-medium text-indigo-400/70 uppercase tracking-widest">{t.target_language}</span>
+                                                        </div>
                                                     </div>
-                                                    <div className="p-4 bg-[#8B5CF6]/5 rounded-xl border border-[#8B5CF6]/20 relative group/target">
-                                                        <p className="text-sm text-[#00D4FF] leading-relaxed font-bold font-mono">"{t.translated_text}"</p>
+
+                                                    <div className="flex items-center md:justify-end gap-3 mt-2 md:mt-0">
+                                                        <span className="text-xs text-neutral-600 font-medium md:hidden">
+                                                            {new Date(t.created_at).toLocaleDateString()}
+                                                        </span>
                                                         <button
                                                             onClick={() => navigator.clipboard.writeText(t.translated_text)}
-                                                            className="absolute bottom-2 right-2 p-2 bg-[#00D4FF]/20 text-[#00D4FF] hover:bg-[#00D4FF] hover:text-[#03080F] rounded-lg opacity-0 group-hover/target:opacity-100 transition-all backdrop-blur-md border border-[#00D4FF]/30"
+                                                            className="p-2 ml-auto md:ml-0 text-neutral-500 hover:text-neutral-200 hover:bg-white/10 rounded-md transition-all shadow-sm border border-transparent hover:border-white/10 opacity-100 md:opacity-0 group-hover:opacity-100 focus:opacity-100"
+                                                            title="Copy translation"
                                                         >
                                                             <Copy className="w-4 h-4" />
                                                         </button>
                                                     </div>
                                                 </div>
-                                            </motion.div>
-                                        ))}
+                                            ))}
+                                        </div>
                                     </div>
                                 )}
                             </motion.div>
@@ -389,55 +399,64 @@ export default function DashboardPage() {
                         {activeTab === 'profile' && (
                             <motion.div 
                                 key="profile"
-                                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} transition={{ duration: 0.3 }}
-                                className="space-y-6"
+                                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.2 }}
+                                className="space-y-6 max-w-3xl"
                             >
-                                <h1 className="text-4xl font-black uppercase tracking-tight text-white flex items-center gap-4 mb-8">
-                                    <Shield className="w-8 h-8 text-white/50" /> Security Uplink
-                                </h1>
+                                <div>
+                                    <h1 className="text-3xl font-bold tracking-tight text-neutral-50 mb-1">Account Settings</h1>
+                                    <p className="text-neutral-400">Manage your personal information and preferences.</p>
+                                </div>
 
-                                <div className="bg-[#0A0D1A]/60 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 md:p-10 shadow-2xl relative overflow-hidden">
-                                    <div className="absolute top-0 right-0 w-32 h-32 bg-[#8B5CF6]/10 rounded-bl-[100px] border-b border-l border-[#8B5CF6]/20" />
-                                    
-                                    <h3 className="text-lg font-black uppercase tracking-widest text-[#E2E8F0] mb-8 pb-4 border-b border-white/5">Identity Matrix</h3>
+                                <div className="bg-neutral-900/50 backdrop-blur-md border border-white/5 rounded-2xl p-6 sm:p-8 mt-8">
+                                    <h3 className="text-lg font-semibold text-neutral-200 mb-6">Profile Details</h3>
                                     
                                     <div className="space-y-6">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <div className="space-y-3">
-                                                <label className="text-[10px] font-bold uppercase tracking-widest text-[#00D4FF]">Authorized Designation</label>
-                                                <Input defaultValue={profile?.full_name || ''} className="h-14 bg-black/50 border-white/10 text-white font-mono placeholder:text-white/20 focus-visible:ring-[#00D4FF] text-lg rounded-xl" />
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-medium text-neutral-400">Full Name</label>
+                                                <Input 
+                                                    defaultValue={profile?.full_name || ''} 
+                                                    className="bg-black/40 border-white/10 text-neutral-200 focus-visible:ring-indigo-500/50 focus-visible:border-indigo-500/50 shadow-inner" 
+                                                />
                                             </div>
-                                            <div className="space-y-3">
-                                                <label className="text-[10px] font-bold uppercase tracking-widest text-[#8B5CF6]">Network Alias</label>
-                                                <Input defaultValue={profile?.username || ''} className="h-14 bg-black/50 border-white/10 text-white font-mono placeholder:text-white/20 focus-visible:ring-[#8B5CF6] text-lg rounded-xl" />
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-medium text-neutral-400">Username</label>
+                                                <Input 
+                                                    defaultValue={profile?.username || ''} 
+                                                    className="bg-black/40 border-white/10 text-neutral-200 focus-visible:ring-indigo-500/50 focus-visible:border-indigo-500/50 shadow-inner" 
+                                                />
                                             </div>
-                                            <div className="space-y-3 md:col-span-2">
-                                                <label className="text-[10px] font-bold uppercase tracking-widest text-white/50">Bio-Metric Data (Optional)</label>
-                                                <Input defaultValue={profile?.bio || ''} className="h-14 bg-black/50 border-white/10 text-white font-mono placeholder:text-white/20 focus-visible:ring-white/30 text-lg rounded-xl" />
+                                            <div className="space-y-2 sm:col-span-2">
+                                                <label className="text-xs font-medium text-neutral-400">Bio</label>
+                                                <Input 
+                                                    defaultValue={profile?.bio || ''} 
+                                                    placeholder="Tell us about your travel style..."
+                                                    className="bg-black/40 border-white/10 text-neutral-200 focus-visible:ring-indigo-500/50 focus-visible:border-indigo-500/50 shadow-inner" 
+                                                />
                                             </div>
                                         </div>
-                                        <Button className="mt-8 rounded-xl bg-white text-black hover:bg-white/90 font-black uppercase tracking-widest text-xs h-12 px-8 shadow-[0_0_30px_rgba(255,255,255,0.2)] hover:shadow-[0_0_50px_rgba(255,255,255,0.4)] transition-all float-right">
-                                            Sync Parameters
-                                        </Button>
+                                        
+                                        <div className="pt-4 border-t border-white/5 flex justify-end">
+                                            <Button className="bg-white text-black hover:bg-neutral-200 font-medium px-6">
+                                                Save Changes
+                                            </Button>
+                                        </div>
                                     </div>
+                                </div>
+
+                                {/* Danger Zone (Visual only for UI completeness) */}
+                                <div className="border border-red-500/20 rounded-2xl p-6 bg-red-500/5 mt-8">
+                                    <h3 className="text-lg font-semibold text-red-400 mb-2">Danger Zone</h3>
+                                    <p className="text-sm text-neutral-400 mb-4">Permanently delete your account and all associated travel data. This action cannot be undone.</p>
+                                    <Button variant="outline" className="text-red-400 border-red-500/30 hover:bg-red-500/10 hover:text-red-300">
+                                        Delete Account
+                                    </Button>
                                 </div>
                             </motion.div>
                         )}
                     </AnimatePresence>
-                </div>
+                </main>
             </div>
-            
-            <style jsx global>{`
-                @keyframes gridMove {
-                    0% { transform: perspective(1000px) rotateX(60deg) translateY(-200px) scale(2); }
-                    100% { transform: perspective(1000px) rotateX(60deg) translateY(0px) scale(2); }
-                }
-                @keyframes scan {
-                    0%, 100% { transform: translateY(-100%); opacity: 0; }
-                    50% { opacity: 1; }
-                    99.9% { transform: translateY(100%); }
-                }
-            `}</style>
         </div>
     );
 }

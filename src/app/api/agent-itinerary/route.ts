@@ -1,217 +1,134 @@
+/**
+ * Agent Itinerary API Route
+ *
+ * Standardized 8-agent pipeline orchestration (Agent 1 - Agent 8):
+ *
+ *   Agent 1  -> Discovery (Deterministic Grounding - Google Places)
+ *   Agent 2  -> Planning (LLM Strategy - Skeleton Generation)
+ *   Agent 3  -> Market Research (Deterministic - Flights/Hotels)
+ *   Agent 4  -> Financial Audit (Deterministic - Pricing & Budget Analysis)
+ *   Agent 5  -> Cultural Specialist (LLM - Local Experience & Enrichment)
+ *   Agent 6  -> Logistics (Deterministic - Route Optimization)
+ *   Agent 7  -> Sustainability (Deterministic - ESG Scorecard)
+ *   Agent 8  -> Global Composer (LLM - Final Assembly & Narrative)
+ *
+ * Grounding First: Agent 1 acquires all necessary data BEFORE Agent 2 begins planning.
+ */
+
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+import crypto from 'node:crypto';
 import { getCache, setCache } from '@/utils/cache';
+import { deductUsage, deductCredits } from '@/utils/usage';
 import { getActiveModel, logAiUsage } from '@/utils/ai-config';
 import { requirePlan } from '@/utils/require-plan';
-import { deductUsage, deductCredits } from '@/utils/usage';
-import crypto from 'node:crypto';
+import type { AgentLog, StreamEvent } from './types';
+import { executeItineraryPipeline } from '@/lib/agents/pipeline';
 
-import {
-  travelPlanningAgent,
-  travelResearchAgent,
-  localExperienceAgent,
-  flightAnalysisAgent,
-  budgetOptimizationAgent,
-  routeOptimizationAgent,
-  finalComposerAgent,
-} from './agents';
-import type { AgentLog } from './types';
+// --- Input Validation Schema ---------------------------------------------------
 
-// ─── Input Schema ───
 const AgentRequestSchema = z.object({
-  destination: z.string().min(1).max(200),
-  days: z.number().int().min(1).max(30),
-  startDate: z.string().optional(),
-  endDate: z.string().optional(),
-  budget: z.enum(['budget', 'moderate', 'luxury', 'custom']),
-  travelStyle: z.enum(['relaxed', 'balanced', 'adventure', 'cultural']),
-  travelerType: z.enum(['single', 'couple', 'family', 'friends']),
-  interests: z.array(z.string()).max(8).optional().default([]),
-  transport: z.enum(['public', 'rental', 'walking']).optional().default('public'),
-  originCity: z.string().optional(),
-  includeFlights: z.boolean().optional().default(false),
-  includeHotels: z.boolean().optional().default(false),
-  customBudget: z.number().positive().optional(),
-  currency: z.string().min(3).max(3).optional().default('USD'),
+    destination: z.string().min(2),
+    days: z.number().int().min(1).max(30),
+    startDate: z.string().optional(),
+    endDate: z.string().optional(),
+    budget: z.enum(['budget', 'moderate', 'luxury', 'custom']),
+    travelStyle: z.enum(['relaxed', 'balanced', 'adventure', 'cultural']),
+    travelerType: z.enum(['single', 'couple', 'family', 'friends']),
+    interests: z.array(z.string()).default([]),
+    transport: z.enum(['public', 'rental', 'walking']),
+    originCity: z.string().optional(),
+    includeFlights: z.boolean().optional().default(false),
+    includeHotels: z.boolean().optional().default(false),
+    customBudget: z.number().optional(),
+    currency: z.string().optional().default('USD'),
 });
 
+// --- POST Handler --------------------------------------------------------------
+
 export async function POST(req: Request) {
-  const agentLogs: AgentLog[] = [];
-  const pipelineStart = Date.now();
-
-  try {
-    // ─── 1. Auth + Plan ───
-    const planResult = await requirePlan('itinerary', { days: undefined });
+    const planResult = await requirePlan('itinerary', { allowGuest: true });
     if ('error' in planResult) return planResult.error;
-    const { user, plan: userPlan, useCredits } = planResult;
+    const { user, useCredits } = planResult;
 
-    // ─── 2. Validate ───
-    const body = await req.json();
-    const parsed = AgentRequestSchema.safeParse(body);
-    if (!parsed.success) {
-      return NextResponse.json({ error: 'Invalid input', details: parsed.error.format() }, { status: 400 });
-    }
-    const input = parsed.data;
-
-    // ─── 2.1 Plan day limit ───
-    if (input.days > userPlan.limits.maxItineraryDays) {
-      return NextResponse.json(
-        { error: `Your ${userPlan.plan} plan supports up to ${userPlan.limits.maxItineraryDays}-day itineraries. Upgrade or buy credits.`, upgradeRequired: true, limitReached: true },
-        { status: 429 }
-      );
-    }
-
-    // ─── 2.5 Cache check ───
-    const cacheKeyObj = {
-      dest: input.destination, days: input.days, budget: input.budget,
-      style: input.travelStyle, type: input.travelerType,
-      interests: [...input.interests].sort(), transport: input.transport,
-      agent: 'v3-9agent',
-    };
-    const hash = crypto.createHash('sha256').update(JSON.stringify(cacheKeyObj)).digest('hex');
-    const cacheKey = `agent_itinerary_${hash}`;
-    const cached = await getCache(cacheKey);
-    if (cached) {
-      return NextResponse.json({ itinerary: cached, fromCache: true });
-    }
-
-    console.log(`\n${'═'.repeat(60)}`);
-    console.log(`[Pipeline] Starting 9-Agent Itinerary for ${input.destination}, ${input.days} days`);
-    console.log(`${'═'.repeat(60)}`);
-
-    // ═══════════════════════════════════════════════════════════════════════
-    // AGENT 1: TRAVEL PLANNING AGENT (LLM — Structure)
-    // ═══════════════════════════════════════════════════════════════════════
-    let t = Date.now();
-    const plan = await travelPlanningAgent(input);
-    agentLogs.push({ agent: 'TravelPlanning', durationMs: Date.now() - t, status: plan.error ? 'error' : 'success', details: plan.error });
-
-    if (plan.error || !plan.plan.length) {
-      console.error('[Pipeline] Agent 1 failed:', plan.details);
-      return NextResponse.json({ error: 'Planning agent failed. Please retry.', details: plan.details }, { status: 500 });
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════
-    // AGENT 2 + 3: RESEARCH + EXPERIENCE (Parallel — Tools)
-    // ═══════════════════════════════════════════════════════════════════════
-    t = Date.now();
-    const [research, experiences] = await Promise.all([
-      travelResearchAgent(plan, input),
-      localExperienceAgent(plan, input),
-    ]);
-    const researchTime = Date.now() - t;
-    agentLogs.push({ agent: 'TravelResearch', durationMs: researchTime, status: research.error ? 'error' : 'success', details: research.error });
-    agentLogs.push({ agent: 'LocalExperience', durationMs: researchTime, status: experiences.error ? 'error' : 'success', details: experiences.error });
-
-    // ═══════════════════════════════════════════════════════════════════════
-    // AGENT 4: FLIGHT ANALYSIS (Pure code)
-    // ═══════════════════════════════════════════════════════════════════════
-    t = Date.now();
-    const flightAnalysis = flightAnalysisAgent(research.flights);
-    agentLogs.push({ agent: 'FlightAnalysis', durationMs: Date.now() - t, status: 'success' });
-
-    // ═══════════════════════════════════════════════════════════════════════
-    // AGENT 5: BUDGET OPTIMIZATION (Pure code)
-    // ═══════════════════════════════════════════════════════════════════════
-    t = Date.now();
-    const budgetCheck = budgetOptimizationAgent(
-      research.flights, research.hotels, input.budget, input.days,
-      input.customBudget, input.currency,
-    );
-    agentLogs.push({ agent: 'BudgetOptimization', durationMs: Date.now() - t, status: 'success' });
-
-    // ═══════════════════════════════════════════════════════════════════════
-    // AGENT 6: ROUTE OPTIMIZATION (Pure code)
-    // ═══════════════════════════════════════════════════════════════════════
-    t = Date.now();
-    const optimizedRoute = routeOptimizationAgent(plan);
-    agentLogs.push({ agent: 'RouteOptimization', durationMs: Date.now() - t, status: 'success' });
-
-    // ═══════════════════════════════════════════════════════════════════════
-    // AGENT 9: FINAL COMPOSER (LLM — merges 7 Personalization + 8 Safety)
-    // ═══════════════════════════════════════════════════════════════════════
-    t = Date.now();
-    const itinerary = await finalComposerAgent({
-      input, plan, research, experiences, flightAnalysis, budgetCheck, optimizedRoute,
-    });
-    agentLogs.push({ agent: 'FinalComposer', durationMs: Date.now() - t, status: 'success' });
-
-    const totalMs = Date.now() - pipelineStart;
-
-    console.log(`\n${'─'.repeat(60)}`);
-    console.log(`[Pipeline] COMPLETE in ${(totalMs / 1000).toFixed(1)}s`);
-    agentLogs.forEach(l => console.log(`  ${l.agent}: ${l.durationMs}ms [${l.status}]`));
-    console.log(`${'─'.repeat(60)}\n`);
-
-    // ─── Log Usage with real token sums ───
     try {
-      // Sum tokens from LLM agents (1 = planning, 9 = composer)
-      const planTokens = (plan as any)?._tokens || { inputTokens: 0, outputTokens: 0, totalTokens: 0 };
-      const composerTokens = (itinerary as any)?._tokens || { inputTokens: 0, outputTokens: 0, totalTokens: 0 };
-      const totalInputTokens = planTokens.inputTokens + composerTokens.inputTokens;
-      const totalOutputTokens = planTokens.outputTokens + composerTokens.outputTokens;
-      const totalTokens = planTokens.totalTokens + composerTokens.totalTokens;
+        const body = await req.json();
+        const parsed = AgentRequestSchema.safeParse(body);
+        if (!parsed.success) {
+            return NextResponse.json({ error: 'Invalid request', details: parsed.error.flatten() }, { status: 400 });
+        }
+        const input = parsed.data;
 
-      const activeModelName = await getActiveModel();
-      await logAiUsage({
-        userId: user.id,
-        featureType: 'itinerary',
-        inputTokens: totalInputTokens,
-        outputTokens: totalOutputTokens,
-        totalTokens,
-        model: activeModelName,
-        requestData: {
-          destination: input.destination,
-          days: input.days,
-          budget: input.budget,
-          agent: '9-agent-v3',
-          pipelineMs: totalMs,
-          agentLogs: agentLogs.map(l => ({ agent: l.agent, ms: l.durationMs, status: l.status })),
-        },
-      });
-    } catch (logErr) {
-      console.error('[Pipeline] Log failed:', logErr);
+        // Cache lookup
+        const hash = crypto.createHash('sha256').update(JSON.stringify(input)).digest('hex');
+        const cacheKey = `agent_itinerary_${hash}`;
+        const cached = await getCache(cacheKey);
+        if (cached) {
+            return new Response(`event: result\ndata: ${JSON.stringify({ itinerary: cached, agents: [], fromCache: true })}\n\n`, {
+                headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache' }
+            });
+        }
+
+        const encoder = new TextEncoder();
+        const stream = new ReadableStream({
+            async start(controller) {
+                const agentLogs: AgentLog[] = [];
+                const pipelineStart = Date.now();
+
+                const streamLog = (agent: string, startMs: number, status: AgentLog['status'], details?: string) => {
+                    const log: AgentLog = { agent, durationMs: Date.now() - startMs, status, details, timestamp: new Date().toISOString() };
+                    agentLogs.push(log);
+                    controller.enqueue(encoder.encode(`event: log\ndata: ${JSON.stringify(log)}\n\n`));
+                };
+
+                try {
+                    const result = await executeItineraryPipeline(input, (log) => {
+                        controller.enqueue(encoder.encode(`event: log\ndata: ${JSON.stringify(log)}\n\n`));
+                    }, { userId: user?.id ?? null });
+
+                    const { itinerary, research, flightAnalysis, agentLogs, totalMs } = result;
+
+                    const resultData = { 
+                        itinerary, 
+                        flights: research.flights, 
+                        hotels: research.hotels, 
+                        flightAnalysis, 
+                        agents: agentLogs, 
+                        totalMs, 
+                        fromCache: false 
+                    };
+                    
+                    controller.enqueue(encoder.encode(`event: result\ndata: ${JSON.stringify(resultData)}\n\n`));
+
+                    // Async cleanup
+                    (async () => {
+                        if (user) useCredits ? await deductCredits(user.id, 1) : await deductUsage(user.id, 'itinerary', 1);
+                        await setCache(cacheKey, itinerary);
+                        const activeModelName = await getActiveModel();
+                        const totalInputTokens = (result.itinerary._tokens?.inputTokens || 0); // Simplified for now
+                        const totalOutputTokens = (result.itinerary._tokens?.outputTokens || 0);
+                        
+                        await logAiUsage({
+                            userId: user ? user.id : 'guest',
+                            featureType: 'agent_itinerary',
+                            inputTokens: totalInputTokens,
+                            outputTokens: totalOutputTokens,
+                            totalTokens: totalInputTokens + totalOutputTokens,
+                            model: activeModelName,
+                            requestData: { destination: input.destination, days: input.days },
+                        }).catch(() => {});
+                    })();
+
+                    controller.close();
+                } catch (error: any) {
+                    controller.enqueue(encoder.encode(`event: error\ndata: ${JSON.stringify({ message: error.message })}\n\n`));
+                    controller.close();
+                }
+            }
+        });
+
+        return new Response(stream, { headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache' } });
+    } catch (error: any) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
     }
-
-    // ─── Cache & Deduct Usage ───
-    await setCache(cacheKey, itinerary);
-
-    // Deduct usage or credits
-    if (useCredits) {
-      await deductCredits(user.id, 1);
-    } else {
-      await deductUsage(user.id, 'itinerary');
-    }
-
-    // ─── Trigger Async Blog Generation (Phase 7) ───
-    try {
-      const protocol = req.headers.get('x-forwarded-proto') || 'http';
-      const host = req.headers.get('host') || 'localhost:3000';
-      const url = `${protocol}://${host}/api/admin/process-itinerary-to-blog`;
-      
-      fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ itinerary, input })
-      }).catch(err => console.error('[Pipeline] Async blog generation fetch failed:', err.message));
-    } catch (e) {
-      console.error('[Pipeline] Error initiating async blog trigger:', e);
-    }
-
-    return NextResponse.json({
-      itinerary,
-      flights: input.includeFlights ? research.flights : [],
-      hotels: input.includeHotels ? research.hotels : [],
-      flightAnalysis: input.includeFlights ? { recommendation: flightAnalysis.recommendation, bestOption: flightAnalysis.bestOption } : null,
-      agentInfo: {
-        version: '9-agent-v3',
-        pipelineMs: totalMs,
-        agents: agentLogs.map(l => ({ name: l.agent, ms: l.durationMs, status: l.status })),
-      },
-    });
-
-  } catch (error: any) {
-    console.error('[Pipeline] Fatal error:', error);
-    return NextResponse.json({ error: 'An unexpected error occurred.' }, { status: 500 });
-  }
 }

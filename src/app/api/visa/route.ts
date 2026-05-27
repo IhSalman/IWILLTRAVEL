@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { requireAuth } from '@/utils/auth';
-import { getActiveModel, extractTokens, logAiUsage } from '@/utils/ai-config';
+import { generateContent, logAiUsage } from '@/utils/ai-config';
 
 const ALLOWED_TYPES = new Set(['visa_lookup', 'denial_risk', 'passport_power', 'simplify', undefined]);
 const MAX_RAW_TEXT = 5_000;
@@ -12,12 +11,6 @@ export async function POST(req: Request) {
   if ('error' in authResult) return authResult.error;
 
   try {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey || apiKey === 'placeholder_gemini_key') {
-      return NextResponse.json({ error: 'GEMINI_API_KEY is not configured correctly' }, { status: 500 });
-    }
-
-    const genAI = new GoogleGenerativeAI(apiKey);
     let body: any;
     try {
       body = await req.json();
@@ -30,15 +23,6 @@ export async function POST(req: Request) {
     if (type !== undefined && !ALLOWED_TYPES.has(type)) {
       return NextResponse.json({ error: 'Invalid request type' }, { status: 400 });
     }
-
-    const activeModelName = await getActiveModel();
-    const model = genAI.getGenerativeModel({
-      model: activeModelName,
-      generationConfig: {
-        temperature: 0.3,
-        responseMimeType: 'application/json',
-      },
-    });
 
     let prompt = '';
 
@@ -133,25 +117,31 @@ Respond ONLY with valid JSON.`;
       return NextResponse.json({ error: 'Missing search parameters or text' }, { status: 400 });
     }
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text().trim();
+    const result = await generateContent(prompt, { 
+      role: 'creative', 
+      json: true 
+    });
 
     // Log AI usage
-    const tokens = extractTokens(response);
     logAiUsage({
       userId: authResult.user.id,
       featureType: 'visa',
-      inputTokens: tokens.inputTokens,
-      outputTokens: tokens.outputTokens,
-      totalTokens: tokens.totalTokens,
-      model: activeModelName,
+      inputTokens: result.usage.inputTokens,
+      outputTokens: result.usage.outputTokens,
+      totalTokens: result.usage.totalTokens,
+      model: result.model,
     }).catch(() => {});
 
     try {
-      return NextResponse.json(JSON.parse(text));
+      let cleanText = result.text.trim();
+      if (cleanText.startsWith('```json')) {
+        cleanText = cleanText.replace(/^```json\s*/i, '').replace(/\s*```$/i, '');
+      } else if (cleanText.startsWith('```')) {
+        cleanText = cleanText.replace(/^```\s*/i, '').replace(/\s*```$/i, '');
+      }
+      return NextResponse.json(JSON.parse(cleanText));
     } catch {
-      console.error('JSON Parse Error in visa route:', text);
+      console.error('JSON Parse Error in visa route:', result.text);
       return NextResponse.json({ error: 'Failed to parse AI response' }, { status: 500 });
     }
   } catch (error) {

@@ -103,8 +103,8 @@ export function Navbar() {
                                                 className={cn(
                                                     "flex items-center space-x-3 px-4 py-3 rounded-xl text-base font-medium transition-all",
                                                     isActive
-                                                        ? "bg-primary/10 text-primary"
-                                                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                                        ? "nav-link-active"
+                                                        : "nav-link-inactive"
                                                 )}
                                                 onClick={() => setSheetOpen(false)}
                                             >

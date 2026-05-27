@@ -108,9 +108,14 @@ export default function TravelIntelligencePage() {
         fetchIntelligence();
     }, []);
 
+    const [recsError, setRecsError] = useState<string | null>(null);
+    const [recsRequiresAuth, setRecsRequiresAuth] = useState(false);
+
     const handleGetRecommendations = async () => {
         if (!budget || !month || !interests) return;
         setRecsLoading(true);
+        setRecsError(null);
+        setRecsRequiresAuth(false);
         try {
             const res = await fetch('/api/travel-recommendation', {
                 method: 'POST',
@@ -118,13 +123,23 @@ export default function TravelIntelligencePage() {
                 body: JSON.stringify({ budget, month, interests })
             });
             const data = await res.json();
+            if (!res.ok) {
+                if (res.status === 401 || data.requiresAuth) {
+                    setRecsRequiresAuth(true);
+                } else {
+                    setRecsError(data.error || 'Something went wrong. Please try again.');
+                }
+                return;
+            }
             setRecommendations(data.recommendations || []);
         } catch (err) {
             console.error(err);
+            setRecsError('Network error. Please check your connection.');
         } finally {
             setRecsLoading(false);
         }
     };
+
 
     const handleRadarScan = async (targetCity: string) => {
         setRadarTarget(targetCity);
@@ -224,6 +239,33 @@ export default function TravelIntelligencePage() {
                             {recsLoading ? <Loader2 className="w-6 h-6 animate-spin mr-3" /> : <Navigation className="w-6 h-6 mr-3" />}
                             {recsLoading ? 'Consulting Agents...' : 'Get AI Recommendations'}
                         </Button>
+
+                        {/* Auth prompt */}
+                        {recsRequiresAuth && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                                className="mt-4 p-4 rounded-xl bg-[#8B5CF6]/10 border border-[#8B5CF6]/40 flex items-center justify-between gap-4"
+                            >
+                                <div>
+                                    <p className="text-sm font-bold text-[#8B5CF6]">Sign in to unlock AI recommendations</p>
+                                    <p className="text-xs text-white/50 mt-0.5">Create a free account to get personalised travel intelligence from our AI agents.</p>
+                                </div>
+                                <a href="/en/login" className="flex-shrink-0 px-4 py-2 bg-[#8B5CF6] text-white text-xs font-bold rounded-lg hover:bg-[#7C3AED] transition-colors">
+                                    Sign In →
+                                </a>
+                            </motion.div>
+                        )}
+
+                        {/* Generic error */}
+                        {recsError && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                                className="mt-4 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm font-mono"
+                            >
+                                ⚠️ {recsError}
+                            </motion.div>
+                        )}
+
                     </motion.div>
 
                     {/* RECOMMENDATION RESULTS */}

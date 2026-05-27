@@ -50,12 +50,12 @@ export async function POST(req: Request) {
     const welcomeHtml = `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);">
         <div style="background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%); padding: 40px 30px; text-align: center; color: white;">
-          <h1 style="margin: 0; font-size: 28px; font-weight: 800;">Welcome to WanderPlan AI ✈️</h1>
+          <h1 style="margin: 0; font-size: 28px; font-weight: 800;">Welcome to iWillTravel ✈️</h1>
           <p style="margin: 15px 0 0 0; font-size: 16px; opacity: 0.9;">The Data-Driven Travel OS for Modern Explorers</p>
         </div>
         <div style="padding: 40px 30px;">
           <p style="color: #334155; font-size: 16px; line-height: 1.6; margin-top: 0;">Hi traveler,</p>
-          <p style="color: #334155; font-size: 16px; line-height: 1.6;">Thank you for joining the WanderPlan AI community! You're now on the list to receive our best travel intel, destination guides, and exclusive early-access features.</p>
+          <p style="color: #334155; font-size: 16px; line-height: 1.6;">Thank you for joining the iWillTravel community! You're now on the list to receive our best travel intel, destination guides, and exclusive early-access features.</p>
 
           <h2 style="color: #0f172a; font-size: 20px; margin: 30px 0 15px 0; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">What you can do right now:</h2>
 
@@ -79,17 +79,18 @@ export async function POST(req: Request) {
           </div>
         </div>
         <div style="padding: 20px; background: #f8fafc; text-align: center; color: #94a3b8; font-size: 13px; border-top: 1px solid #e2e8f0;">
-          <p style="margin: 0;">© ${year} WanderPlan AI. You are receiving this because you subscribed to our newsletter.</p>
+          <p style="margin: 0;">© ${year} iWillTravel. You are receiving this because you subscribed to our newsletter.</p>
         </div>
       </div>
     `;
 
     if (process.env.RESEND_API_KEY) {
       const resend = new Resend(process.env.RESEND_API_KEY);
+      const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
       const { error: emailError } = await resend.emails.send({
-        from: 'WanderPlan AI <onboarding@resend.dev>',
+        from: `iWillTravel <${fromEmail}>`,
         to: [email],
-        subject: 'Welcome to WanderPlan AI! ✈️',
+        subject: 'Welcome to iWillTravel! ✈️',
         html: welcomeHtml,
         tags: [{ name: 'category', value: 'welcome_email' }],
       });

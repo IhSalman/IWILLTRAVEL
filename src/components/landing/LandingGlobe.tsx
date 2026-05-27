@@ -99,6 +99,13 @@ export function LandingGlobe() {
                 camera={{ position: [0, 0, 5], fov: 45 }}
                 gl={{ powerPreference: "high-performance", antialias: false, alpha: true }}
                 dpr={[1, 1.5]}
+                onCreated={() => {
+                    const originalWarn = console.warn.bind(console);
+                    console.warn = (...args) => {
+                        if (typeof args[0] === 'string' && args[0].includes('THREE.Clock')) return;
+                        originalWarn(...args);
+                    };
+                }}
             >
                 <Suspense fallback={null}>
                     {/* Adjusted lighting to show natural earth colors but retain some stylized ambiance */}

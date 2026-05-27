@@ -10,7 +10,15 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { title, itinerary, start_date, end_date, city_id, days, budget, travel_style, traveler_type, interests } = await req.json();
+        const payload = await req.json();
+        const { 
+            title, itinerary, start_date, end_date, city_id, days, 
+            budget, travel_style, traveler_type, interests, 
+            flights, hotels, flightAnalysis 
+        } = payload;
+        
+        console.log(`[Itinerary Save] Incoming request for city: ${city_id || 'unknown'}, title: ${title}`);
+        console.log(`[Itinerary Save] Payload keys:`, Object.keys(payload));
 
         if (!title || typeof title !== 'string' || !itinerary) {
             return NextResponse.json({ error: 'Missing title or itinerary data' }, { status: 400 });
@@ -25,6 +33,14 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Invalid number of days (1–30)' }, { status: 400 });
         }
 
+        // Store full research data in the content column
+        const fullContent = {
+            itinerary,
+            flights: flights || [],
+            hotels: hotels || [],
+            flightAnalysis: flightAnalysis || null
+        };
+
         const { data, error } = await supabase
             .from('itineraries')
             .insert([
@@ -32,7 +48,7 @@ export async function POST(req: Request) {
                     user_id: user.id,
                     city_id: city_id || 'custom',
                     title: title,
-                    content: itinerary,
+                    content: fullContent,
                     start_date: start_date,
                     end_date: end_date,
                     days: days || 5,
@@ -47,8 +63,13 @@ export async function POST(req: Request) {
             .single();
 
         if (error) {
-            console.error('Database Error saving itinerary:', error);
-            return NextResponse.json({ error: 'Failed to save itinerary' }, { status: 500 });
+            console.error('Database Error saving itinerary:', {
+                message: error.message,
+                details: error.details,
+                hint: error.hint,
+                code: error.code
+            });
+            return NextResponse.json({ error: `Failed to save itinerary: ${error.message}` }, { status: 500 });
         }
 
         return NextResponse.json(data);

@@ -1,0 +1,2 @@
+pipeline_version,pipeline_label,sample_count,avg_hallucination_score,min_hallucination_score,max_hallucination_score,high_or_very_high_risk_count,high_or_very_high_risk_pct,low_risk_count,low_risk_pct,avg_specific_venues,avg_activities_per_itinerary,avg_generic_phrase_count,avg_content_chars,google_places_grounded
+v1_basic_llm,v1 – Basic LLM (No Grounding),99,12.18,0,38,1,1.0%,52,52.5%,8.14,8.17,2.79,21336.33,0/99

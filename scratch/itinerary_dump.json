@@ -1,0 +1,962 @@
+{
+  "id": "308dc7f1-c122-4e55-b11c-90555d51a238",
+  "user_id": "96fb434c-b0ee-45bf-a0a0-c446c408a33e",
+  "title": "Kuopio: Lakeland Wonders and Urban Charms",
+  "content": {
+    "hotels": [
+      {
+        "tag": "cheapest",
+        "city": "kuopio",
+        "name": "Budget Stay in kuopio",
+        "tier": "budget",
+        "price": 90,
+        "stars": 2,
+        "rating": 7.2,
+        "source": "Estimate",
+        "roomType": "Standard Room",
+        "amenities": [
+          "WiFi",
+          "Breakfast available"
+        ],
+        "bookingUrl": "https://www.booking.com/searchresults.html?ss=kuopio&checkin=2026-05-14&checkout=2026-05-16&group_adults=1",
+        "isEstimate": true,
+        "comparisonLinks": {
+          "agoda": "https://www.agoda.com/search?city=kuopio&checkIn=2026-05-14&checkOut=2026-05-16",
+          "hotelscom": "https://www.hotels.com/search.do?q-destination=kuopio&q-check-in=2026-05-14&q-check-out=2026-05-16",
+          "bookingCom": "https://www.booking.com/searchresults.html?ss=kuopio&checkin=2026-05-14&checkout=2026-05-16&group_adults=1",
+          "tripadvisor": "https://www.tripadvisor.com/Search?searchAll=true&q=kuopio+hotels"
+        }
+      },
+      {
+        "tag": "best-value",
+        "city": "kuopio",
+        "name": "kuopio City Hotel",
+        "tier": "mid-range",
+        "price": 145,
+        "stars": 3,
+        "rating": 8.4,
+        "source": "Estimate",
+        "roomType": "Superior Room",
+        "amenities": [
+          "WiFi",
+          "Breakfast included",
+          "Gym",
+          "AC"
+        ],
+        "bookingUrl": "https://www.booking.com/searchresults.html?ss=kuopio&checkin=2026-05-14&checkout=2026-05-16&group_adults=1",
+        "isEstimate": true,
+        "comparisonLinks": {
+          "agoda": "https://www.agoda.com/search?city=kuopio&checkIn=2026-05-14&checkOut=2026-05-16",
+          "hotelscom": "https://www.hotels.com/search.do?q-destination=kuopio&q-check-in=2026-05-14&q-check-out=2026-05-16",
+          "bookingCom": "https://www.booking.com/searchresults.html?ss=kuopio&checkin=2026-05-14&checkout=2026-05-16&group_adults=1",
+          "tripadvisor": "https://www.tripadvisor.com/Search?searchAll=true&q=kuopio+hotels"
+        }
+      },
+      {
+        "tag": "best-rated",
+        "city": "kuopio",
+        "name": "kuopio Luxury Resort",
+        "tier": "luxury",
+        "price": 220,
+        "stars": 5,
+        "rating": 9.1,
+        "source": "Estimate",
+        "roomType": "Deluxe Suite",
+        "amenities": [
+          "WiFi",
+          "Breakfast",
+          "Spa",
+          "Pool",
+          "Concierge"
+        ],
+        "bookingUrl": "https://www.agoda.com/search?city=kuopio&checkIn=2026-05-14&checkOut=2026-05-16",
+        "isEstimate": true,
+        "comparisonLinks": {
+          "agoda": "https://www.agoda.com/search?city=kuopio&checkIn=2026-05-14&checkOut=2026-05-16",
+          "hotelscom": "https://www.hotels.com/search.do?q-destination=kuopio&q-check-in=2026-05-14&q-check-out=2026-05-16",
+          "bookingCom": "https://www.booking.com/searchresults.html?ss=kuopio&checkin=2026-05-14&checkout=2026-05-16&group_adults=1",
+          "tripadvisor": "https://www.tripadvisor.com/Search?searchAll=true&q=kuopio+hotels"
+        }
+      }
+    ],
+    "flights": [],
+    "itinerary": {
+      "days": [
+        {
+          "day": 1,
+          "pace": "moderate",
+          "theme": "Urban Heartbeat & Cultural Depths",
+          "areaFocus": "Kuopio",
+          "activities": [
+            {
+              "lat": 62.89253790000001,
+              "lng": 27.6782224,
+              "tip": "Seek out a stall selling 'lörtsy' and try both the sweet berry-filled and savory meat-filled versions – they are a Kuopio specialty!",
+              "cost": "Free (purchases extra)",
+              "time": "Morning",
+              "title": "09:30 - 11:30: Kuopio Market Square (Kauppatori) - Immerse yourselves in local life, sampling Finnish delicacies and browsing artisan goods. (Food, Shopping, Culture, Photography)",
+              "rating": 4.4,
+              "source": "Google Maps",
+              "address": "Kauppakatu 45, 70110 Kuopio, Finland",
+              "duration": "2 hours",
+              "photoUrl": "https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=Ab43m-ubzImedbyWgyNZ8sMlbFjrZVGHpVXIupio5bqDXkQ-Zqt1HKJP-QaXOdCtcX4af-0OcEhezS0W1OfF7f5ZpeGoi53g-rHXUY93gUuGsN8d8IN3DX-ipZ51eJEOY1IgWuOvvP4Y9Fzu5q5vmmnWgZq40nsr5gRdsXDFbpKK0aHSZymz-gSDKETkMY3uaeYOS2OBAKZUG3JBfEx135JwiFkdH4n13e9W7a_EDb5dFqZnJ9-5xfFBfSk5z5rvfKWIIPiM_XaLiMffsTQHFAfQu68kj4LowFnC8raBqV5K5WG5EtlEBNASW-0M6fiftqWJ3WSRH7MNgyn6A3bRVnH-d-wehQ0VZJUY0g69Kd9q17IT_-iosJqG1e_qEZG4dvwEnCYhP9IKmj9OBmREX_FsEKt3WirPGm5YTirGLsWVjB5jx9kt&key=AIzaSyAkAA81ofGXJVZh82QVjNKHLZ5lXHEkwY8",
+              "bookingUrl": "https://www.google.com/maps/search/?api=1&query=09%3A30%20-%2011%3A30%3A%20Kuopio%20Market%20Square%20(Kauppatori)%20-%20Immerse%20yourselves%20in%20local%20life%2C%20sampling%20Finnish%20delicacies%20and%20browsing%20artisan%20goods.%20(Food%2C%20Shopping%2C%20Culture%2C%20Photography)%20Kuopio",
+              "highlights": [
+                "Sampling a fresh 'kalakukko' from a traditional stall",
+                "Finding unique, handmade souvenirs from the Tuppukylä wooden kiosks",
+                "The lively interactions between vendors and locals, especially during morning hours",
+                "The aroma of freshly baked goods and brewed coffee filling the air",
+                "Remember to bring small cash for quick purchases and embrace the local hustle."
+              ],
+              "mealNearby": "Mualiman Napa (traditional Finnish food), and numerous market food stalls directly on the square.",
+              "description": "Step into the vibrant heart of Kuopio at Kauppatori, the city's lively Market Square. This historic hub has been the pulse of local commerce and culture for centuries, bustling with vendors, shoppers, and curious visitors. The atmosphere is authentically Finnish, filled with the aroma of fresh pastries and the chatter of locals exchanging greetings and gossip. Here, you'll discover traditional Finnish delicacies like the famous 'kalakukko' (fish pie) and 'lörtsy' (a large, flat pastry), alongside an array of seasonal produce and artisan crafts. For a couple interested in culture, food, and photography, it's a sensory feast and a prime spot for capturing candid moments of Finnish daily life.",
+              "openingHours": [
+                "Monday: Open 24 hours",
+                "Tuesday: Open 24 hours",
+                "Wednesday: Open 24 hours",
+                "Thursday: Open 24 hours",
+                "Friday: Open 24 hours",
+                "Saturday: Open 24 hours",
+                "Sunday: Open 24 hours"
+              ],
+              "totalRatings": 6458,
+              "transportNote": "A pleasant 5-7 minute walk through the city center.",
+              "editorialSummary": "Open since 1818, this lively outdoor marketplace hosts sellers of fresh produce, flowers & more.",
+              "accessibilityNote": "The market square is flat and paved, offering good wheelchair access. Some individual stalls might have small steps."
+            },
+            {
+              "lat": 62.892457,
+              "lng": 27.6865419,
+              "tip": "Don't rush through the natural history section; some of the dioramas hide intricate details about the region's biodiversity that are easily missed.",
+              "cost": "€12 (approx. for adults)",
+              "time": "Late Morning",
+              "title": "11:45 - 13:45: Kuopio Museum - Delve into the natural history and cultural heritage of North Savo. (Culture)",
+              "rating": 4.4,
+              "source": "Google Maps",
+              "address": "Museokatu 1, 70100 Kuopio, Finland",
+              "duration": "2 hours",
+              "photoUrl": "https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=Ab43m-uoPKwzzjW5aX_-AFuhby7zt8JSJmhaQPQUbS5bE-mtt1zTp2eAUMRoGw_kzeuZOo3CKY1iTPs6bUyOlWbpGDGSQVfoikqbE9I3j3ub6NvcW8IN6fXr6dMbR8GdgptR3VXtqEh8-VFNBS6jB_vof6g_8v42R4weadGqtGhvbKXVYFQ-w7PE0dokeO3lCn-v9f9hXIBphsaaunlxQxE-ApGIy2AgEWa9kkk561zB1l_b3m0a3-9LypvsBxd7rnaEATOW47Ei-Og9QiSmodIdpfwVapjC7lP9q_4BEQyc3QlLGK-pcgHxcuMpn3RdKvUjNeFd7LQHZTBLA7npzTN9eRrRcnGwDeysx1z6fNYiSRN8S_2ynJfCMXSbJ_5Qq7ZbrYmvEvKzy_VmorEr4Vn0y3XBF_cWv57nicHf18HrJJI&key=AIzaSyAkAA81ofGXJVZh82QVjNKHLZ5lXHEkwY8",
+              "bookingUrl": "https://www.google.com/maps/search/?api=1&query=11%3A45%20-%2013%3A45%3A%20Kuopio%20Museum%20-%20Delve%20into%20the%20natural%20history%20and%20cultural%20heritage%20of%20North%20Savo.%20(Culture)%20Kuopio",
+              "highlights": [
+                "The impressive taxidermy collection of Finnish wildlife, including a majestic brown bear",
+                "The intricate details of traditional Sámi attire and tools in the cultural exhibits",
+                "The grand neo-romantic architecture of the museum building itself",
+                "The quiet, reflective atmosphere that allows for thoughtful contemplation of the exhibits",
+                "Check the museum's website for any temporary exhibitions running during your visit, as they often highlight unique local themes."
+              ],
+              "mealNearby": "Cafe Mignon (light lunches, pastries), Kummisetä (traditional Finnish cuisine).",
+              "description": "Housed within a stunning neo-romantic building, the Kuopio Museum offers a fascinating journey through the natural history and cultural heritage of the North Savo region. Explore diverse ecosystems, encountering taxidermied animals from the Finnish wilderness, including bears and elks, which vividly bring the local nature to life. The museum also delves into the rich cultural tapestry of the region, showcasing artifacts, traditional crafts, and stories of the people who have shaped this land over centuries, including a dedicated section on the Sámi culture. For culture enthusiasts and nature lovers, it provides a deep and engaging insight into what makes this part of Finland unique, all within a beautifully preserved architectural gem.",
+              "openingHours": [
+                "Monday: Closed",
+                "Tuesday: 10:00 AM – 5:00 PM",
+                "Wednesday: 11:00 AM – 6:00 PM",
+                "Thursday: 10:00 AM – 5:00 PM",
+                "Friday: 10:00 AM – 5:00 PM",
+                "Saturday: 10:00 AM – 5:00 PM",
+                "Sunday: 10:00 AM – 5:00 PM"
+              ],
+              "totalRatings": 825,
+              "transportNote": "A short 5-7 minute walk to Kuopio Cathedral.",
+              "editorialSummary": "",
+              "accessibilityNote": "The museum is fully accessible with elevators connecting all floors and ramps where needed."
+            },
+            {
+              "lat": 62.8913525,
+              "lng": 27.6839734,
+              "tip": "Position yourself outside the church from the Market Square direction for the most iconic photograph, capturing its elevated position and commanding presence.",
+              "cost": "Free",
+              "time": "Afternoon",
+              "title": "14:00 - 15:00: Kuopio Cathedral - Admire the striking architecture and serene interior of this neoclassical landmark. (Culture, Photography)",
+              "rating": 4.4,
+              "source": "Google Maps",
+              "address": "Vuorikatu 17, 70100 Kuopio, Finland",
+              "duration": "1 hour",
+              "photoUrl": "https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=Ab43m-uHMkIR415ZL_yTXewN0ykEWVMdIi5QzMd3WeVtzGl7piG9-Ejb8iGINwy6gmJaU48KhEji3Rs_1C3Ayd1UUXIGRwe0LJM5IdiOuxpnbnJXb5B9mkBukfURHwVacvX4J-GFIyQz-Algy_H-pnMnjQCQ7OSotdkfc3TXcKWttmAoO4IHZmJI-SCCx7yep7UrdclU7sb1sp-mNdsSi5dfP9z3wq9J91LS85iedltBG3nIDDJPqGtklyPVhPYtLEDw3cXpLf9xKvm-_GS4oFDEcoGlJEkcqH1SXkFd8Wl5c7nfo3jFBu70LhpkZUkvzniTFG2SLKIos7rsbViiZhxMP8WSyvgHEkJG6sCmBEF4IR8Cz2oRcdqDflQvzM1ZOz8FAOuc2xIWf0KhpCm2MDdLPm4hLKE9RN6s-sVT-FXdfKiM5Q&key=AIzaSyAkAA81ofGXJVZh82QVjNKHLZ5lXHEkwY8",
+              "bookingUrl": "https://www.google.com/maps/search/?api=1&query=14%3A00%20-%2015%3A00%3A%20Kuopio%20Cathedral%20-%20Admire%20the%20striking%20architecture%20and%20serene%20interior%20of%20this%20neoclassical%20landmark.%20(Culture%2C%20Photography)%20Kuopio",
+              "highlights": [
+                "The imposing, pure white neoclassical facade and tall bell tower, visible from many parts of the city",
+                "The serene altarpiece painting by B.A. Godenhjelm, depicting the Resurrection of Christ",
+                "The hushed and contemplative ambiance within the grand nave, perfect for quiet reflection",
+                "The interplay of light through the simple, clear windows, creating beautiful photographic opportunities",
+                "Be mindful of any ongoing services or events; maintain respectful silence during your visit."
+              ],
+              "mealNearby": "Restaurant Sampo (traditional Finnish), Viikinkiravintola Harald (Viking-themed restaurant).",
+              "description": "Standing proudly on a hill, Kuopio Cathedral is an architectural marvel of neoclassical design, dominating the city skyline with its whitewashed facade and towering bell tower. Consecrated in 1815, its construction spans over a decade, representing a significant historical landmark. Stepping inside, you're immediately struck by the serene and spacious interior, offering a peaceful sanctuary from the city's bustle. The minimalist decor highlights the elegant lines and the impressive altarpiece, making it a wonderful spot for quiet reflection and stunning architectural photography. This visit offers a glimpse into Finland's spiritual heritage and neoclassical artistry.",
+              "openingHours": [
+                "Monday: 10:00 AM – 3:00 PM",
+                "Tuesday: 10:00 AM – 3:00 PM",
+                "Wednesday: 10:00 AM – 3:00 PM",
+                "Thursday: 10:00 AM – 3:00 PM",
+                "Friday: 10:00 AM – 3:00 PM, 6:00 – 10:00 PM",
+                "Saturday: 10:00 AM – 3:00 PM",
+                "Sunday: 10:00 AM – 3:00 PM"
+              ],
+              "totalRatings": 322,
+              "transportNote": "A pleasant 10-15 minute walk through the city center to Ravintola Isä Camillo.",
+              "editorialSummary": "",
+              "accessibilityNote": "The main entrance involves a flight of stairs. While there might be a side entrance or ramp for accessibility, it is best to confirm in advance if wheelchair access is required."
+            },
+            {
+              "lat": 62.8921539,
+              "lng": 27.6857165,
+              "tip": "Ask your server about any off-menu seasonal specials; they often feature fresh local Finnish produce incorporated into Italian recipes.",
+              "cost": "Moderate-High (approx. €40-60 per person for main course and drink)",
+              "time": "Early Evening",
+              "title": "19:00 - 21:00: Dinner at Ravintola Isä Camillo - Enjoy modern Italian cuisine in a cozy setting in the city center. (Food)",
+              "rating": 4.4,
+              "source": "Google Maps",
+              "address": "Kauppakatu 25-27, 70100 Kuopio, Finland",
+              "duration": "2 hours",
+              "photoUrl": "https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=Ab43m-uENhLJH9p1o15Ph1kNqV0qugtgFKxzNAT18UbJl61BxI4_OQYjjAPd7UBpG0KkZjeGvzya7WhzL8g9RbSyDGkKo7bc-H56o7tRmQ8ZXDSns55AytouO_WOiOxvcQES1FEm4YKR50QfW6VoHieCFLYy_bCUczFcCaXqwt24A3a9wPr4iYHSAENKTUmIx4U92cdCY5kq5fI22tdN9p-s4WtbmYmon3Mj_o0OY41J1YqEe2XwCUPCB8IHj_6OD7TvBMdz43VUPUUG8hJ9PjA9vgZXhtUtTvar-IrWgyx8hFhKGw&key=AIzaSyAkAA81ofGXJVZh82QVjNKHLZ5lXHEkwY8",
+              "bookingUrl": "https://www.google.com/maps/search/?api=1&query=19%3A00%20-%2021%3A00%3A%20Dinner%20at%20Ravintola%20Is%C3%A4%20Camillo%20-%20Enjoy%20modern%20Italian%20cuisine%20in%20a%20cozy%20setting%20in%20the%20city%20center.%20(Food)%20Kuopio",
+              "highlights": [
+                "The perfectly al dente homemade pasta dishes, a true testament to Italian craftsmanship",
+                "Their carefully curated wine list, featuring excellent Italian and international selections",
+                "The intimate and romantic lighting, creating a perfect ambiance for couples",
+                "The delightful and often inventive dessert menu, a sweet conclusion to any meal",
+                "Booking a table in advance is highly recommended, especially on weekends, to secure your spot."
+              ],
+              "mealNearby": "N/A (this is the designated meal)",
+              "description": "Ravintola Isä Camillo offers a delightful culinary escape with its modern Italian cuisine, lovingly prepared with a touch of Finnish influence and a focus on fresh, high-quality ingredients. Located in the heart of Kuopio, this charming restaurant provides a warm and inviting atmosphere, perfect for a romantic dinner for two. The menu boasts a selection of exquisitely crafted pasta dishes, flavorful risottos, and succulent meat and fish options, all presented with flair. Its cozy setting and attentive service make it a beloved local gem and an ideal spot to unwind and indulge after a day of exploration, ensuring a memorable dining experience that satisfies both the palate and the soul.",
+              "openingHours": [
+                "Monday: 11:00 AM – 9:00 PM",
+                "Tuesday: 11:00 AM – 10:00 PM",
+                "Wednesday: 11:00 AM – 10:00 PM",
+                "Thursday: 11:00 AM – 10:00 PM",
+                "Friday: 11:00 AM – 12:00 AM",
+                "Saturday: 2:00 PM – 12:00 AM",
+                "Sunday: Closed"
+              ],
+              "totalRatings": 973,
+              "transportNote": "A short and easy 5-minute walk to Henry's Pub.",
+              "editorialSummary": "Casual venue featuring European cuisine from a seasonal menu, plus terrace dining.",
+              "accessibilityNote": "The restaurant is located on the ground floor with a flat entrance, making it generally accessible for wheelchairs."
+            },
+            {
+              "lat": 62.89218099999999,
+              "lng": 27.6859852,
+              "tip": "Engage with the bartenders and ask for their personal recommendations for a unique Finnish beer or cider you might not have tried before.",
+              "cost": "Approx. €8-12 per drink",
+              "time": "Evening",
+              "title": "21:30 - 23:30: Nightlife at Henry's Pub - Experience a lively atmosphere with local and international beers, a popular spot in the city. (Nightlife)",
+              "rating": 4.4,
+              "source": "Google Maps",
+              "address": "Kauppakatu 25, 70100 Kuopio, Finland",
+              "duration": "2 hours",
+              "photoUrl": "https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=Ab43m-uYjtqnZeZ9vT4ilCs_STKfLoSZanbjakSgP-V4nGEgD__q_XOoEG0drfUoc96QtOPZKsYxtKeh5R911PkapeFObztQwj31ZG01NZAc3v3KJ1rID3AOUNOmzW-p3en4SKRiWy89FaV3DiAV1V5qalvPZOIIDvNJwnuYQKlAg3C1k0KxjrrwYgpvVWFRWJilY5ClOkKd6P1jkGWjXYlRTPlSbUm3ng2Q1kvrDpjAn16aVbClBB3L-V5pZTe-5V8st9cUNzlfjmEmef5GHTwcAbhJbSe1bibB0fG7O6-pSz-jqA&key=AIzaSyAkAA81ofGXJVZh82QVjNKHLZ5lXHEkwY8",
+              "bookingUrl": "https://www.google.com/maps/search/?api=1&query=21%3A30%20-%2023%3A30%3A%20Nightlife%20at%20Henry's%20Pub%20-%20Experience%20a%20lively%20atmosphere%20with%20local%20and%20international%20beers%2C%20a%20popular%20spot%20in%20the%20city.%20(Nightlife)%20Kuopio",
+              "highlights": [
+                "The extensive selection of Finnish craft beers, allowing for a true taste of local brewing",
+                "The bustling outdoor terrace during summer, perfect for people-watching",
+                "Friendly and knowledgeable bartenders who can recommend local favorites",
+                "The vibrant energy of live music nights, adding an extra layer of entertainment",
+                "Arrive slightly earlier on weekends to grab a good spot before it gets too crowded."
+              ],
+              "mealNearby": "N/A",
+              "description": "Cap off your first day in Kuopio with a visit to Henry's Pub, a cornerstone of the city's nightlife and a favorite among locals and visitors alike. This establishment boasts a lively, welcoming atmosphere where conversations flow easily over clinking glasses. With an impressive selection of local Finnish craft beers, alongside popular international brews, there's something to suit every taste. On many evenings, the pub comes alive with live music, ranging from local bands to acoustic sets, creating an energetic backdrop for your night. It's the perfect spot for a couple to soak in the local vibe, enjoy a refreshing drink, and experience Kuopio's social scene.",
+              "openingHours": [
+                "Monday: Closed",
+                "Tuesday: 4:00 PM – 12:00 AM",
+                "Wednesday: 4:00 PM – 12:00 AM",
+                "Thursday: 4:00 PM – 12:00 AM",
+                "Friday: 4:00 PM – 2:00 AM",
+                "Saturday: 4:00 PM – 2:00 AM",
+                "Sunday: Closed"
+              ],
+              "totalRatings": 292,
+              "transportNote": "Walk back to your accommodation, as it's centrally located.",
+              "editorialSummary": "",
+              "accessibilityNote": "Henry's Pub has a ground-floor entrance, but the interior can become crowded, potentially limiting mobility for wheelchair users during peak hours."
+            }
+          ],
+          "difficulty": "medium",
+          "dayResources": {
+            "whereToEat": [
+              {
+                "lat": 62.8919758,
+                "lng": 27.6784517,
+                "url": "https://maps.google.com/?q=Bibimbap%20Ravintola%20Kuopio%20Kauppakeskus%20Apaja%2C%20Kauppakatu%2045%2C%2070110%20Kuopio%2C%20Finland",
+                "label": "Bibimbap Ravintola Kuopio",
+                "rating": 4.9
+              },
+              {
+                "lat": 62.89097959999999,
+                "lng": 27.6802478,
+                "url": "https://maps.google.com/?q=Ravintola%20Urban%20Puijonkatu%2015%2C%2070100%20Kuopio%2C%20Finland",
+                "label": "Ravintola Urban",
+                "rating": 4.7
+              },
+              {
+                "lat": 62.8900982,
+                "lng": 27.6954226,
+                "url": "https://maps.google.com/?q=Ravintola%20Boka%20Koljonniemenkatu%202%2C%2070110%20Kuopio%2C%20Finland",
+                "label": "Ravintola Boka",
+                "rating": 4.6
+              }
+            ],
+            "experiences": [
+              {
+                "lat": 62.90953179999999,
+                "lng": 27.6553069,
+                "url": "https://maps.google.com/?q=Puijo%20tower%20Puijontie%20135%2C%2070300%20Kuopio%2C%20Finland",
+                "label": "Puijo tower"
+              },
+              {
+                "lat": 62.8902288,
+                "lng": 27.6852454,
+                "url": "https://maps.google.com/?q=VB%20Photographic%20Center%20Kuninkaankatu%2014-16%2C%2070100%20Kuopio%2C%20Finland",
+                "label": "VB Photographic Center"
+              }
+            ],
+            "transportTip": "Use rental in Kuopio City Center. All activities are within a 5-10 minute walk of each other in the city center."
+          },
+          "neighborhood": "Kuopio City Center",
+          "neighborhoodDescription": "Explore the vibrant heart of Kuopio, home to the iconic market square, historical landmarks, and a diverse range of shops and eateries, all within easy walking distance.",
+          "transitBetweenActivities": "All activities are within a 5-10 minute walk of each other in the city center."
+        },
+        {
+          "day": 2,
+          "pace": "moderate",
+          "theme": "Forest Panoramas & Nature's Embrace",
+          "areaFocus": "Kuopio",
+          "activities": [
+            {
+              "lat": 62.90953179999999,
+              "lng": 27.6553069,
+              "tip": "Time your visit to coincide with late morning sunlight for optimal lighting conditions, making the lakes sparkle and the forests glow for your photographs.",
+              "cost": "€8 (approx. for tower entry)",
+              "time": "Morning",
+              "title": "10:00 - 12:30: Puijo Tower & Observation Deck - Enjoy 360-degree views of the lake district and surrounding forests from the iconic tower. (Photography, Nature, Adventure)",
+              "rating": 4.4,
+              "source": "Google Maps",
+              "address": "Puijontie 135, 70300 Kuopio, Finland",
+              "duration": "2 hours 30 minutes",
+              "photoUrl": "https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=Ab43m-sfZUBu70eM1tdvkMHfXEsy62w0s8V9M3urQJcuShmM-RfNjfPoLy9vOk_qUMKwZW8m4tYTKYkjkLuY_uK2UqlHyKSOaY2y0XaXxqwJRgfGqxaLdghOccQso0hqhZYe8X5nxgkYWyQGMB3N-pBHoMDMNfzg9Us6A14z9Kcc_2-_02g76Udb1Kem2488RDXzIrNbXJzj0vY5d6aOVrdfv0ou10F0p6oBQigqbdhmqGfDNMVMJ6i0dHsUqXcl5KwsT0L1t14DrNBAJkvC7y9RPChkeN3J2CAbrAy_UmVs5iq4Rg&key=AIzaSyAkAA81ofGXJVZh82QVjNKHLZ5lXHEkwY8",
+              "bookingUrl": "https://www.google.com/maps/search/?api=1&query=10%3A00%20-%2012%3A30%3A%20Puijo%20Tower%20%26%20Observation%20Deck%20-%20Enjoy%20360-degree%20views%20of%20the%20lake%20district%20and%20surrounding%20forests%20from%20the%20iconic%20tower.%20(Photography%2C%20Nature%2C%20Adventure)%20Kuopio",
+              "highlights": [
+                "The unparalleled 360-degree views of Lake Kallavesi and its intricate island labyrinth",
+                "Witnessing the ski jump hills from above, offering a unique perspective on Finnish winter sports",
+                "Capturing stunning wide-angle photographs of the seemingly endless forest canopy",
+                "The gentle, calming sensation of being so high above the natural landscape",
+                "Choose a clear, sunny day for your visit to maximize visibility and photographic potential."
+              ],
+              "mealNearby": "Restaurant Puijo (within the tower, next activity).",
+              "description": "Ascend to the summit of Puijo Hill and experience the breathtaking panoramas from the iconic Puijo Tower, a true landmark of Kuopio. This observation tower, standing tall at 75 meters, offers unparalleled 360-degree views of the vast Finnish lake district, where thousands of lakes sparkle amidst endless green forests. The modern design includes a glass-enclosed observation deck, providing comfortable viewing year-round, while the top also houses a unique revolving restaurant. For photographers, nature lovers, and adventure seekers, the vistas are simply mesmerizing, inviting you to capture the serene beauty of the Savo region from an extraordinary vantage point. It’s an exhilarating start to your day, promising incredible photo opportunities.",
+              "openingHours": [
+                "Monday: 10:00 AM – 6:00 PM",
+                "Tuesday: 10:00 AM – 6:00 PM",
+                "Wednesday: 10:00 AM – 6:00 PM",
+                "Thursday: 10:00 AM – 6:00 PM",
+                "Friday: 10:00 AM – 6:00 PM",
+                "Saturday: 10:00 AM – 6:00 PM",
+                "Sunday: 10:00 AM – 4:00 PM"
+              ],
+              "totalRatings": 4801,
+              "transportNote": "Take the elevator down one floor to the revolving restaurant within the tower itself.",
+              "editorialSummary": "75m hilltop tower overlooking Kuopio & its lake, topped by a revolving restaurant.",
+              "accessibilityNote": "The tower and observation deck are fully accessible via elevators, making it suitable for all visitors including those with mobility challenges."
+            },
+            {
+              "lat": 62.90953179999999,
+              "lng": 27.6553069,
+              "tip": "Request a table by the window when making your reservation to guarantee the best views during your revolving meal.",
+              "cost": "Moderate-High (approx. €25-45 per person for lunch)",
+              "time": "Late Morning",
+              "title": "12:30 - 13:30: Lunch at Restaurant Puijo (in the tower) - Savor local flavors with a unique rotating panoramic view. (Food)",
+              "rating": 4.4,
+              "source": "Google Maps",
+              "address": "Puijontie 135, 70300 Kuopio, Finland",
+              "duration": "1 hour 30 minutes",
+              "photoUrl": "https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=Ab43m-t6TI3Jwt_PWg2axDcw-Cg1NjhhCaZY-bw24WSNJeXQPYx1DUFGBPpTVDmUwPHdNVlh7aHgaK8FDiN0zhP6SsiHVTSDzMU7EOVWrGxjheQELGnnHOV6sZYIPfIhXk0w1vPNl1LnWoBenes2fVvoNJ9HC3xOf2ZoT8OOIKM5OSFx46Q1JEeOSiYuAgPa-YHVwAQ2-Lll9T5uCBqbsvP8Erl5hICkWu4EMwx5Z3zfPg4iHMjV7A8fhGle9FYrUO0_t5Jw2hSJaYm-7dSEUY_-90vhmzJ3N6SKtl5YbbdRJZtfqA&key=AIzaSyAkAA81ofGXJVZh82QVjNKHLZ5lXHEkwY8",
+              "bookingUrl": "https://www.google.com/maps/search/?api=1&query=12%3A30%20-%2013%3A30%3A%20Lunch%20at%20Restaurant%20Puijo%20(in%20the%20tower)%20-%20Savor%20local%20flavors%20with%20a%20unique%20rotating%20panoramic%20view.%20(Food)%20Kuopio",
+              "highlights": [
+                "The mesmerizing, slow rotation of the restaurant, providing a constantly evolving backdrop to your meal",
+                "Savoring fresh local flavors, especially the delicate whitefish or perch from Lake Kallavesi",
+                "Enjoying a window seat to truly immerse yourselves in the breathtaking natural beauty outside",
+                "The unique blend of Finnish culinary traditions and modern gastronomic presentation",
+                "Make a reservation, particularly for a window table, to ensure the best possible experience."
+              ],
+              "mealNearby": "N/A (this is the designated meal)",
+              "description": "Elevate your lunch experience, quite literally, at Restaurant Puijo, nestled within the iconic tower. This unique dining venue slowly revolves, offering ever-changing panoramic views of Kuopio's stunning lake landscape as you savor your meal. The menu thoughtfully blends traditional Finnish flavors with contemporary culinary techniques, emphasizing fresh, locally sourced ingredients. Expect delectable dishes featuring freshwater fish from Lake Kallavesi, robust game meats, and seasonal vegetables, all presented with elegance. It's an unforgettable culinary adventure, combining delicious food with an unparalleled visual feast, making it a truly special occasion for any couple.",
+              "openingHours": [
+                "Monday: 10:00 AM – 6:00 PM",
+                "Tuesday: 10:00 AM – 6:00 PM",
+                "Wednesday: 10:00 AM – 6:00 PM",
+                "Thursday: 10:00 AM – 6:00 PM",
+                "Friday: 10:00 AM – 6:00 PM",
+                "Saturday: 10:00 AM – 6:00 PM",
+                "Sunday: 10:00 AM – 4:00 PM"
+              ],
+              "totalRatings": 4801,
+              "transportNote": "Descend the tower by elevator to the base, where the nature trails begin.",
+              "editorialSummary": "75m hilltop tower overlooking Kuopio & its lake, topped by a revolving restaurant.",
+              "accessibilityNote": "The restaurant is fully accessible via elevator within the tower, ensuring ease of access for all diners."
+            },
+            {
+              "lat": 62.9096941,
+              "lng": 27.6548421,
+              "tip": "Bring a reusable water bottle and perhaps some berries if hiking in late summer; wild blueberries and lingonberries are often found trailside.",
+              "cost": "Free",
+              "time": "Afternoon",
+              "title": "13:45 - 16:30: Hiking on Puijo Nature Trails - Explore the well-maintained forest trails surrounding the tower, perfect for nature photography and a peaceful walk. (Nature, Adventure, Photography)",
+              "rating": 4.6,
+              "source": "Google Maps",
+              "address": "Puijontie 135, 70300 Kuopio, Finland",
+              "duration": "2 hours 45 minutes",
+              "photoUrl": "https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=Ab43m-uUgn3mnv3cYf58pbGk-l-SmsWheHYkaJ-wx1bfyzhDkszS5C8QNuBw7w8xwNDtJ2GQmbx1zlUDClu0A_EYfapQcWW3RgGuXwlx74S51xj2X90-1EH0GkTDNwzWUtxLf_N-c2qfgRKZZ24LE26Uvb45-pofXU2zCdtRdZo3lib6HxPuA6hlO8k8hDwAtWcvqDeL45PH32WAks9upam3Z8hpFQMA4zB8vnMtTP58MsVpsHsWuhJcWf6Wmlz02CqNzKvB1sPdKDQG4fDIdWLxsHLCNHh45M07TTW0o_lZfgGbovMqPoBLHP2xoSybMY4RM9SgPP_tp0HHDMcZaJU8U5ZIvm0uhCy99PqgtNeOv9iPwOFlBbBljf0Pa_cstOlw7SpeepgSqeqbfWxMT2uA_gc9xWJEJpCFJimwVaEUnzC8IasYS9syXKDzIvrkQQ&key=AIzaSyAkAA81ofGXJVZh82QVjNKHLZ5lXHEkwY8",
+              "bookingUrl": "https://www.google.com/maps/search/?api=1&query=13%3A45%20-%2016%3A30%3A%20Hiking%20on%20Puijo%20Nature%20Trails%20-%20Explore%20the%20well-maintained%20forest%20trails%20surrounding%20the%20tower%2C%20perfect%20for%20nature%20photography%20and%20a%20peaceful%20walk.%20(Nature%2C%20Adventure%2C%20Photography)%20Kuopio",
+              "highlights": [
+                "The towering ancient pine trees, creating a majestic and serene forest canopy",
+                "Opportunities for birdwatching and spotting local wildlife in their natural habitat",
+                "The well-marked and diverse trail network, suitable for various fitness levels",
+                "The refreshing scent of pine and crisp, clean air that invigorates the senses",
+                "Wear comfortable, sturdy walking shoes as some paths can be uneven or root-covered."
+              ],
+              "mealNearby": "Cafe Puijo (light snacks, coffee) at the base of the tower.",
+              "description": "After enjoying the aerial views, descend into the ancient forests surrounding Puijo Tower and embark on a peaceful hike along its well-maintained nature trails. These trails wind through towering old-growth pines and diverse undergrowth, offering a refreshing immersion into Finnish wilderness. The air is crisp with the scent of pine, and the sounds of nature provide a tranquil escape from urban life. It's an ideal setting for nature photography, allowing you to capture the intricate details of flora and fauna, or simply enjoy a quiet, adventurous walk hand-in-hand. The varying lengths and difficulty levels mean there's a path for every preference, promising a rejuvenating experience.",
+              "openingHours": [
+                "Monday: Open 24 hours",
+                "Tuesday: Open 24 hours",
+                "Wednesday: Open 24 hours",
+                "Thursday: Open 24 hours",
+                "Friday: Open 24 hours",
+                "Saturday: Open 24 hours",
+                "Sunday: Open 24 hours"
+              ],
+              "totalRatings": 8,
+              "transportNote": "A taxi or a local bus ride (approx. 15-20 minutes) will take you to Snellmanin Kartano.",
+              "editorialSummary": "",
+              "accessibilityNote": "While some main paths near the tower are relatively flat, many nature trails are uneven with roots and small inclines, making them challenging for wheelchairs."
+            },
+            {
+              "lat": 62.90953179999999,
+              "lng": 27.6553069,
+              "tip": "Explore the manor's beautiful grounds if you arrive a little early; they offer a lovely pre-dinner stroll and photo opportunities.",
+              "cost": "High (approx. €50-80 per person for a multi-course meal)",
+              "time": "Early Evening",
+              "title": "18:30 - 20:00: Dinner at Snellmanin Kartano - A charming manor house restaurant offering traditional Finnish dishes, located a short distance from Puijo Hill. (Food)",
+              "rating": 4.4,
+              "source": "Google Maps",
+              "address": "Puijontie 135, 70300 Kuopio, Finland",
+              "duration": "1 hour 30 minutes",
+              "photoUrl": "https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=Ab43m-sjlser4znNYT5voFTld3EiSUIGltJyJJPghtvSIrURuSWjJmVuOqxogn-brvVtQcNrJVosyLsSjadrguKFXiCPUkdJDjhD-z1ylMmRsclNK-7z7YNN11mZzefV3dqmVjqdjs5f87Z69XwL6RiE4dBOd3vp0NgOFxBKLtMFHmahMbQ4YvqsbuoAewvbHU4qV_IOZQpY-BSngosRlg3Hs0S1XuQgUgF4QDAyZ2qSZN8JHGikJve37mQm2jcvsDxUcwdIYNdK_X2Zl6qAXkyqNMFEBTJIhLV8lrWeWTvE30Ac4A&key=AIzaSyAkAA81ofGXJVZh82QVjNKHLZ5lXHEkwY8",
+              "bookingUrl": "https://www.google.com/maps/search/?api=1&query=18%3A30%20-%2020%3A00%3A%20Dinner%20at%20Snellmanin%20Kartano%20-%20A%20charming%20manor%20house%20restaurant%20offering%20traditional%20Finnish%20dishes%2C%20located%20a%20short%20distance%20from%20Puijo%20Hill.%20(Food)%20Kuopio",
+              "highlights": [
+                "The exquisite historic ambiance of the manor house, transporting you to a bygone era",
+                "Enjoying traditional Finnish dishes prepared with modern culinary expertise and local ingredients",
+                "The attentive and personalized service, enhancing the overall dining experience",
+                "The elegant presentation of each dish, a feast for both the eyes and the palate",
+                "Consider making a reservation, especially if you wish to dine during peak hours or on a weekend."
+              ],
+              "mealNearby": "N/A (this is the designated meal)",
+              "description": "Dine in historic elegance at Snellmanin Kartano, a charming manor house restaurant located just a short distance from Puijo Hill. This beautiful estate, with its rich history, offers a sophisticated setting for an evening meal. The restaurant specializes in traditional Finnish dishes, reimagined with a modern touch and a deep reverence for local ingredients. Expect seasonal menus that celebrate the bounty of North Savo, from exquisite freshwater fish to succulent game meats and forest berries. The ambiance is one of refined comfort, making it a perfect choice for a romantic and memorable dinner, allowing you to savor the true flavors of Finland in a picturesque setting.",
+              "openingHours": [
+                "Monday: 10:00 AM – 6:00 PM",
+                "Tuesday: 10:00 AM – 6:00 PM",
+                "Wednesday: 10:00 AM – 6:00 PM",
+                "Thursday: 10:00 AM – 6:00 PM",
+                "Friday: 10:00 AM – 6:00 PM",
+                "Saturday: 10:00 AM – 6:00 PM",
+                "Sunday: 10:00 AM – 4:00 PM"
+              ],
+              "totalRatings": 4801,
+              "transportNote": "A taxi or local bus back to your accommodation in the city center.",
+              "editorialSummary": "75m hilltop tower overlooking Kuopio & its lake, topped by a revolving restaurant.",
+              "accessibilityNote": "Historic manor houses can have steps. It is advisable to contact the restaurant directly regarding specific accessibility needs."
+            }
+          ],
+          "difficulty": "medium",
+          "dayResources": {
+            "whereToEat": [
+              {
+                "lat": 62.8919758,
+                "lng": 27.6784517,
+                "url": "https://maps.google.com/?q=Bibimbap%20Ravintola%20Kuopio%20Kauppakeskus%20Apaja%2C%20Kauppakatu%2045%2C%2070110%20Kuopio%2C%20Finland",
+                "label": "Bibimbap Ravintola Kuopio",
+                "rating": 4.9
+              },
+              {
+                "lat": 62.89230420000001,
+                "lng": 27.6896877,
+                "url": "https://maps.google.com/?q=Kuzina%20Wine%20%26%20Daily%20Kauppakatu%2013%2C%2070100%20Kuopio%2C%20Finland",
+                "label": "Kuzina Wine & Daily",
+                "rating": 4.8
+              },
+              {
+                "lat": 62.89097959999999,
+                "lng": 27.6802478,
+                "url": "https://maps.google.com/?q=Ravintola%20Urban%20Puijonkatu%2015%2C%2070100%20Kuopio%2C%20Finland",
+                "label": "Ravintola Urban",
+                "rating": 4.7
+              }
+            ],
+            "experiences": [
+              {
+                "lat": 62.90953179999999,
+                "lng": 27.6553069,
+                "url": "https://maps.google.com/?q=Puijo%20tower%20Puijontie%20135%2C%2070300%20Kuopio%2C%20Finland",
+                "label": "Puijo tower"
+              },
+              {
+                "lat": 62.8902288,
+                "lng": 27.6852454,
+                "url": "https://maps.google.com/?q=VB%20Photographic%20Center%20Kuninkaankatu%2014-16%2C%2070100%20Kuopio%2C%20Finland",
+                "label": "VB Photographic Center"
+              }
+            ],
+            "transportTip": "Use rental in Puijo Hill Area. Take a local bus (e.g., line 7) or a short taxi ride from the city center to Puijo Hill (approx. 10-15 min). Activities on the hill are walkable. Dinner requires a short taxi ride towards the city center's edge."
+          },
+          "neighborhood": "Puijo Hill Area",
+          "neighborhoodDescription": "Ascend Kuopio's most famous natural attraction, Puijo Hill, offering breathtaking panoramic views, serene forest trails, and unique dining opportunities.",
+          "transitBetweenActivities": "Take a local bus (e.g., line 7) or a short taxi ride from the city center to Puijo Hill (approx. 10-15 min). Activities on the hill are walkable. Dinner requires a short taxi ride towards the city center's edge."
+        },
+        {
+          "day": 3,
+          "pace": "moderate",
+          "theme": "Lakeside Serenity & Finnish Design",
+          "areaFocus": "Kuopio",
+          "activities": [
+            {
+              "tip": "Purchase a small bag of freshly fried 'muikku' from one of the vendors; it’s a delicious, iconic Kuopio street food experience you shouldn't miss.",
+              "cost": "Free (for strolling, purchases extra)",
+              "time": "Morning",
+              "title": "10:00 - 12:00: Kuopio Harbor (Satama) - Stroll along the bustling harbor, admire the boats, and immerse yourselves in the lakeside atmosphere. (Photography, Culture, Nature)",
+              "rating": 0,
+              "source": "Google Maps",
+              "address": "",
+              "duration": "2 hours",
+              "photoUrl": null,
+              "bookingUrl": "https://www.google.com/maps/search/?api=1&query=10%3A00%20-%2012%3A00%3A%20Kuopio%20Harbor%20(Satama)%20-%20Stroll%20along%20the%20bustling%20harbor%2C%20admire%20the%20boats%2C%20and%20immerse%20yourselves%20in%20the%20lakeside%20atmosphere.%20(Photography%2C%20Culture%2C%20Nature)%20Kuopio",
+              "highlights": [
+                "The stunning panoramic views across Lake Kallavesi and its countless islands",
+                "Admiring the beautifully restored historic steamboats, such as S/S Vetäjä",
+                "Sampling 'muikku' (fried vendace), a local fish delicacy, from a harbor-side stall",
+                "The lively sounds of boats, gulls, and happy conversations creating a relaxed ambiance",
+                "Consider a short lake cruise if time allows, for a different perspective of the lake district."
+              ],
+              "mealNearby": "Ravintola Saima (next activity), Tervasaari (seasonal cafe).",
+              "description": "Begin your final day with a refreshing stroll along Kuopio Harbor, or 'Satama,' a vibrant and picturesque hub nestled on the shores of Lake Kallavesi. This bustling port truly comes alive in warmer months, with ferries departing for scenic lake cruises, charming market stalls selling local delicacies, and ice cream kiosks tempting passersby. The atmosphere is relaxed yet lively, offering beautiful opportunities for photography with the shimmering lake as your backdrop and historic steamboats docked nearby. It’s a quintessential Kuopio experience, immersing you in the city's strong connection to its vast lake system and local culture, perfect for a couple seeking natural beauty and a relaxed pace.",
+              "openingHours": [],
+              "totalRatings": 0,
+              "transportNote": "A very short, scenic walk along the waterfront to Ravintola Saima.",
+              "editorialSummary": "",
+              "accessibilityNote": "The harbor promenade is flat and paved, offering excellent accessibility for wheelchairs and strollers."
+            },
+            {
+              "lat": 61.8648961,
+              "lng": 28.8949651,
+              "tip": "Try the traditional Finnish 'kalakeitto' (fish soup) – it's a comforting and authentic dish that perfectly highlights the fresh local ingredients.",
+              "cost": "Moderate (approx. €20-35 per person for lunch)",
+              "time": "Late Morning",
+              "title": "12:00 - 13:30: Lunch at Ravintola Saima - Enjoy fresh fish and local cuisine by the waterfront, overlooking Lake Kallavesi. (Food)",
+              "rating": 4.5,
+              "source": "Google Maps",
+              "address": "Linnankatu 11, Eerikinkatu 7, 57130 Savonlinna, Finland",
+              "duration": "1 hour 30 minutes",
+              "photoUrl": "https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=Ab43m-uh0u2YC2BISBPWHQ0WV5jB5fPwiE4JLWDVGe6v9Z8BJIEttyiC02s0882cVM5gCubZrgBxpW1AUiRp1WYFvdVcg4oNeoaI7oAnH_NU-kmUdUPIbsTSAMKQGwrgR5iqbOmpZcm6TYrmCcP3YtNZKWAWtj7wUJ0lW3Y-bc0PODJecsaBHmaNwjGzVgGRJfMDcfcpB1T6-2ZY9avbinIJ1bvmfJjdH2wnHJVe2gxyiegfaUt8JpPXVWiTPA_vONPh-FjrQgkEv97_Y4lyfkMjLc-65EqlSX2KEC0RwFaMiBcQ_w&key=AIzaSyAkAA81ofGXJVZh82QVjNKHLZ5lXHEkwY8",
+              "bookingUrl": "https://www.google.com/maps/search/?api=1&query=12%3A00%20-%2013%3A30%3A%20Lunch%20at%20Ravintola%20Saima%20-%20Enjoy%20fresh%20fish%20and%20local%20cuisine%20by%20the%20waterfront%2C%20overlooking%20Lake%20Kallavesi.%20(Food)%20Kuopio",
+              "highlights": [
+                "The unobstructed, beautiful views of Lake Kallavesi, especially from the terrace",
+                "Savoring the 'catch of the day', often local pike-perch or whitefish, prepared simply and deliciously",
+                "The fresh, crisp air and the gentle lapping of waves creating a relaxing dining atmosphere",
+                "Their selection of local Finnish beers and refreshing beverages to complement your meal",
+                "Consider asking for a table outside if the weather is pleasant, for the ultimate lakeside experience."
+              ],
+              "mealNearby": "N/A (this is the designated meal)",
+              "description": "Indulge in a delightful lakeside lunch at Ravintola Saima, perfectly positioned on the waterfront with enchanting views of Lake Kallavesi. This restaurant is celebrated for its commitment to fresh, local cuisine, with a particular emphasis on the delicious fish caught directly from the surrounding lakes. The menu offers a tempting array of Finnish classics, including creamy fish soups, grilled whitefish, and seasonal salads, all prepared with a light and flavorful touch. Dining on their outdoor terrace during the warmer months is an absolute treat, providing a serene and picturesque backdrop to your meal. It’s an ideal spot for a leisurely lunch, truly capturing the essence of Finnish lakeside living.",
+              "openingHours": [
+                "Monday: Closed",
+                "Tuesday: Closed",
+                "Wednesday: 10:30 AM – 4:30 PM",
+                "Thursday: 10:30 AM – 4:30 PM",
+                "Friday: 10:30 AM – 4:30 PM",
+                "Saturday: 10:30 AM – 4:30 PM",
+                "Sunday: 10:30 AM – 4:30 PM"
+              ],
+              "totalRatings": 604,
+              "transportNote": "A pleasant 5-10 minute walk along the lake shore to Väinölänniemi Park.",
+              "editorialSummary": "",
+              "accessibilityNote": "Ravintola Saima has a ground-floor entrance and is generally accessible. The outdoor terrace is also usually flat."
+            },
+            {
+              "lat": 62.8847366,
+              "lng": 27.698705,
+              "tip": "Find a secluded bench or a spot on the grass to simply relax and watch the boats on the lake, savoring the peaceful Finnish summer.",
+              "cost": "Free",
+              "time": "Afternoon",
+              "title": "13:45 - 16:00: Väinölänniemi Park - Relax and wander through this beautiful peninsula park, offering swimming beaches, walking paths, and scenic views. (Nature, Photography)",
+              "rating": 4.4,
+              "source": "Google Maps",
+              "address": "Väinölänniemi 26, 70100 Kuopio, Finland",
+              "duration": "2 hours 15 minutes",
+              "photoUrl": "https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=Ab43m-u322Lr124IfT9Qh20f-d3OfE-v4h5Hozos8oVUcd9dK4Nol8P25LW9axiGNLVGYso57CqtxiaCCENywCas_r23ftfTCMlvENo87gaquPhXk383sMJQrbtQkTIr1U5fuEpSQ66WMlGu4eylenWnoJ1K9lV4Joc9UbRkGwMEUj_OGDIp1ybk_tFstS7WKJABt8CwwJ44s_9jZERxLooTDs85puGPi6y_aNbV9X7ufLLGrZ3Ti4dTVy-pFWqBZdIAl7a4y-Yh78fVA30BpyKkSCAlz3kjV1uYaiD7gqAL4ghI95veuoVm5m6ymjwsc8ZZQ6xNhBBbK_ZiQooOA1ppjrH4eG07Xyv74_g48-pdfUw4-zmeg3X0UKftZtVA8u_eammrk6qdYXVUvnyy6E-Xd-g31xX_N0UjQSlDAhQeWB8EKA&key=AIzaSyAkAA81ofGXJVZh82QVjNKHLZ5lXHEkwY8",
+              "bookingUrl": "https://www.google.com/maps/search/?api=1&query=13%3A45%20-%2016%3A00%3A%20V%C3%A4in%C3%B6l%C3%A4nniemi%20Park%20-%20Relax%20and%20wander%20through%20this%20beautiful%20peninsula%20park%2C%20offering%20swimming%20beaches%2C%20walking%20paths%2C%20and%20scenic%20views.%20(Nature%2C%20Photography)%20Kuopio",
+              "highlights": [
+                "The idyllic sandy beaches, perfect for a quick dip or simply relaxing by the water's edge",
+                "Wandering through groves of majestic old trees, offering shade and a sense of timelessness",
+                "Discovering the various scenic viewpoints across Lake Kallavesi from different parts of the peninsula",
+                "The peaceful ambiance, a welcome contrast to the city's bustle, filled with birdsong and rustling leaves",
+                "If visiting in summer, bring swimwear to enjoy a refreshing swim in Lake Kallavesi from one of the designated beaches."
+              ],
+              "mealNearby": "Café Väinö (seasonal, light refreshments within the park).",
+              "description": "Escape to the tranquil oasis of Väinölänniemi Park, a beloved peninsula park that extends into Lake Kallavesi, offering a refreshing blend of natural beauty and recreational opportunities. This verdant retreat is perfect for a relaxing afternoon, boasting sandy swimming beaches, winding walking paths shaded by old-growth trees, and stunning panoramic views of the lake. Historically, it's also home to some of Kuopio's oldest sports facilities and a charming old casino building, adding a touch of nostalgic charm. For a couple, it's an ideal spot for a peaceful stroll, quiet reflection, or capturing idyllic landscape photographs, immersing yourselves in Kuopio's natural serenity.",
+              "openingHours": [
+                "Monday: Open 24 hours",
+                "Tuesday: Open 24 hours",
+                "Wednesday: Open 24 hours",
+                "Thursday: Open 24 hours",
+                "Friday: Open 24 hours",
+                "Saturday: Open 24 hours",
+                "Sunday: Open 24 hours"
+              ],
+              "totalRatings": 704,
+              "transportNote": "A 10-15 minute walk back towards the city center and Tulliportinkatu.",
+              "editorialSummary": "",
+              "accessibilityNote": "Paved walking paths offer good accessibility, but some grassy areas and paths closer to the shore may be uneven."
+            },
+            {
+              "lat": 61.4956791,
+              "lng": 23.7698165,
+              "tip": "Look for items crafted from natural Finnish materials like birch, reindeer leather, or wool, which make authentic and sustainable souvenirs.",
+              "cost": "Varies depending on purchases",
+              "time": "Early Evening",
+              "title": "16:00 - 17:30: Boutique Shopping on Tulliportinkatu - Discover unique Finnish designs and souvenirs in shops located just a short walk from the harbor. (Shopping)",
+              "rating": 4.7,
+              "source": "Google Maps",
+              "address": "Suvantokatu 7--9, 33100 Tampere, Finland",
+              "duration": "1 hour 30 minutes",
+              "photoUrl": "https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=Ab43m-sFgsdzhACOpHyqINF6ebdmY5x_5xAVP119G_SsTIVdPr0_EgeJGKFERux_u1ro9sRylNAZMGigSpYLrG7WIFjPfdH0oVSF_46puRmGRsxmjnPahTvcdPDt0Z9Eo6EnbdSU3eTjgTDtNobg7GB5LTZgY8UQK7_SxaanjshI_lJfah4hvYrodlpDc2ThR0TNDqEMeOnglEW_ifVP2i-_pzD8fsem6j3WSwHmEtUsprNeRNXJHFzWgOV4bbiY8f3Y9TJe3EF9vKMZ-oeK1hBBy9eI5_tJ859jV_xQqCCDid3BJaaAqdGEmFUPtNZe11CY6Rl9EwDjnIi8DSW0hyGh34UGPvRRcOfyIGETsWLDKPWiYNBLO8b2JUhTBY3mRaXD6nXoJT4RMu6whLsUJ4gwfXEWKLwNJdbkXwgKi-VCBjHoZqU&key=AIzaSyAkAA81ofGXJVZh82QVjNKHLZ5lXHEkwY8",
+              "bookingUrl": "https://www.google.com/maps/search/?api=1&query=16%3A00%20-%2017%3A30%3A%20Boutique%20Shopping%20on%20Tulliportinkatu%20-%20Discover%20unique%20Finnish%20designs%20and%20souvenirs%20in%20shops%20located%20just%20a%20short%20walk%20from%20the%20harbor.%20(Shopping)%20Kuopio",
+              "highlights": [
+                "Discovering unique pieces of Finnish glassware or ceramics (e.g., Iittala, Arabia)",
+                "Browsing for handmade jewelry or small art pieces by local Kuopio artisans",
+                "Finding high-quality textiles or functional Finnish design objects for your home",
+                "The relaxed, uncrowded atmosphere of boutique shopping, allowing for thoughtful browsing",
+                "Take your time to explore the smaller, independent shops which often hold the most unique finds."
+              ],
+              "mealNearby": "Viikinkiravintola Harald (Viking-themed), Rosso (Italian).",
+              "description": "Conclude your afternoon with a leisurely stroll and some boutique shopping on Tulliportinkatu, a charming street known for its distinctive Finnish designs and unique souvenir shops. Located just a short walk from the bustling harbor, this area offers a curated selection of independent boutiques, art galleries, and craft stores. You'll find beautifully crafted Finnish glassware, elegant textiles, handmade jewelry, and contemporary home decor, all reflecting the minimalist aesthetic and high quality characteristic of Scandinavian design. It's the perfect opportunity to find that special memento of your trip or a unique gift, supporting local artists and designers while enjoying a relaxed shopping experience.",
+              "openingHours": [
+                "Monday: 10:30 AM – 6:00 PM",
+                "Tuesday: 10:30 AM – 6:00 PM",
+                "Wednesday: 10:30 AM – 6:00 PM",
+                "Thursday: 10:30 AM – 6:00 PM",
+                "Friday: 10:30 AM – 6:00 PM",
+                "Saturday: 10:00 AM – 3:00 PM",
+                "Sunday: Closed"
+              ],
+              "totalRatings": 6,
+              "transportNote": "A short 5-minute walk to Hannes Hyrsky for your farewell dinner.",
+              "editorialSummary": "",
+              "accessibilityNote": "Tulliportinkatu sidewalks are generally accessible, but individual shop entrances may have small steps or narrow doorways."
+            },
+            {
+              "lat": 62.8383116,
+              "lng": 27.6707004,
+              "tip": "Ask your server about the provenance of the ingredients; they are often proud to share stories of local farmers and producers.",
+              "cost": "High (approx. €60-90+ per person for a multi-course meal)",
+              "time": "Evening",
+              "title": "19:00 - 20:30: Farewell Dinner at Hannes Hyrsky - Enjoy a sophisticated dining experience with a focus on local ingredients in the city center, near the port. (Food)",
+              "rating": 0,
+              "source": "Google Maps",
+              "address": "Mutkankatu 8, 70820 Kuopio, Finland",
+              "duration": "1 hour 30 minutes",
+              "photoUrl": "https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=Ab43m-v2_IreA3dIvwcVhUnMx9Bl_JRK__GkeOVimckBGfDPUkBdDqO-rHbkPJIFnQ3KH---HvJbIFNir3PEE8nqwgiVY2qQ2UtCiyUeciIhFL0GZ4PJ0yS_3fEHQRb9bPbAXQiXXSGM681eGMk9aK_a2XbOIkIDA1nJF-UmHkhRnTw6K4ElMlZOFHsalmB_57GjyTAvDQk04sgK-wrIFh_jLZXwTQl3INRGhoKS8mCnRiPeXBHX29K5UWOedCr3KtqIxRSMXHGuNks23wHS4rjtrVsiJSFR3yOiIwi1uxmVRnwvafvQpwaadg-HORGUY60DU-m8BbzobILKmPEKQhZAqT4k91GC5ROZaZh41vuG6uNKoCg3BCtkyWKylNyXAs12-8T6Gj8ibxzJ4gZAV2m1ebqFmygUzBgJUCKdV2M_02wC-_ua&key=AIzaSyAkAA81ofGXJVZh82QVjNKHLZ5lXHEkwY8",
+              "bookingUrl": "https://www.google.com/maps/search/?api=1&query=19%3A00%20-%2020%3A30%3A%20Farewell%20Dinner%20at%20Hannes%20Hyrsky%20-%20Enjoy%20a%20sophisticated%20dining%20experience%20with%20a%20focus%20on%20local%20ingredients%20in%20the%20city%20center%2C%20near%20the%20port.%20(Food)%20Kuopio",
+              "highlights": [
+                "The inventive and beautifully plated dishes, showcasing modern Finnish culinary techniques",
+                "The curated selection of fine wines and local beverages, perfectly paired with the menu",
+                "The elegant and intimate atmosphere, ideal for a romantic and sophisticated farewell dinner",
+                "The focus on hyper-local ingredients, providing a true taste of the North Savo region",
+                "Consider opting for the chef's tasting menu for a comprehensive and truly special culinary experience."
+              ],
+              "mealNearby": "N/A (this is the designated meal)",
+              "description": "For your farewell dinner, immerse yourselves in the sophisticated ambiance and exquisite flavors of Hannes Hyrsky, a highly regarded restaurant located conveniently in the city center near the port. This establishment prides itself on its modern Finnish fine dining, with a profound focus on utilizing fresh, seasonal, and locally sourced ingredients from the North Savo region. Each dish is a testament to culinary artistry, meticulously prepared and elegantly presented, promising a memorable gastronomic journey. The refined yet cozy setting makes it an ideal choice for a special evening, allowing you to reflect on your Kuopio adventures over an exceptional meal, celebrating the best of Finnish cuisine.",
+              "openingHours": [],
+              "totalRatings": 0,
+              "transportNote": "A very short, easy 5-minute walk to Viihdemaailma Ilona.",
+              "editorialSummary": "",
+              "accessibilityNote": "Hannes Hyrsky offers a ground-floor entrance, generally ensuring good accessibility for diners."
+            },
+            {
+              "lat": 61.49723819999999,
+              "lng": 23.7674907,
+              "tip": "Wander through the different sections to find the music and ambiance that best suits your mood for the evening.",
+              "cost": "Approx. €8-15 per drink, occasional entry fee (e.g., €5-10 on weekends)",
+              "time": "Evening",
+              "title": "21:00 - 23:00: Nightlife at Viihdemaailma Ilona - A large entertainment complex with various bars and dance floors for a fun final evening. (Nightlife)",
+              "rating": 3.3,
+              "source": "Google Maps",
+              "address": "Verkatehtaankatu 3, 33100 Tampere, Finland",
+              "duration": "2 hours",
+              "photoUrl": "https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=Ab43m-tZRecrZacMf0SeND7rn3zvbM8ZzkX_XiFN5LsREvj9VALSCbmqUmIiGl8BGK9G5sP0KdH3VK7KBx6c038XuDHYXgWqm5x9Bt96lAuAYZ8t6iUkcmWDmc6WO8kZDb2y6NiubkZT-8rjcCfC6H2sh2E9BYtl9nTTDZi6OGI4Pe4DN-rF73o19qATPslK1SqjJ5WjY7S5U6ecAQM-HfBLxtgblkRnTNE8cTsvhkcC84xh0hSzPfp3ncz81c8ACwirOFCUhURR3IDfyIGAA17XvLT-Nq6FbkHqnkA-4q7fzoy-lA&key=AIzaSyAkAA81ofGXJVZh82QVjNKHLZ5lXHEkwY8",
+              "bookingUrl": "https://www.google.com/maps/search/?api=1&query=21%3A00%20-%2023%3A00%3A%20Nightlife%20at%20Viihdemaailma%20Ilona%20-%20A%20large%20entertainment%20complex%20with%20various%20bars%20and%20dance%20floors%20for%20a%20fun%20final%20evening.%20(Nightlife)%20Kuopio",
+              "highlights": [
+                "Exploring the different themed rooms and bars, each offering a unique vibe and music selection",
+                "Joining the locals on the dance floor and experiencing the vibrant Finnish party scene",
+                "The diverse range of local and international drinks available at the various bars",
+                "The energetic and social atmosphere, perfect for a fun and engaging final evening",
+                "If you enjoy karaoke, check if one of Ilona's rooms is hosting a session for a truly Finnish experience."
+              ],
+              "mealNearby": "N/A",
+              "description": "Conclude your unforgettable Kuopio journey with a lively evening at Viihdemaailma Ilona, a prominent entertainment complex that promises a fun and dynamic nightlife experience. This expansive venue hosts multiple themed bars and energetic dance floors, catering to a variety of tastes and moods. From lively pop music to more relaxed lounge areas, you can choose your preferred atmosphere to celebrate your final night. It's a fantastic spot to mingle with locals, enjoy a wide range of drinks, and dance the night away, providing a vibrant and memorable end to your trip. It’s an energetic way for a couple to fully embrace the Finnish party scene.",
+              "openingHours": [
+                "Monday: Closed",
+                "Tuesday: Closed",
+                "Wednesday: 11:00 PM – 5:00 AM",
+                "Thursday: 11:00 PM – 5:00 AM",
+                "Friday: 10:00 PM – 5:00 AM",
+                "Saturday: 10:00 PM – 5:00 AM",
+                "Sunday: Closed"
+              ],
+              "totalRatings": 263,
+              "transportNote": "Walk or taxi back to your accommodation, depending on its location.",
+              "editorialSummary": "",
+              "accessibilityNote": "As a large entertainment complex, Ilona generally has accessible pathways, but different levels might require elevators, and crowded spaces can limit mobility."
+            }
+          ],
+          "difficulty": "medium",
+          "dayResources": {
+            "whereToEat": [
+              {
+                "lat": 62.8919758,
+                "lng": 27.6784517,
+                "url": "https://maps.google.com/?q=Bibimbap%20Ravintola%20Kuopio%20Kauppakeskus%20Apaja%2C%20Kauppakatu%2045%2C%2070110%20Kuopio%2C%20Finland",
+                "label": "Bibimbap Ravintola Kuopio",
+                "rating": 4.9
+              },
+              {
+                "lat": 62.89230420000001,
+                "lng": 27.6896877,
+                "url": "https://maps.google.com/?q=Kuzina%20Wine%20%26%20Daily%20Kauppakatu%2013%2C%2070100%20Kuopio%2C%20Finland",
+                "label": "Kuzina Wine & Daily",
+                "rating": 4.8
+              },
+              {
+                "lat": 62.89097959999999,
+                "lng": 27.6802478,
+                "url": "https://maps.google.com/?q=Ravintola%20Urban%20Puijonkatu%2015%2C%2070100%20Kuopio%2C%20Finland",
+                "label": "Ravintola Urban",
+                "rating": 4.7
+              }
+            ],
+            "experiences": [
+              {
+                "lat": 62.90953179999999,
+                "lng": 27.6553069,
+                "url": "https://maps.google.com/?q=Puijo%20tower%20Puijontie%20135%2C%2070300%20Kuopio%2C%20Finland",
+                "label": "Puijo tower"
+              },
+              {
+                "lat": 62.8902288,
+                "lng": 27.6852454,
+                "url": "https://maps.google.com/?q=VB%20Photographic%20Center%20Kuninkaankatu%2014-16%2C%2070100%20Kuopio%2C%20Finland",
+                "label": "VB Photographic Center"
+              }
+            ],
+            "transportTip": "Use rental in Kuopio Port & Väinölänniemi. All activities in this area are within a 5-15 minute walk from each other. The port and Väinölänniemi are adjacent to the city center."
+          },
+          "neighborhood": "Kuopio Port & Väinölänniemi",
+          "neighborhoodDescription": "Experience the tranquil beauty of Kuopio's waterfront, combining leisurely strolls along the harbor with relaxation in a picturesque park.",
+          "transitBetweenActivities": "All activities in this area are within a 5-15 minute walk from each other. The port and Väinölänniemi are adjacent to the city center."
+        }
+      ],
+      "title": "Kuopio: Lakeland Wonders and Urban Charms",
+      "overview": "Embark on a captivating 3-day journey through Kuopio, where the vibrant Kuopio Market Square bursts with local life and delicacies. Ascend the iconic Puijo Tower for breathtaking panoramic views of the lake district, then unwind amidst the serene beauty of Kuopio Harbor and Väinölänniemi Park. This trip balances cultural immersion, natural adventure, and sophisticated dining, perfectly crafted for a couple seeking diverse experiences.",
+      "esgReport": {
+        "grade": "D",
+        "segments": [
+          {
+            "mode": "car_petrol",
+            "co2_kg": 1.3,
+            "passengers": 1,
+            "distance_km": 8,
+            "co2_per_passenger_kg": 1.3
+          },
+          {
+            "mode": "car_petrol",
+            "co2_kg": 1.3,
+            "passengers": 1,
+            "distance_km": 8,
+            "co2_per_passenger_kg": 1.3
+          },
+          {
+            "mode": "car_petrol",
+            "co2_kg": 1.3,
+            "passengers": 1,
+            "distance_km": 8,
+            "co2_per_passenger_kg": 1.3
+          }
+        ],
+        "grade_label": "High Emissions ⚠️",
+        "total_co2_kg": 3.9,
+        "recommendation": "Significant CO2 impact detected. Consider rail alternatives or carbon offset programs.",
+        "trees_to_offset": 1,
+        "total_distance_km": 24,
+        "vs_car_savings_kg": 0.2
+      },
+      "hotelInfo": [
+        {
+          "tag": "cheapest",
+          "city": "kuopio",
+          "name": "Budget Stay in kuopio",
+          "tier": "budget",
+          "price": 90,
+          "stars": 2,
+          "rating": 7.2,
+          "source": "Estimate",
+          "roomType": "Standard Room",
+          "amenities": [
+            "WiFi",
+            "Breakfast available"
+          ],
+          "bookingUrl": "https://www.booking.com/searchresults.html?ss=kuopio&checkin=2026-05-14&checkout=2026-05-16&group_adults=1",
+          "isEstimate": true,
+          "comparisonLinks": {
+            "agoda": "https://www.agoda.com/search?city=kuopio&checkIn=2026-05-14&checkOut=2026-05-16",
+            "hotelscom": "https://www.hotels.com/search.do?q-destination=kuopio&q-check-in=2026-05-14&q-check-out=2026-05-16",
+            "bookingCom": "https://www.booking.com/searchresults.html?ss=kuopio&checkin=2026-05-14&checkout=2026-05-16&group_adults=1",
+            "tripadvisor": "https://www.tripadvisor.com/Search?searchAll=true&q=kuopio+hotels"
+          }
+        },
+        {
+          "tag": "best-value",
+          "city": "kuopio",
+          "name": "kuopio City Hotel",
+          "tier": "mid-range",
+          "price": 145,
+          "stars": 3,
+          "rating": 8.4,
+          "source": "Estimate",
+          "roomType": "Superior Room",
+          "amenities": [
+            "WiFi",
+            "Breakfast included",
+            "Gym",
+            "AC"
+          ],
+          "bookingUrl": "https://www.booking.com/searchresults.html?ss=kuopio&checkin=2026-05-14&checkout=2026-05-16&group_adults=1",
+          "isEstimate": true,
+          "comparisonLinks": {
+            "agoda": "https://www.agoda.com/search?city=kuopio&checkIn=2026-05-14&checkOut=2026-05-16",
+            "hotelscom": "https://www.hotels.com/search.do?q-destination=kuopio&q-check-in=2026-05-14&q-check-out=2026-05-16",
+            "bookingCom": "https://www.booking.com/searchresults.html?ss=kuopio&checkin=2026-05-14&checkout=2026-05-16&group_adults=1",
+            "tripadvisor": "https://www.tripadvisor.com/Search?searchAll=true&q=kuopio+hotels"
+          }
+        },
+        {
+          "tag": "best-rated",
+          "city": "kuopio",
+          "name": "kuopio Luxury Resort",
+          "tier": "luxury",
+          "price": 220,
+          "stars": 5,
+          "rating": 9.1,
+          "source": "Estimate",
+          "roomType": "Deluxe Suite",
+          "amenities": [
+            "WiFi",
+            "Breakfast",
+            "Spa",
+            "Pool",
+            "Concierge"
+          ],
+          "bookingUrl": "https://www.agoda.com/search?city=kuopio&checkIn=2026-05-14&checkOut=2026-05-16",
+          "isEstimate": true,
+          "comparisonLinks": {
+            "agoda": "https://www.agoda.com/search?city=kuopio&checkIn=2026-05-14&checkOut=2026-05-16",
+            "hotelscom": "https://www.hotels.com/search.do?q-destination=kuopio&q-check-in=2026-05-14&q-check-out=2026-05-16",
+            "bookingCom": "https://www.booking.com/searchresults.html?ss=kuopio&checkin=2026-05-14&checkout=2026-05-16&group_adults=1",
+            "tripadvisor": "https://www.tripadvisor.com/Search?searchAll=true&q=kuopio+hotels"
+          }
+        }
+      ],
+      "budgetTips": [
+        "Instead of paying for the elevator up Puijo Tower, consider hiking up one of the scenic trails for a free dose of nature and rewarding views.",
+        "The Kuopio Market Square is the ideal place to pick up unique, locally made souvenirs and gifts at more affordable prices than boutique shops.",
+        "Save on lunch by grabbing delicious and authentic Finnish street food like *muikku* or *lörtsy* from the Market Square stalls, and splurge on memorable dinners at fine restaurants.",
+        "If you plan to use public transport extensively beyond walking, consider purchasing a day ticket or a multi-day travel card for the Kuopio region, available via the Reitit ja Liput app or at kiosks."
+      ],
+      "travelTips": [
+        "Learning a few basic Finnish phrases like 'Hei' (Hello) and 'Kiitos' (Thank you) will be appreciated by locals.",
+        "Utilize Kuopio's efficient local bus network for journeys slightly outside the city center, such as to Puijo Hill; single tickets can be bought from the driver.",
+        "Download the 'Reitit ja Liput' app for real-time public transport information and easy ticket purchases within Kuopio.",
+        "When using public saunas, it's customary to shower before entering and respect personal space. If invited to a private sauna, it's a sign of hospitality.",
+        "From Kuopio Airport (KUO), a taxi is the quickest route to the city center, taking about 15-20 minutes. Alternatively, airport buses are available, coordinating with flight schedules."
+      ],
+      "whyThisPlan": [
+        "Activities are strategically grouped by geographical location (City Center, Puijo Hill, Harbor) to minimize travel time and maximize exploration.",
+        "This itinerary perfectly aligns with interests in Photography, Nightlife, Culture, Food, Nature, Shopping, and Adventure, offering a rich blend of experiences for a balanced traveler.",
+        "The pace is balanced, allowing for immersive experiences without feeling rushed, with ample time for relaxation and personal discovery each day.",
+        "Discover the local delicacy 'kalakukko' at the Market Square and experience the unique rotating dining at Restaurant Puijo, offering truly memorable and distinct Kuopio moments."
+      ],
+      "localCustoms": [
+        "Finns generally value punctuality; try to arrive on time for reservations and meetings. They are also typically reserved in public but warm and welcoming once you get to know them.",
+        "Dining etiquette is similar to Western Europe; wait to be seated in most restaurants. It's considered polite to finish all food on your plate, especially when hosted.",
+        "Tipping is not customary in Finland as service charges are included in prices. However, rounding up a bill or leaving a small tip (5-10%) for exceptional service is always appreciated.",
+        "Dress code in Kuopio is generally casual, but smart casual is recommended for evening dinners at nicer restaurants. For churches, respectful attire is advised, though no strict dress codes are enforced."
+      ],
+      "realityCheck": {
+        "crowds": {
+          "level": "medium",
+          "description": "Expect moderate crowds at popular attractions."
+        },
+        "weather": [
+          "Check the forecast before packing",
+          "Bring layers for changing weather"
+        ],
+        "physical": {
+          "level": "medium",
+          "description": "This balanced itinerary involves moderate walking."
+        },
+        "physicsCheck": "✅ VERIFIED: Geo-clustering enforced. All activities within same neighborhood per day."
+      },
+      "safetyAdvice": [
+        "Kuopio is an exceptionally safe city, and major scams are rare. Always be aware of your belongings in crowded tourist areas like the Market Square, though petty theft is infrequent.",
+        "There are no specific 'areas to avoid' in Kuopio. The city center and tourist areas are very safe, even at night.",
+        "The universal European emergency number is 112 for police, ambulance, and fire services.",
+        "Finnish tap water is among the cleanest in the world and perfectly safe to drink. During summer months, especially when hiking, carry insect repellent to guard against mosquitoes and other biting insects."
+      ],
+      "bestTimeToVisit": "The best time to visit Kuopio is from June to August, when the weather is warm and sunny, perfect for lakeside activities and enjoying the long daylight hours of the Finnish summer. Early autumn (September) also offers beautiful fall foliage and pleasant temperatures for outdoor exploration, albeit with cooler evenings.",
+      "budgetBreakdown": {
+        "savingTips": [
+          "Instead of paying for the elevator up Puijo Tower, consider hiking up one of the scenic trails for a free dose of nature and rewarding views.",
+          "The Kuopio Market Square is the ideal place to pick up unique, locally made souvenirs and gifts at more affordable prices than boutique shops.",
+          "Save on lunch by grabbing delicious and authentic Finnish street food like *muikku* or *lörtsy* from the Market Square stalls, and splurge on memorable dinners at fine restaurants.",
+          "If you plan to use public transport extensively beyond walking, consider purchasing a day ticket or a multi-day travel card for the Kuopio region, available via the Reitit ja Liput app or at kiosks."
+        ],
+        "totalEstimate": "$180–$234 per person for 3 days"
+      },
+      "weatherForecast": "No weather data"
+    },
+    "flightAnalysis": {
+      "bestOption": null,
+      "cheapestDay": null,
+      "lowestPrice": 0,
+      "averagePrice": 0,
+      "recommendation": "No flight data available. Search manually on Skyscanner or Google Flights."
+    }
+  },
+  "status": "saved",
+  "created_at": "2026-04-30T23:09:28.355263+00:00",
+  "start_date": "2026-05-14",
+  "end_date": "2026-05-16",
+  "city_id": "kuopio",
+  "days": 3,
+  "budget": "moderate",
+  "travel_style": "balanced",
+  "traveler_type": "couple",
+  "is_public": false,
+  "shared_link_token": null,
+  "interests": [
+    "Photography",
+    "Nightlife",
+    "Culture",
+    "Food",
+    "Nature",
+    "Shopping",
+    "Adventure"
+  ],
+  "notes": null,
+  "flight_data": null
+}
