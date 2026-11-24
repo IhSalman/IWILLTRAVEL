@@ -1,4 +1,68 @@
 /** @type {import('tailwindcss').Config} */
+
+/*
+ * NIGHT FLIGHT palette.
+ * The site historically used many Tailwind hues (sky, amber, indigo, violet, cyan…).
+ * For a minimal look, every decorative hue is remapped to ONE warm "sunrise" accent,
+ * greens map to a muted sage (success) and reds to a muted clay (errors).
+ * Slate/gray become a warm neutral aligned with the ink background.
+ */
+const sunrise = {
+  50: '#fef6ee',
+  100: '#fcebd8',
+  200: '#f8d4ae',
+  300: '#f3b87f',
+  400: '#ee9d57',
+  500: '#e8853a',
+  600: '#d06b27',
+  700: '#ad5321',
+  800: '#8a4321',
+  900: '#70391f',
+  950: '#3d1b0e',
+};
+
+const sage = {
+  50: '#f3f8f4',
+  100: '#e2eee4',
+  200: '#c6ddca',
+  300: '#a3c6a9',
+  400: '#80ad88',
+  500: '#62926b',
+  600: '#4c7655',
+  700: '#3e5f46',
+  800: '#344d3a',
+  900: '#2c4031',
+  950: '#16231a',
+};
+
+const clay = {
+  50: '#fdf4f2',
+  100: '#fbe6e2',
+  200: '#f6cdc5',
+  300: '#eea99c',
+  400: '#e37f6d',
+  500: '#d45f4b',
+  600: '#bc4838',
+  700: '#9d3b2f',
+  800: '#82342b',
+  900: '#6d3028',
+  950: '#3b1612',
+};
+
+const neutral = {
+  50: '#f6f5f2',
+  100: '#edeae3',
+  200: '#d9d5cc',
+  300: '#bdb8ad',
+  400: '#959087',
+  500: '#716d66',
+  600: '#57544e',
+  700: '#3a3936',
+  800: '#222328',
+  900: '#15161a',
+  950: '#0b0c0f',
+};
+
 module.exports = {
   darkMode: ["class"],
   content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
@@ -6,13 +70,40 @@ module.exports = {
   theme: {
     container: {
       center: true,
-      padding: '2rem',
+      padding: '1rem',
       screens: {
         '2xl': '1400px'
       }
     },
     extend: {
       colors: {
+        // ── Palette remap (see header comment) ──
+        sunrise,
+        sage,
+        clay,
+        ink: neutral,
+        slate: neutral,
+        gray: neutral,
+        zinc: neutral,
+        stone: neutral,
+        sky: { ...sunrise, DEFAULT: 'hsl(var(--sky))', foreground: 'hsl(var(--background))' },
+        blue: sunrise,
+        cyan: sunrise,
+        teal: sunrise,
+        indigo: sunrise,
+        violet: sunrise,
+        purple: sunrise,
+        fuchsia: sunrise,
+        pink: clay,
+        amber: sunrise,
+        orange: sunrise,
+        yellow: sunrise,
+        emerald: sage,
+        green: sage,
+        lime: sage,
+        rose: clay,
+        red: clay,
+
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
@@ -46,43 +137,29 @@ module.exports = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))'
         },
-        sidebar: {
-          DEFAULT: 'hsl(var(--sidebar-background))',
-          foreground: 'hsl(var(--sidebar-foreground))',
-          primary: 'hsl(var(--sidebar-primary))',
-          'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-          accent: 'hsl(var(--sidebar-accent))',
-          'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-          border: 'hsl(var(--sidebar-border))',
-          ring: 'hsl(var(--sidebar-ring))'
-        },
         tropical: {
           DEFAULT: 'hsl(var(--tropical))',
-          foreground: 'hsl(var(--tropical-foreground))'
+          foreground: 'hsl(var(--background))'
         },
         sunset: {
           DEFAULT: 'hsl(var(--sunset))',
-          foreground: 'hsl(var(--sunset-foreground))'
+          foreground: 'hsl(var(--background))'
         },
         ocean: {
           DEFAULT: 'hsl(var(--ocean))',
-          foreground: 'hsl(var(--ocean-foreground))'
+          foreground: 'hsl(var(--background))'
         },
         mountain: {
           DEFAULT: 'hsl(var(--mountain))',
-          foreground: 'hsl(var(--mountain-foreground))'
+          foreground: 'hsl(var(--background))'
         },
         desert: {
           DEFAULT: 'hsl(var(--desert))',
-          foreground: 'hsl(var(--desert-foreground))'
-        },
-        sky: {
-          DEFAULT: 'hsl(var(--sky))',
-          foreground: 'hsl(var(--sky-foreground))'
+          foreground: 'hsl(var(--background))'
         },
         coral: {
           DEFAULT: 'hsl(var(--coral))',
-          foreground: 'hsl(var(--coral-foreground))'
+          foreground: 'hsl(var(--background))'
         },
         stat: {
           cost: 'hsl(var(--stat-cost))',
@@ -111,18 +188,12 @@ module.exports = {
         'accordion-up': 'accordion-up 0.2s ease-out'
       },
       fontFamily: {
-        sans: [
-          'Inter',
-          'ui-sans-serif',
-          'system-ui',
-          '-apple-system',
-          'BlinkMacSystemFont',
-          'Segoe UI',
-          'Roboto',
-          'Helvetica Neue',
-          'Arial',
-          'sans-serif'
-        ]
+        serif: ['"Instrument Serif"', 'Georgia', 'serif'],
+        display: ['"Instrument Serif"', 'Georgia', 'serif'],
+        heading: ['"Instrument Serif"', 'Georgia', 'serif'],
+        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        body: ['Inter', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
       }
     }
   },

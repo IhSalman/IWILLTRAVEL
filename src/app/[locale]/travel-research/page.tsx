@@ -1,97 +1,78 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from '@/i18n/routing';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
 import {
-    Plane, Hotel, MapPin, Calendar as CalendarIcon, Search,
-    ArrowRight, Loader2, Star, Trophy, Activity, Scan, ShieldCheck, Crosshair,
-    Flame, Newspaper, Lightbulb, Compass, AlertTriangle, Sparkles, Navigation
+    Plane, Hotel, Calendar as CalendarIcon,
+    ArrowRight, Loader2, Trophy, Activity, Scan, ShieldCheck, Crosshair,
+    Flame, Newspaper, Lightbulb, Compass, AlertTriangle, Sparkles, Navigation, Lock
 } from 'lucide-react';
 
-// Radar Loading Animation (Preserved from original)
 const RadarLoading = () => (
-    <div className="relative w-72 h-72 mx-auto rounded-full border-2 border-[#00D4FF]/30 overflow-hidden shadow-[0_0_80px_rgba(0,212,255,0.2)] bg-[#03080F]/80 backdrop-blur-md">
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,212,255,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(0,212,255,0.2)_1px,transparent_1px)] bg-[size:30px_30px]" />
-        <div className="absolute inset-0 m-auto w-3/4 h-3/4 rounded-full border border-[#00D4FF]/20" />
-        <div className="absolute inset-0 m-auto w-1/2 h-1/2 rounded-full border border-[#00D4FF]/20" />
-        <div className="absolute inset-0 m-auto w-1/4 h-1/4 rounded-full border border-[#00D4FF]/20 text-center flex items-center justify-center">
-            <Scan className="w-6 h-6 text-[#00D4FF]/50" />
+    <div className="relative w-60 h-60 mx-auto rounded-full border border-white/[0.12] overflow-hidden shadow-2xl apple-liquid-glass">
+        <div className="absolute inset-0 m-auto w-3/4 h-3/4 rounded-full border border-white/[0.07]" />
+        <div className="absolute inset-0 m-auto w-1/2 h-1/2 rounded-full border border-white/[0.07]" />
+        <div className="absolute inset-0 m-auto w-1/4 h-1/4 rounded-full border border-white/[0.12] flex items-center justify-center">
+            <Scan className="w-5 h-5 text-sky-300" />
         </div>
-        <motion.div 
-            className="absolute top-1/2 left-1/2 w-1/2 h-1/2 origin-top-left bg-gradient-to-br from-[#00D4FF]/50 via-[#00D4FF]/10 to-transparent pointer-events-none"
+        <motion.div
+            className="absolute top-1/2 left-1/2 w-1/2 h-1/2 origin-top-left bg-gradient-to-br from-sky-400/[0.16] to-transparent pointer-events-none"
             style={{ borderRadius: '100% 0 0 0' }}
             animate={{ rotate: 360 }}
-            transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+            transition={{ duration: 3.2, repeat: Infinity, ease: 'linear' }}
         />
-        {[...Array(3)].map((_, i) => (
-            <motion.div
-                key={i}
-                className="absolute w-2 h-2 rounded-full bg-[#00FFB3] shadow-[0_0_15px_#00FFB3]"
-                style={{
-                    top: `${20 + Math.random() * 60}%`,
-                    left: `${20 + Math.random() * 60}%`,
-                }}
-                animate={{ opacity: [0, 1, 0], scale: [0.5, 1.5, 0.5] }}
-                transition={{ duration: 2, repeat: Infinity, delay: Math.random() * 2 }}
-            />
-        ))}
         <div className="absolute bottom-6 w-full text-center">
-            <span className="font-mono text-[#00D4FF] text-xs font-bold tracking-[0.3em] uppercase animate-pulse">Scanning Grid</span>
+            <span className="font-mono text-slate-300 text-[11px] font-medium tracking-wider uppercase">Scanning Global Telemetry</span>
         </div>
     </div>
 );
 
-// 3D Flip Card Component (Preserved from original)
-const FlipCard = ({ frontNode, backNode, className = '' }: { frontNode: React.ReactNode, backNode: React.ReactNode, className?: string }) => {
-    const [isFlipped, setIsFlipped] = useState(false);
+const BUDGET_PRESETS = ['$1,200 Budget', '$2,500 Comfort', '$5,000+ Luxury'];
+const MONTH_PRESETS = ['May', 'July', 'October', 'December'];
+const VIBE_PRESETS = ['Food & Culture', 'Beaches & Nature', 'Architecture & Art', 'Mountain Adventure'];
 
-    return (
-        <div 
-            className={cn("perspective-[2000px] cursor-pointer group h-full", className)}
-            onClick={() => setIsFlipped(!isFlipped)}
-        >
-            <motion.div
-                className="w-full h-full relative transform-style-3d transition-transform duration-700 ease-in-out"
-                animate={{ rotateY: isFlipped ? 180 : 0 }}
-            >
-                <div className="absolute inset-0 backface-hidden h-full">
-                    {frontNode}
-                </div>
-                <div className="absolute inset-0 backface-hidden rotate-y-180 h-full">
-                    {backNode}
-                </div>
-            </motion.div>
-        </div>
-    );
-};
+function TravelIntelligenceContent() {
+    const searchParams = useSearchParams();
+    const radarSectionRef = useRef<HTMLDivElement>(null);
 
-export default function TravelIntelligencePage() {
     // Recommendation Hero State
     const [budget, setBudget] = useState('');
     const [month, setMonth] = useState('');
     const [interests, setInterests] = useState('');
     const [recsLoading, setRecsLoading] = useState(false);
     const [recommendations, setRecommendations] = useState<any[] | null>(null);
+    const [recsError, setRecsError] = useState<string | null>(null);
+    const [recsRequiresAuth, setRecsRequiresAuth] = useState(false);
 
     // Intelligence Dashboard State
     const [intel, setIntel] = useState<any | null>(null);
     const [intelLoading, setIntelLoading] = useState(true);
 
-    // Old Radar Scan State (for integrating radar search)
+    // Radar Scan State (Always accessible so travelers can research flights/stays directly)
     const [radarTarget, setRadarTarget] = useState('');
     const [originCity, setOriginCity] = useState('');
     const [radarDate, setRadarDate] = useState<Date | undefined>(undefined);
     const [radarLoading, setRadarLoading] = useState(false);
-    const [radarResults, setRadarResults] = useState<{ flights?: any[], hotels?: any[], meta?: any } | null>(null);
+    const [radarResults, setRadarResults] = useState<{ flights?: any[]; hotels?: any[]; meta?: any } | null>(null);
     const [radarError, setRadarError] = useState('');
-    const [showRadar, setShowRadar] = useState(false);
+
+    useEffect(() => {
+        const destParam = searchParams.get('destination');
+        if (destParam) {
+            setRadarTarget(destParam);
+            setTimeout(() => {
+                radarSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 250);
+        }
+    }, [searchParams]);
 
     useEffect(() => {
         const fetchIntelligence = async () => {
@@ -100,16 +81,13 @@ export default function TravelIntelligencePage() {
                 const data = await res.json();
                 setIntel(data);
             } catch (err) {
-                console.error("Failed to load intelligence dashboard", err);
+                console.error('Failed to load intelligence dashboard', err);
             } finally {
                 setIntelLoading(false);
             }
         };
         fetchIntelligence();
     }, []);
-
-    const [recsError, setRecsError] = useState<string | null>(null);
-    const [recsRequiresAuth, setRecsRequiresAuth] = useState(false);
 
     const handleGetRecommendations = async () => {
         if (!budget || !month || !interests) return;
@@ -120,9 +98,9 @@ export default function TravelIntelligencePage() {
             const res = await fetch('/api/travel-recommendation', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ budget, month, interests })
+                body: JSON.stringify({ budget, month, interests }),
             });
-            const data = await res.json();
+            const data = await res.json().catch(() => ({}));
             if (!res.ok) {
                 if (res.status === 401 || data.requiresAuth) {
                     setRecsRequiresAuth(true);
@@ -140,12 +118,16 @@ export default function TravelIntelligencePage() {
         }
     };
 
+    const focusRadarOn = (city: string) => {
+        setRadarTarget(city);
+        radarSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
 
     const handleRadarScan = async (targetCity: string) => {
-        setRadarTarget(targetCity);
-        setShowRadar(true);
-        if (!targetCity || !originCity || !radarDate) return;
-        
+        const cleanTarget = targetCity.trim();
+        setRadarTarget(cleanTarget);
+        if (!cleanTarget || !originCity.trim() || !radarDate) return;
+
         setRadarLoading(true);
         setRadarError('');
         try {
@@ -153,148 +135,214 @@ export default function TravelIntelligencePage() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    destination: targetCity,
-                    originCity: originCity,
+                    destination: cleanTarget,
+                    originCity: originCity.trim(),
                     startDate: format(radarDate, 'yyyy-MM-dd'),
                     includeFlights: true,
                     includeHotels: true,
-                    adults: 1
-                })
+                    adults: 1,
+                }),
             });
-            if (!res.ok) throw new Error('Radar Uplink Failed');
-            const data = await res.json();
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(data.error || 'Unable to fetch live flight & hotel fares right now.');
             setRadarResults(data);
         } catch (err: any) {
-            setRadarError(err.message);
+            setRadarError(err.message || 'Flight & Stay scan encountered an error.');
         } finally {
             setRadarLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen bg-[#03080F] text-white py-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden font-sans">
-            {/* Cyber Background */}
-            <div className="fixed inset-0 z-0 pointer-events-none opacity-20">
-                <div className="absolute inset-0 bg-[linear-gradient(rgba(139,92,246,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(139,92,246,0.1)_1px,transparent_1px)] bg-[size:40px_40px]" />
-                <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-[#8B5CF6]/10 to-transparent filter blur-[100px]" />
-                <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-gradient-to-t from-[#00D4FF]/10 to-transparent filter blur-[100px]" />
+        <div className="min-h-screen bg-[#0b0c0f] text-slate-200 py-28 px-4 sm:px-6 lg:px-8 relative overflow-x-clip font-body selection:bg-white/10">
+            {/* Background Ambient Glow */}
+            <div className="fixed inset-0 z-0 pointer-events-none">
+                <div className="absolute top-0 right-1/4 w-[620px] h-[620px] bg-sky-500/[0.04] rounded-full blur-[150px]" />
+                <div className="absolute bottom-10 left-1/4 w-[520px] h-[520px] bg-indigo-500/[0.04] rounded-full blur-[150px]" />
             </div>
 
             <div className="max-w-6xl mx-auto space-y-16 relative z-10 w-full">
-                
-                {/* HERO SECTION - RECOMENDATIONS */}
+                {/* HERO SECTION - RECOMMENDATIONS */}
                 <div className="space-y-8">
-                    <div className="text-center space-y-4">
-                        <motion.div 
-                            initial={{ scale: 0.8, opacity: 0 }} 
-                            animate={{ scale: 1, opacity: 1 }}
-                            className="mx-auto w-20 h-20 bg-[#1A103C] border border-[#8B5CF6]/40 rounded-2xl flex items-center justify-center mb-6 shadow-[#8B5CF6]/20 shadow-[0_0_40px]"
+                    <div className="text-center space-y-3">
+                        <motion.div
+                            initial={{ opacity: 0, y: -8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full apple-glass-pill mb-2"
                         >
-                            <Sparkles className="w-10 h-10 text-[#00FFB3]" />
+                            <Sparkles className="w-3.5 h-3.5 text-sky-300" />
+                            <span className="text-[11px] font-mono uppercase tracking-wider text-slate-300">Destination Matchmaker &amp; Fare Radar</span>
                         </motion.div>
-                        <h1 className="text-5xl sm:text-6xl font-black tracking-tight uppercase text-transparent bg-clip-text bg-gradient-to-r from-white via-[#E2E8F0] to-[#00FFB3]">
-                            Travel Intelligence
+                        <h1 className="text-4xl sm:text-6xl font-serif font-bold tracking-tight text-white">
+                            Travel Research &amp; Radar
                         </h1>
-                        <p className="text-lg text-white/50 max-w-2xl mx-auto font-light tracking-widest uppercase text-sm">
-                            Where should you travel next? Let our AI Agents guide you.
+                        <p className="text-slate-300/80 max-w-2xl mx-auto text-base">
+                            Discover high-fit destinations matched to your budget, season, and travel style—then inspect live flight fares, hotel rates, and regional advisories.
                         </p>
                     </div>
 
-                    <motion.div 
+                    <motion.div
                         initial={{ y: 20, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
-                        className="bg-black/40 border border-[#8B5CF6]/20 rounded-3xl p-6 md:p-8 backdrop-blur-2xl shadow-2xl"
+                        className="apple-glass-card rounded-[32px] p-6 md:p-8"
                     >
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                             <div className="space-y-2">
-                                <label className="text-xs font-bold uppercase tracking-widest text-[#00FFB3]">Budget Target</label>
-                                <Input 
-                                    placeholder="e.g., €1000, Cheap, High-end" 
-                                    value={budget} onChange={e => setBudget(e.target.value)}
-                                    className="bg-black/50 border-[#00FFB3]/30 h-14 rounded-xl text-lg font-mono focus-visible:ring-[#00FFB3]"
+                                <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider font-mono">Budget Target</label>
+                                <Input
+                                    placeholder="e.g. $1,500 or Luxury"
+                                    value={budget}
+                                    onChange={(e) => setBudget(e.target.value)}
+                                    className="bg-slate-950/65 border-white/[0.1] h-13 rounded-2xl text-base text-white placeholder:text-slate-500 focus-visible:ring-1 focus-visible:ring-white/[0.25]"
                                 />
+                                <div className="flex flex-wrap gap-1.5 pt-1">
+                                    {BUDGET_PRESETS.map((p) => (
+                                        <button
+                                            key={p}
+                                            type="button"
+                                            onClick={() => setBudget(p)}
+                                            className={`px-2.5 py-1 rounded-full text-[11px] transition-all ${
+                                                budget === p ? 'bg-white text-slate-950 font-semibold' : 'apple-glass-pill text-slate-300 hover:text-white'
+                                            }`}
+                                        >
+                                            {p}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
+
                             <div className="space-y-2">
-                                <label className="text-xs font-bold uppercase tracking-widest text-[#00D4FF]">Drop Month</label>
-                                <Input 
-                                    placeholder="e.g., October" 
-                                    value={month} onChange={e => setMonth(e.target.value)}
-                                    className="bg-black/50 border-[#00D4FF]/30 h-14 rounded-xl text-lg font-mono focus-visible:ring-[#00D4FF]"
+                                <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider font-mono">Target Month</label>
+                                <Input
+                                    placeholder="e.g. October"
+                                    value={month}
+                                    onChange={(e) => setMonth(e.target.value)}
+                                    className="bg-slate-950/65 border-white/[0.1] h-13 rounded-2xl text-base text-white placeholder:text-slate-500 focus-visible:ring-1 focus-visible:ring-white/[0.25]"
                                 />
+                                <div className="flex flex-wrap gap-1.5 pt-1">
+                                    {MONTH_PRESETS.map((m) => (
+                                        <button
+                                            key={m}
+                                            type="button"
+                                            onClick={() => setMonth(m)}
+                                            className={`px-2.5 py-1 rounded-full text-[11px] transition-all ${
+                                                month === m ? 'bg-white text-slate-950 font-semibold' : 'apple-glass-pill text-slate-300 hover:text-white'
+                                            }`}
+                                        >
+                                            {m}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
+
                             <div className="space-y-2">
-                                <label className="text-xs font-bold uppercase tracking-widest text-[#8B5CF6]">Mission Interests</label>
-                                <Input 
-                                    placeholder="e.g., Nature, Cyberpunk city, Beach" 
-                                    value={interests} onChange={e => setInterests(e.target.value)}
-                                    className="bg-black/50 border-[#8B5CF6]/30 h-14 rounded-xl text-lg font-mono focus-visible:ring-[#8B5CF6]"
+                                <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider font-mono">Trip Vibe &amp; Interests</label>
+                                <Input
+                                    placeholder="e.g. Gastronomy, Architecture, Nature"
+                                    value={interests}
+                                    onChange={(e) => setInterests(e.target.value)}
+                                    className="bg-slate-950/65 border-white/[0.1] h-13 rounded-2xl text-base text-white placeholder:text-slate-500 focus-visible:ring-1 focus-visible:ring-white/[0.25]"
                                 />
+                                <div className="flex flex-wrap gap-1.5 pt-1">
+                                    {VIBE_PRESETS.map((v) => (
+                                        <button
+                                            key={v}
+                                            type="button"
+                                            onClick={() => setInterests(v)}
+                                            className={`px-2.5 py-1 rounded-full text-[11px] transition-all ${
+                                                interests === v ? 'bg-white text-slate-950 font-semibold' : 'apple-glass-pill text-slate-300 hover:text-white'
+                                            }`}
+                                        >
+                                            {v}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         </div>
-                        <Button 
-                            className="w-full h-16 mt-6 bg-gradient-to-r from-[#8B5CF6] to-[#00D4FF] hover:from-[#7C3AED] hover:to-[#00B4D8] text-white font-black text-lg tracking-widest uppercase rounded-xl transition-all shadow-[0_0_30px_rgba(139,92,246,0.3)] hover:shadow-[0_0_50px_rgba(0,212,255,0.5)]"
+
+                        <button
+                            className="w-full h-14 mt-6 btn-apple-primary font-semibold text-base rounded-2xl flex items-center justify-center gap-2 disabled:opacity-45 disabled:pointer-events-none"
                             onClick={handleGetRecommendations}
                             disabled={recsLoading || !budget || !month || !interests}
                         >
-                            {recsLoading ? <Loader2 className="w-6 h-6 animate-spin mr-3" /> : <Navigation className="w-6 h-6 mr-3" />}
-                            {recsLoading ? 'Consulting Agents...' : 'Get AI Recommendations'}
-                        </Button>
+                            {recsLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Navigation className="w-5 h-5" />}
+                            <span>{recsLoading ? 'Consulting Discovery Agents…' : 'Synthesize Destination Matches →'}</span>
+                        </button>
 
                         {/* Auth prompt */}
                         {recsRequiresAuth && (
                             <motion.div
-                                initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                                className="mt-4 p-4 rounded-xl bg-[#8B5CF6]/10 border border-[#8B5CF6]/40 flex items-center justify-between gap-4"
+                                initial={{ opacity: 0, y: 8 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="mt-5 p-5 rounded-2xl apple-liquid-glass border border-sky-400/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                             >
-                                <div>
-                                    <p className="text-sm font-bold text-[#8B5CF6]">Sign in to unlock AI recommendations</p>
-                                    <p className="text-xs text-white/50 mt-0.5">Create a free account to get personalised travel intelligence from our AI agents.</p>
+                                <div className="flex items-start gap-3">
+                                    <div className="w-9 h-9 rounded-xl bg-sky-500/10 border border-sky-400/20 flex items-center justify-center shrink-0">
+                                        <Lock className="w-4 h-4 text-sky-300" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-semibold text-white">Sign in to unlock tailored AI destination matching</p>
+                                        <p className="text-xs text-slate-300/80 mt-0.5">
+                                            Create a free account to receive personalized season, weather, and budget matches—or scroll down to use the Flight &amp; Stay Radar right away.
+                                        </p>
+                                    </div>
                                 </div>
-                                <a href="/en/login" className="flex-shrink-0 px-4 py-2 bg-[#8B5CF6] text-white text-xs font-bold rounded-lg hover:bg-[#7C3AED] transition-colors">
+                                <Link href="/login" className="btn-apple-primary px-5 py-2.5 text-xs font-semibold rounded-full shrink-0 text-center">
                                     Sign In →
-                                </a>
+                                </Link>
                             </motion.div>
                         )}
 
-                        {/* Generic error */}
+                        {/* Error */}
                         {recsError && (
                             <motion.div
-                                initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                                className="mt-4 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm font-mono"
+                                initial={{ opacity: 0, y: 8 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="mt-4 p-4 rounded-2xl bg-rose-950/35 border border-rose-500/25 text-rose-200 text-xs flex items-center gap-2.5"
                             >
-                                ⚠️ {recsError}
+                                <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+                                <span>{recsError}</span>
                             </motion.div>
                         )}
-
                     </motion.div>
 
                     {/* RECOMMENDATION RESULTS */}
                     <AnimatePresence>
                         {recommendations && (
-                            <motion.div 
-                                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                                className="grid md:grid-cols-3 gap-6 pt-8"
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="grid md:grid-cols-3 gap-6 pt-2"
                             >
                                 {recommendations.map((rec, i) => (
-                                    <div key={i} className="bg-[#1A103C]/80 border border-[#8B5CF6]/40 rounded-3xl p-6 relative flex flex-col items-start hover:border-[#00FFB3]/50 transition-colors group shadow-lg">
-                                        <div className="absolute -top-4 -right-4 w-12 h-12 bg-[#00FFB3] rounded-full flex items-center justify-center font-black text-black text-lg border-4 border-[#03080F] shadow-[0_0_20px_#00FFB3]">
-                                            {rec.matchScore}
+                                    <div
+                                        key={i}
+                                        className="apple-glass-card rounded-3xl p-6 relative flex flex-col items-start hover:border-white/20 transition-all"
+                                    >
+                                        <div className="absolute top-5 right-5 px-3 py-1 apple-glass-pill rounded-full text-xs font-mono font-semibold text-emerald-300">
+                                            {rec.matchScore}% Match
                                         </div>
-                                        <h3 className="text-2xl font-black uppercase text-white mb-1 leading-tight w-10/12">{rec.destination}</h3>
-                                        <p className="text-sm font-mono text-[#00D4FF] mb-4">Cost: {rec.estimatedCost} | {rec.weather}</p>
-                                        <p className="text-white/70 text-sm leading-relaxed mb-6 flex-grow">{rec.reason}</p>
-                                        
-                                        <Button 
-                                            variant="outline" 
-                                            onClick={() => {
-                                                setRadarTarget(rec.destination);
-                                                setShowRadar(true);
-                                                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-                                            }}
-                                            className="w-full border-[#00FFB3]/30 text-[#00FFB3] hover:bg-[#00FFB3]/10"
-                                        >
-                                            <Scan className="w-4 h-4 mr-2" /> Global Radar Scan
-                                        </Button>
+                                        <h3 className="text-2xl font-serif font-bold text-white mb-1 leading-snug w-8/12">{rec.destination}</h3>
+                                        <p className="text-xs font-mono text-slate-400 mb-4">
+                                            Est. {rec.estimatedCost} • {rec.weather}
+                                        </p>
+                                        <p className="text-slate-300/85 text-sm leading-relaxed mb-6 flex-grow">{rec.reason}</p>
+
+                                        <div className="w-full grid grid-cols-2 gap-2.5">
+                                            <button
+                                                type="button"
+                                                onClick={() => focusRadarOn(rec.destination)}
+                                                className="btn-apple-glass py-2.5 px-3 rounded-xl text-xs font-medium inline-flex items-center justify-center gap-1.5"
+                                            >
+                                                <Scan className="w-3.5 h-3.5" /> Flights &amp; Stays
+                                            </button>
+                                            <Link
+                                                href={`/plan-trip?destination=${encodeURIComponent(rec.destination)}`}
+                                                className="btn-apple-primary py-2.5 px-3 rounded-xl text-xs font-semibold inline-flex items-center justify-center gap-1"
+                                            >
+                                                Plan Trip →
+                                            </Link>
+                                        </div>
                                     </div>
                                 ))}
                             </motion.div>
@@ -302,37 +350,235 @@ export default function TravelIntelligencePage() {
                     </AnimatePresence>
                 </div>
 
+                {/* FLIGHT & STAY RADAR (Always Accessible + Deep-Linkable via ?destination=) */}
+                <div ref={radarSectionRef} className="pt-8 border-t border-white/[0.07] scroll-mt-28">
+                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+                        <div className="space-y-1.5">
+                            <div className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-sky-300">
+                                <Crosshair className="w-4 h-4" /> Live Fare &amp; Accommodation Scanner
+                            </div>
+                            <h2 className="text-3xl font-serif font-bold text-white">Flight &amp; Stay Radar</h2>
+                            <p className="text-slate-400 text-sm">
+                                Compare live airfare corridors and top-value hotel options for any destination before generating your day-by-day itinerary.
+                            </p>
+                        </div>
+                        {radarTarget && (
+                            <Link
+                                href={`/plan-trip?destination=${encodeURIComponent(radarTarget)}`}
+                                className="btn-apple-primary px-5 py-2.5 rounded-full text-xs font-semibold shrink-0 inline-flex items-center gap-1.5 self-start md:self-auto"
+                            >
+                                Build {radarTarget} Itinerary <ArrowRight className="w-3.5 h-3.5" />
+                            </Link>
+                        )}
+                    </div>
+
+                    <div className="apple-glass-card p-6 md:p-8 rounded-[32px] mb-10">
+                        <div className="grid sm:grid-cols-3 gap-4">
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-mono uppercase text-slate-300 pl-1">Departure City</label>
+                                <Input
+                                    placeholder="e.g. New York, London, Dubai"
+                                    value={originCity}
+                                    onChange={(e) => setOriginCity(e.target.value)}
+                                    className="bg-slate-950/65 border-white/[0.1] h-12 rounded-2xl text-sm font-medium focus-visible:ring-1 focus-visible:ring-white/[0.25] text-white placeholder:text-slate-500"
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-mono uppercase text-slate-300 pl-1">Destination City</label>
+                                <Input
+                                    placeholder="e.g. Kyoto, Tokyo, Lisbon"
+                                    value={radarTarget}
+                                    onChange={(e) => setRadarTarget(e.target.value)}
+                                    className="bg-slate-950/65 border-white/[0.1] h-12 rounded-2xl text-sm font-medium focus-visible:ring-1 focus-visible:ring-white/[0.25] text-white placeholder:text-slate-500"
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-mono uppercase text-slate-300 pl-1">Departure Date</label>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            className="w-full h-12 justify-start bg-slate-950/65 border-white/[0.1] hover:bg-slate-900 text-white rounded-2xl text-sm font-medium"
+                                        >
+                                            <CalendarIcon className="w-4 h-4 mr-2 text-slate-400" />
+                                            {radarDate ? format(radarDate, 'PPP') : <span className="text-slate-500">Select Date</span>}
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0 border-white/[0.14] bg-slate-950 text-white rounded-2xl shadow-2xl">
+                                        <Calendar
+                                            mode="single"
+                                            selected={radarDate}
+                                            onSelect={setRadarDate}
+                                            disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                                        />
+                                    </PopoverContent>
+                                </Popover>
+                            </div>
+                        </div>
+
+                        <button
+                            className="w-full mt-5 h-13 btn-apple-primary font-semibold text-sm rounded-2xl flex items-center justify-center gap-2 disabled:opacity-45 disabled:pointer-events-none"
+                            onClick={() => handleRadarScan(radarTarget)}
+                            disabled={radarLoading || !originCity.trim() || !radarTarget.trim() || !radarDate}
+                        >
+                            {radarLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Scan className="w-4 h-4" />}
+                            <span>{radarLoading ? 'Scanning Global Airlines & Stays…' : 'Scan Live Flights & Stays →'}</span>
+                        </button>
+
+                        {radarError && (
+                            <div className="mt-4 p-3.5 rounded-2xl bg-rose-950/35 border border-rose-500/25 text-rose-200 text-xs flex items-center gap-2.5">
+                                <ShieldCheck className="w-4 h-4 text-rose-400 shrink-0" />
+                                <span>{radarError}</span>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* RADAR RESULTS */}
+                    {radarLoading ? (
+                        <div className="py-10">
+                            <RadarLoading />
+                        </div>
+                    ) : (
+                        radarResults && (
+                            <div className="space-y-10">
+                                {radarResults.flights && radarResults.flights.length > 0 && (
+                                    <div>
+                                        <h3 className="text-xl font-serif font-bold text-white mb-4 border-b border-white/[0.07] pb-3">
+                                            Identified Flight Corridors
+                                        </h3>
+                                        <div className="grid gap-3">
+                                            {radarResults.flights.map((f: any, i: number) => (
+                                                <div
+                                                    key={i}
+                                                    className="apple-glass-card p-5 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                                                >
+                                                    <div className="flex items-center gap-3.5">
+                                                        <div className="w-11 h-11 rounded-2xl bg-white/[0.06] border border-white/[0.12] flex items-center justify-center font-semibold text-white text-sm">
+                                                            {f.airline?.charAt(0) || '✈'}
+                                                        </div>
+                                                        <div>
+                                                            <h4 className="font-semibold text-base text-white">{f.airline || 'Carrier'}</h4>
+                                                            <div className="text-xs text-slate-300 font-mono mt-0.5 flex items-center gap-2">
+                                                                <span>{f.from}</span> <ArrowRight className="w-3 h-3 text-slate-400" /> <span>{f.to}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex gap-6 text-center sm:text-right items-center">
+                                                        <div>
+                                                            <p className="text-[10px] uppercase text-slate-400 font-mono mb-0.5">Duration</p>
+                                                            <p className="text-xs font-mono text-slate-200">{f.duration || 'N/A'}</p>
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-[10px] uppercase text-slate-400 font-mono mb-0.5">Stops</p>
+                                                            <p className="text-xs font-mono text-slate-200">{f.stops === 0 ? 'Non-stop' : `${f.stops} stop`}</p>
+                                                        </div>
+                                                        <div className="border-l border-white/[0.1] pl-6">
+                                                            <p className="font-serif font-bold text-2xl text-white">
+                                                                ${typeof f.price === 'number' ? f.price.toFixed(0) : f.price}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {radarResults.hotels && radarResults.hotels.length > 0 && (
+                                    <div>
+                                        <h3 className="text-xl font-serif font-bold text-white mb-4 border-b border-white/[0.07] pb-3">
+                                            Curated Accommodations
+                                        </h3>
+                                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                                            {[...radarResults.hotels]
+                                                .sort((a, b) => (a.price || 9999) - (b.price || 9999))
+                                                .map((h: any, i: number) => (
+                                                    <div key={i} className="apple-glass-card p-5 rounded-2xl flex flex-col justify-between">
+                                                        <div>
+                                                            <div className="flex justify-between items-start mb-3">
+                                                                <div className="w-9 h-9 rounded-xl bg-white/[0.06] border border-white/[0.12] flex items-center justify-center text-sky-300">
+                                                                    <Hotel className="w-4 h-4" />
+                                                                </div>
+                                                                {i === 0 && (
+                                                                    <Badge className="bg-emerald-950/50 text-emerald-200 border border-emerald-400/25 font-mono text-[10px]">
+                                                                        <Trophy className="w-3 h-3 mr-1 inline" /> Top Value
+                                                                    </Badge>
+                                                                )}
+                                                            </div>
+                                                            <h4 className="font-serif font-bold text-base text-white mb-1 truncate">{h.name}</h4>
+                                                            <p className="font-mono text-xs text-slate-400 truncate">{h.city}</p>
+                                                        </div>
+                                                        <div className="mt-6 pt-3 border-t border-white/[0.08] flex justify-between items-end">
+                                                            <span className="text-[10px] uppercase font-mono text-slate-400">Est. Nightly</span>
+                                                            <span className="font-serif font-bold text-xl text-white">
+                                                                ${h.price > 0 ? h.price.toFixed(0) : 'N/A'}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )
+                    )}
+                </div>
+
                 {/* DASHBOARD GRID */}
-                <div className="space-y-12">
-                    <h2 className="text-2xl font-black uppercase tracking-widest text-[#8B5CF6] border-b border-white/10 pb-4 flex items-center gap-3 mt-16">
-                        <Activity className="w-6 h-6" /> Live Subsystems
-                    </h2>
-                    
+                <div className="space-y-10 pt-6 border-t border-white/[0.07]">
+                    <div className="border-b border-white/[0.07] pb-4 flex items-center justify-between">
+                        <h2 className="text-xl font-serif font-bold text-white flex items-center gap-2.5">
+                            <Activity className="w-5 h-5 text-sky-300" /> Global Travel Pulse
+                        </h2>
+                        <span className="text-xs font-mono text-slate-400 uppercase tracking-wider">Live Agent Telemetry</span>
+                    </div>
+
                     {intelLoading ? (
                         <RadarLoading />
                     ) : intel ? (
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                            
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                             {/* COL 1: Trending & Gems */}
                             <div className="lg:col-span-2 space-y-8">
                                 {/* Trending Now */}
                                 <div>
-                                    <h3 className="text-xl font-bold uppercase tracking-wider text-white flex items-center gap-2 mb-6">
-                                        <Flame className="w-5 h-5 text-[#FF5F00]" /> Trending Targets
+                                    <h3 className="text-base font-serif font-bold text-white flex items-center gap-2 mb-4">
+                                        <Flame className="w-4 h-4 text-amber-300" /> Trending Destinations
                                     </h3>
                                     <div className="grid sm:grid-cols-2 gap-4">
                                         {intel.trending?.map((item: any, i: number) => (
-                                            <div key={i} className="bg-black/30 border border-[#FF5F00]/30 rounded-2xl p-5 hover:bg-[#FF5F00]/5 transition-colors">
-                                                <div className="flex justify-between items-start mb-2">
-                                                    <h4 className="font-bold text-lg text-white">{item.destination}</h4>
-                                                    <Badge className="bg-[#FF5F00]/20 text-[#FF5F00] hover:bg-[#FF5F00]/30 font-mono">
-                                                        🔥 {item.score}
-                                                    </Badge>
+                                            <div
+                                                key={i}
+                                                className="apple-glass-card rounded-2xl p-5 hover:border-white/[0.2] transition-all flex flex-col justify-between"
+                                            >
+                                                <div>
+                                                    <div className="flex justify-between items-start mb-2">
+                                                        <h4 className="font-serif font-bold text-lg text-white">{item.destination}</h4>
+                                                        <Badge className="bg-white/[0.06] text-slate-200 border border-white/[0.1] font-mono text-[11px]">
+                                                            Score: {item.score}
+                                                        </Badge>
+                                                    </div>
+                                                    <p className="text-xs text-slate-300/80 mb-3 line-clamp-2 leading-relaxed">{item.why}</p>
                                                 </div>
-                                                <p className="text-sm text-white/50 mb-3 line-clamp-2">{item.why}</p>
-                                                <div className="flex justify-between items-center text-xs font-mono text-[#00D4FF]">
-                                                    <span>{item.bestTime}</span>
-                                                    <span>{item.budget} Budget</span>
+                                                <div className="space-y-3">
+                                                    <div className="flex justify-between items-center text-xs font-mono text-slate-400 pt-2 border-t border-white/[0.06]">
+                                                        <span>{item.bestTime}</span>
+                                                        <span>{item.budget}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => focusRadarOn(item.destination)}
+                                                            className="btn-apple-glass flex-1 py-1.5 rounded-xl text-[11px] font-medium"
+                                                        >
+                                                            Check Fares
+                                                        </button>
+                                                        <Link
+                                                            href={`/plan-trip?destination=${encodeURIComponent(item.destination)}`}
+                                                            className="btn-apple-primary flex-1 py-1.5 rounded-xl text-[11px] font-semibold text-center"
+                                                        >
+                                                            Plan Trip →
+                                                        </Link>
+                                                    </div>
                                                 </div>
                                             </div>
                                         ))}
@@ -341,14 +587,22 @@ export default function TravelIntelligencePage() {
 
                                 {/* Hidden Gems */}
                                 <div>
-                                    <h3 className="text-xl font-bold uppercase tracking-wider text-white flex items-center gap-2 mb-6">
-                                        <Compass className="w-5 h-5 text-[#8B5CF6]" /> Encrypted Sectors (Hidden Gems)
+                                    <h3 className="text-base font-serif font-bold text-white flex items-center gap-2 mb-4">
+                                        <Compass className="w-4 h-4 text-sky-300" /> Curated Hidden Gems
                                     </h3>
                                     <div className="grid sm:grid-cols-2 gap-4">
                                         {intel.hiddenGems?.map((item: any, i: number) => (
-                                            <div key={i} className="bg-black/30 border border-[#8B5CF6]/30 rounded-2xl p-5 hover:bg-[#8B5CF6]/5 transition-colors border-dashed">
-                                                <h4 className="font-bold text-lg text-[#8B5CF6] mb-2">{item.destination}</h4>
-                                                <p className="text-sm text-white/60 leading-relaxed">{item.description}</p>
+                                            <div key={i} className="apple-glass-card rounded-2xl p-5 flex flex-col justify-between gap-4">
+                                                <div>
+                                                    <h4 className="font-serif font-bold text-base text-white mb-1.5">{item.destination}</h4>
+                                                    <p className="text-xs text-slate-300/80 leading-relaxed">{item.description}</p>
+                                                </div>
+                                                <Link
+                                                    href={`/plan-trip?destination=${encodeURIComponent(item.destination)}`}
+                                                    className="text-xs font-medium text-sky-300 hover:text-white inline-flex items-center gap-1"
+                                                >
+                                                    Plan itinerary for {item.destination} <ArrowRight className="w-3 h-3" />
+                                                </Link>
                                             </div>
                                         ))}
                                     </div>
@@ -356,18 +610,20 @@ export default function TravelIntelligencePage() {
 
                                 {/* Flight Deals */}
                                 <div>
-                                    <h3 className="text-xl font-bold uppercase tracking-wider text-white flex items-center gap-2 mb-6">
-                                        <Plane className="w-5 h-5 text-[#00D4FF]" /> Vector Anomalies (Flight Deals)
+                                    <h3 className="text-base font-serif font-bold text-white flex items-center gap-2 mb-4">
+                                        <Plane className="w-4 h-4 text-emerald-300" /> Flight Market Opportunities
                                     </h3>
-                                    <div className="grid gap-3">
+                                    <div className="grid gap-2.5">
                                         {intel.flightDeals?.map((item: any, i: number) => (
-                                            <div key={i} className="flex items-center justify-between bg-black/40 border border-[#00D4FF]/20 rounded-xl p-4">
-                                                <div className="font-mono text-white/80">{item.route}</div>
-                                                <div className="flex items-center gap-6">
-                                                    <Badge className="bg-green-500/10 text-green-400 border-green-500/20">{item.trend}</Badge>
+                                            <div key={i} className="flex items-center justify-between apple-glass-card rounded-2xl p-4">
+                                                <div className="font-mono text-xs font-medium text-white">{item.route}</div>
+                                                <div className="flex items-center gap-4">
+                                                    <Badge className="bg-emerald-950/40 text-emerald-300 border border-emerald-400/20 text-[10px] font-mono">
+                                                        {item.trend}
+                                                    </Badge>
                                                     <div className="text-right">
-                                                        <div className="font-bold text-[#00D4FF] text-xl">{item.price}</div>
-                                                        <div className="text-[10px] text-white/40 uppercase tracking-widest">{item.bestDay}</div>
+                                                        <div className="font-semibold text-white text-base">{item.price}</div>
+                                                        <div className="text-[10px] text-slate-400 uppercase font-mono">{item.bestDay}</div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -377,37 +633,37 @@ export default function TravelIntelligencePage() {
                             </div>
 
                             {/* COL 2: News, Insights, Alerts */}
-                            <div className="space-y-8">
+                            <div className="space-y-6">
                                 {/* Insights */}
-                                <div className="bg-gradient-to-b from-[#8B5CF6]/10 to-transparent border border-[#8B5CF6]/20 rounded-3xl p-6">
-                                    <h3 className="text-xl font-bold uppercase tracking-wider text-white flex items-center gap-2 mb-6">
-                                        <Lightbulb className="w-5 h-5 text-[#00FFB3]" /> AI Insights
+                                <div className="apple-glass-card rounded-2xl p-5">
+                                    <h3 className="text-base font-serif font-bold text-white flex items-center gap-2 mb-4">
+                                        <Lightbulb className="w-4 h-4 text-amber-300" /> Strategic Travel Insights
                                     </h3>
-                                    <div className="space-y-4">
+                                    <div className="space-y-3.5">
                                         {intel.insights?.map((item: any, i: number) => (
-                                            <div key={i} className="border-l-2 border-[#00FFB3] pl-4">
-                                                <h4 className="font-bold text-sm text-white mb-1">{item.title}</h4>
-                                                <p className="text-xs text-white/60">{item.description}</p>
+                                            <div key={i} className="border-l-2 border-sky-400/40 pl-3">
+                                                <h4 className="font-medium text-xs text-white mb-1">{item.title}</h4>
+                                                <p className="text-xs text-slate-300/80 leading-relaxed">{item.description}</p>
                                             </div>
                                         ))}
                                     </div>
                                 </div>
 
                                 {/* Alerts */}
-                                <div className="bg-amber-500/5 border border-amber-500/20 rounded-3xl p-6">
-                                    <h3 className="text-xl font-bold uppercase tracking-wider text-white flex items-center gap-2 mb-6">
-                                        <AlertTriangle className="w-5 h-5 text-amber-500" /> Hazard Alerts
+                                <div className="apple-glass-card rounded-2xl p-5">
+                                    <h3 className="text-base font-serif font-bold text-white flex items-center gap-2 mb-4">
+                                        <AlertTriangle className="w-4 h-4 text-amber-400" /> Regional Advisories
                                     </h3>
-                                    <div className="space-y-4">
+                                    <div className="space-y-3">
                                         {intel.alerts?.map((item: any, i: number) => (
-                                            <div key={i} className="bg-amber-500/10 rounded-xl p-4 border border-amber-500/20">
-                                                <div className="flex items-center justify-between mb-2">
-                                                    <h4 className="font-bold text-xs text-amber-500 uppercase tracking-wider">{item.title}</h4>
-                                                    <Badge variant="outline" className="border-amber-500/40 text-amber-400 text-[10px]">
+                                            <div key={i} className="bg-amber-950/25 rounded-2xl p-3.5 border border-amber-500/25">
+                                                <div className="flex items-center justify-between mb-1">
+                                                    <h4 className="font-medium text-xs text-amber-200">{item.title}</h4>
+                                                    <Badge variant="outline" className="border-amber-500/30 text-amber-300 text-[10px] font-mono">
                                                         {item.severity}
                                                     </Badge>
                                                 </div>
-                                                <p className="text-xs text-amber-500/70">{item.description}</p>
+                                                <p className="text-xs text-slate-300/85 leading-relaxed">{item.description}</p>
                                             </div>
                                         ))}
                                     </div>
@@ -415,19 +671,17 @@ export default function TravelIntelligencePage() {
 
                                 {/* News */}
                                 <div>
-                                    <h3 className="text-xl font-bold uppercase tracking-wider text-white flex items-center gap-2 mb-4">
-                                        <Newspaper className="w-5 h-5 text-white/70" /> Comms Traffic (News)
+                                    <h3 className="text-base font-serif font-bold text-white flex items-center gap-2 mb-3">
+                                        <Newspaper className="w-4 h-4 text-slate-300" /> Global Travel News
                                     </h3>
-                                    <div className="space-y-3">
+                                    <div className="space-y-2.5">
                                         {intel.news?.map((item: any, i: number) => (
-                                            <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-4">
-                                                <h4 className="font-bold text-sm text-white mb-2 leading-tight">{item.title}</h4>
-                                                <p className="text-xs text-white/50 mb-3">{item.summary}</p>
-                                                {item.impact === 'Good' ? (
-                                                    <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">Positive Impact</Badge>
-                                                ) : (
-                                                    <Badge className="bg-red-500/20 text-red-400 border-red-500/30">Warning</Badge>
-                                                )}
+                                            <div key={i} className="apple-glass-card rounded-2xl p-4">
+                                                <h4 className="font-medium text-xs text-white mb-1 leading-snug">{item.title}</h4>
+                                                <p className="text-xs text-slate-300/80 mb-2">{item.summary}</p>
+                                                <Badge className="bg-white/[0.06] text-slate-200 border border-white/[0.1] text-[10px] font-mono">
+                                                    {item.impact === 'Good' ? 'Positive' : 'Advisory'}
+                                                </Badge>
                                             </div>
                                         ))}
                                     </div>
@@ -435,143 +689,24 @@ export default function TravelIntelligencePage() {
                             </div>
                         </div>
                     ) : (
-                        <p className="text-white/40 text-center py-20">Intelligence feed unavailable.</p>
+                        <p className="text-slate-400 text-center py-16 text-sm">Intelligence feed currently updating…</p>
                     )}
                 </div>
-
-                {/* THE RADAR (Appears when summoned from a recommendation) */}
-                <AnimatePresence>
-                    {showRadar && (
-                        <motion.div 
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            className="pt-16 border-t border-white/10"
-                        >
-                            <div className="text-center space-y-4 mb-8">
-                                <Crosshair className="w-12 h-12 text-[#00D4FF] mx-auto animate-spin-slow" />
-                                <h2 className="text-4xl font-black uppercase text-white">Global Radar Targeting</h2>
-                                <p className="text-[#00D4FF] font-mono tracking-widest">Locked on: {radarTarget}</p>
-                            </div>
-                            
-                            <div className="max-w-2xl mx-auto bg-black/40 border border-[#00D4FF]/30 p-6 rounded-3xl backdrop-blur-xl mb-12">
-                                <div className="grid sm:grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold uppercase text-[#00D4FF] tracking-widest pl-2">Launch Point</label>
-                                        <Input 
-                                            placeholder="Your origin city..." 
-                                            value={originCity} onChange={e => setOriginCity(e.target.value)}
-                                            className="bg-black/50 border-[#00D4FF]/30 h-14 rounded-xl text-lg font-mono focus-visible:ring-[#00D4FF]"
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold uppercase text-[#00FFB3] tracking-widest pl-2">Temporal Sync</label>
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button variant="outline" className="w-full h-14 justify-start bg-black/50 border-[#00FFB3]/30 hover:bg-black/70 hover:text-white rounded-xl font-mono text-lg text-white">
-                                                    {radarDate ? format(radarDate, "PPP") : <span>Select Date</span>}
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-auto p-0 border-[#00FFB3]/30 bg-[#03080F]/95 backdrop-blur-xl rounded-2xl text-white">
-                                                <Calendar mode="single" selected={radarDate} onSelect={setRadarDate} disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))} />
-                                            </PopoverContent>
-                                        </Popover>
-                                    </div>
-                                </div>
-                                <Button 
-                                    className="w-full mt-6 h-14 bg-[#00D4FF] hover:bg-[#00D4FF]/80 text-black font-black uppercase tracking-widest rounded-xl transition-all shadow-[0_0_20px_rgba(0,212,255,0.4)]"
-                                    onClick={() => handleRadarScan(radarTarget)}
-                                    disabled={radarLoading || !originCity || !radarDate}
-                                >
-                                    {radarLoading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Scan className="w-5 h-5 mr-2" />}
-                                    {radarLoading ? 'Scanning...' : 'Execute Full Deep Scan'}
-                                </Button>
-                                {radarError && (
-                                    <div className="mt-4 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm font-mono flex items-center gap-3">
-                                        <ShieldCheck className="w-5 h-5 text-red-500" /> {radarError}
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* RADAR RESULTS */}
-                            {radarLoading ? (
-                                <div className="py-12"><RadarLoading /></div>
-                            ) : radarResults && (
-                                <div className="space-y-12">
-                                    {radarResults.flights && radarResults.flights.length > 0 && (
-                                        <div>
-                                            <h3 className="text-2xl font-black uppercase tracking-widest text-white mb-6 border-b border-white/10 pb-4">
-                                                Flight Vectors
-                                            </h3>
-                                            <div className="grid gap-4">
-                                                {radarResults.flights.map((f: any, i: number) => (
-                                                    <div key={i} className="bg-black/40 border border-[#8B5CF6]/30 p-6 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 hover:bg-[#8B5CF6]/10 transition-colors">
-                                                        <div className="flex items-center gap-4">
-                                                            <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#8B5CF6] to-[#4C1D95] flex items-center justify-center font-bold text-white shadow-inner">
-                                                                {f.airline?.charAt(0) || '✈️'}
-                                                            </div>
-                                                            <div>
-                                                                <h4 className="font-bold text-lg text-white tracking-wider uppercase">{f.airline || 'Unknown'}</h4>
-                                                                <div className="text-xs text-[#00D4FF] font-mono mt-1 flex items-center gap-2">
-                                                                    <span>{f.from}</span> <ArrowRight className="w-3 h-3 text-white/30" /> <span>{f.to}</span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div className="flex gap-8 text-center sm:text-right">
-                                                            <div>
-                                                                <p className="text-[10px] uppercase text-[#8B5CF6] tracking-widest mb-1">Time</p>
-                                                                <p className="font-mono text-white/90">{f.duration || 'N/A'}</p>
-                                                            </div>
-                                                            <div>
-                                                                <p className="text-[10px] uppercase text-[#8B5CF6] tracking-widest mb-1">Hops</p>
-                                                                <p className="font-mono text-white/90">{f.stops === 0 ? 'Direct' : f.stops}</p>
-                                                            </div>
-                                                            <div className="border-l border-white/10 pl-8">
-                                                                <p className="font-black text-2xl text-[#00FFB3] shadow-[#00FFB3]/20 drop-shadow-md">${f.price.toFixed(0)}</p>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {radarResults.hotels && radarResults.hotels.length > 0 && (
-                                        <div>
-                                            <h3 className="text-2xl font-black uppercase tracking-widest text-[#00D4FF] mb-6 border-b border-white/10 pb-4">
-                                                Base Camps
-                                            </h3>
-                                            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                                                {[...radarResults.hotels].sort((a,b) => (a.price || 9999) - (b.price || 9999)).map((h: any, i: number) => (
-                                                    <div key={i} className="bg-black/40 border border-[#00D4FF]/30 p-6 rounded-2xl flex flex-col hover:bg-[#00D4FF]/10 transition-colors">
-                                                        <div className="flex justify-between items-start mb-4">
-                                                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#00D4FF] to-[#0055FF] flex items-center justify-center p-2 text-white">
-                                                                <Hotel className="w-5 h-5" />
-                                                            </div>
-                                                            {i === 0 && (
-                                                                <Badge className="bg-[#FFD700]/10 text-[#FFD700] border-[#FFD700]/30 font-mono text-[10px] uppercase tracking-widest">
-                                                                    <Trophy className="w-3 h-3 mr-1 inline" /> Optimal
-                                                                </Badge>
-                                                            )}
-                                                        </div>
-                                                        <h4 className="font-bold text-lg text-white leading-tight mb-2 truncate">{h.name}</h4>
-                                                        <p className="font-mono text-xs text-[#00D4FF]/70 truncate">{h.city}</p>
-                                                        <div className="mt-8 pt-4 border-t border-white/10 flex justify-between items-end">
-                                                            <span className="text-[10px] uppercase tracking-widest text-white/40">Rate</span>
-                                                            <span className="font-black text-2xl text-white drop-shadow-md">
-                                                                ${h.price > 0 ? h.price.toFixed(0) : 'N/A'}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </motion.div>
-                    )}
-                </AnimatePresence>
             </div>
         </div>
+    );
+}
+
+export default function TravelIntelligencePage() {
+    return (
+        <Suspense
+            fallback={
+                <div className="min-h-screen bg-[#0b0c0f] flex items-center justify-center">
+                    <Loader2 className="w-7 h-7 text-slate-400 animate-spin" />
+                </div>
+            }
+        >
+            <TravelIntelligenceContent />
+        </Suspense>
     );
 }

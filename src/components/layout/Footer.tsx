@@ -1,75 +1,80 @@
-import Link from 'next/link';
-import { Plane, Facebook, Twitter, Instagram, Linkedin, Youtube } from 'lucide-react';
+import { Link } from '@/i18n/routing';
+import { Wordmark } from './Navbar';
+
+const COLUMNS = [
+    {
+        title: 'Plan',
+        links: [
+            { href: '/plan-trip', label: 'Trip planner' },
+            { href: '/discover', label: 'Destinations' },
+            { href: '/blogs', label: 'Travel guides' },
+            { href: '/pricing', label: 'Pricing' },
+        ],
+    },
+    {
+        title: 'Tools',
+        links: [
+            { href: '/visa-hub', label: 'Visa hub' },
+            { href: '/translate', label: 'Translate' },
+            { href: '/travel-research', label: 'Place research' },
+            { href: '/community', label: 'Community' },
+        ],
+    },
+    {
+        title: 'Company',
+        links: [
+            { href: '/privacy', label: 'Privacy' },
+            { href: '/terms', label: 'Terms' },
+        ],
+    },
+];
 
 export function Footer() {
     return (
-        <footer className="w-full border-t bg-background pt-16 pb-8">
-            <div className="container mx-auto px-4 md:px-6">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
-                    <div className="md:col-span-1">
-                        <Link href="/" className="flex items-center space-x-2 mb-4">
-                            <div className="bg-primary/10 p-2 rounded-xl">
-                                <Plane className="h-6 w-6 text-primary" strokeWidth={2.5} />
-                            </div>
-                            <span className="font-bold text-xl tracking-tight bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent">
-                                iWillTravel
-                            </span>
+        <footer className="w-full border-t border-white/[0.07] bg-background text-slate-400">
+            <div className="container max-w-7xl mx-auto px-4 pt-20 pb-10">
+                <div className="grid grid-cols-2 md:grid-cols-[1.6fr_1fr_1fr_1fr] gap-10 mb-20">
+                    <div className="col-span-2 md:col-span-1 max-w-sm">
+                        <Link href="/" aria-label="iWillTravel home">
+                            <Wordmark />
                         </Link>
-                        <p className="text-sm text-muted-foreground mb-6">
-                            Agentic AI travel planning and discovery platform. Find your perfect destination and let AI build your itinerary.
+                        <p className="mt-5 text-sm leading-relaxed text-slate-500">
+                            Day-by-day trip plans built from live map data. Real places, real opening hours,
+                            routed so you spend your time there — not in between.
                         </p>
-                        <div className="flex space-x-4">
-                            <a href="https://facebook.com/iwilltravel" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
-                                <Facebook className="h-5 w-5" />
-                                <span className="sr-only">Facebook</span>
-                            </a>
-                            <a href="https://twitter.com/iwilltravel" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
-                                <Twitter className="h-5 w-5" />
-                                <span className="sr-only">X (Twitter)</span>
-                            </a>
-                            <a href="https://instagram.com/iwilltravel" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
-                                <Instagram className="h-5 w-5" />
-                                <span className="sr-only">Instagram</span>
-                            </a>
-                            <a href="https://linkedin.com/company/iwilltravel" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
-                                <Linkedin className="h-5 w-5" />
-                                <span className="sr-only">LinkedIn</span>
-                            </a>
-                            <a href="https://youtube.com/@iwilltravel" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
-                                <Youtube className="h-5 w-5" />
-                                <span className="sr-only">YouTube</span>
-                            </a>
+                        <a
+                            href="mailto:hello@iwilltravel.app"
+                            className="mt-5 inline-block text-sm text-slate-300 hover:text-sunrise-300 transition-colors"
+                        >
+                            hello@iwilltravel.app
+                        </a>
+                    </div>
+
+                    {COLUMNS.map(col => (
+                        <div key={col.title}>
+                            <h3 className="eyebrow mb-5">{col.title}</h3>
+                            <ul className="space-y-3 text-sm">
+                                {col.links.map(l => (
+                                    <li key={l.href}>
+                                        <Link href={l.href as any} className="text-slate-400 hover:text-slate-100 transition-colors">
+                                            {l.label}
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
                         </div>
-                    </div>
-                    <div>
-                        <h3 className="font-semibold text-foreground mb-4">Features</h3>
-                        <ul className="space-y-3 text-sm text-muted-foreground">
-                            <li><Link href="/plan-trip" className="hover:text-primary transition-colors">AI Itinerary Planner</Link></li>
-                            <li><Link href="/discover" className="hover:text-primary transition-colors">Destination Discovery</Link></li>
-                            <li><Link href="/visa-hub" className="hover:text-primary transition-colors">Visa Intelligence</Link></li>
-                            <li><Link href="/translate" className="hover:text-primary transition-colors">Translation Tools</Link></li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h3 className="font-semibold text-foreground mb-4">Resources</h3>
-                        <ul className="space-y-3 text-sm text-muted-foreground">
-                            <li><Link href="/blogs" className="hover:text-primary transition-colors">Travel Blog</Link></li>
-                            <li><Link href="/community" className="hover:text-primary transition-colors">Travel Community</Link></li>
-                            <li><Link href="/travel-research" className="hover:text-primary transition-colors">Travel Research</Link></li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h3 className="font-semibold text-foreground mb-4">Legal</h3>
-                        <ul className="space-y-3 text-sm text-muted-foreground">
-                            <li><Link href="/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
-                            <li><Link href="/terms" className="hover:text-primary transition-colors">Terms of Service</Link></li>
-                        </ul>
-                    </div>
+                    ))}
                 </div>
-                <div className="border-t border-border/50 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-                    <p className="text-sm text-muted-foreground">
-                        &copy; {new Date().getFullYear()} iWillTravel. All rights reserved.
+
+                {/* oversized wordmark — quiet signature */}
+                <div className="overflow-hidden border-t border-white/[0.06] pt-10">
+                    <p className="font-heading text-[18vw] md:text-[12rem] leading-[0.8] tracking-tight text-white/[0.04] select-none" aria-hidden="true">
+                        iWill<em>Travel</em>
                     </p>
+                    <div className="mt-8 flex flex-col sm:flex-row justify-between gap-3 text-xs text-slate-600">
+                        <p>© {new Date().getFullYear()} iWillTravel</p>
+                        <p>Made for curious travellers.</p>
+                    </div>
                 </div>
             </div>
         </footer>

@@ -8,16 +8,20 @@
  * - Token usage logging helper
  */
 import { createAdminClient } from '@/utils/supabase/admin';
+import type { z } from 'zod';
 
 // ─── Supported Models ─────────────────────────────────────────────────────────
 
 export const SUPPORTED_MODELS = [
     'gemini-pro-latest',
     'gemini-flash-latest',
-    'gemini-2.0-flash',
-    'gemini-2.0-flash-lite',
+    'gemini-2.5-flash',
+    'gemini-2.5-pro',
     'google/gemma-4-31b-it',
+    'google/gemma-4-26b-a4b-it',
     'google/gemma-4-26b-a4b',
+    'google/gemma-4-31b-it:free',
+    'google/gemma-4-26b-a4b-it:free',
 ] as const;
 
 export type SupportedModel = typeof SUPPORTED_MODELS[number];
@@ -25,21 +29,27 @@ export type SupportedModel = typeof SUPPORTED_MODELS[number];
 // ─── Pricing Matrix ($ per 1M tokens) ─────────────────────────────────────────
 
 export const MODEL_PRICING: Record<string, { input: number; output: number; thinking?: number }> = {
-    'gemini-pro-latest':   { input: 1.25,  output: 10.00 },
-    'gemini-flash-latest': { input: 0.15,  output: 0.60  },
-    'gemini-2.0-flash':        { input: 0.10,  output: 0.40  },
-    'gemini-2.0-flash-lite':   { input: 0.025, output: 0.10  },
-    'google/gemma-4-31b-it':   { input: 0.30,  output: 1.20  }, // Estimated OpenRouter pricing
-    'google/gemma-4-26b-a4b':  { input: 0.20,  output: 0.80  },
+    'gemini-pro-latest':             { input: 1.25,  output: 10.00 },
+    'gemini-flash-latest':           { input: 0.15,  output: 0.60  },
+    'gemini-2.5-flash':              { input: 0.10,  output: 0.40  },
+    'gemini-2.5-pro':                { input: 1.25,  output: 5.00  },
+    'google/gemma-4-31b-it':         { input: 0.30,  output: 1.20  },
+    'google/gemma-4-26b-a4b-it':     { input: 0.20,  output: 0.80  },
+    'google/gemma-4-26b-a4b':        { input: 0.20,  output: 0.80  },
+    'google/gemma-4-31b-it:free':    { input: 0.00,  output: 0.00  },
+    'google/gemma-4-26b-a4b-it:free':{ input: 0.00,  output: 0.00  },
 };
 
 export const MODEL_INFO: Record<string, { label: string; description: string; tier: string }> = {
-    'gemini-pro-latest':   { label: 'Gemini Pro',            description: 'Highest quality reasoning', tier: 'Premium' },
-    'gemini-flash-latest': { label: 'Gemini Flash',          description: 'Balanced speed and quality', tier: 'Recommended' },
-    'gemini-2.0-flash':        { label: 'Gemini 2.0 Flash',      description: 'Latest standard flash model', tier: 'Standard' },
-    'gemini-2.0-flash-lite':   { label: 'Gemini 2.0 Flash Lite', description: 'Ultra-cheap, lower quality', tier: 'Economy' },
-    'google/gemma-4-31b-it':   { label: 'Gemma 4 31B (OpenRouter)', description: 'Next-gen open model', tier: 'Premium' },
-    'google/gemma-4-26b-a4b':  { label: 'Gemma 4 26B (OpenRouter)', description: 'Fast MoE model', tier: 'Standard' },
+    'gemini-pro-latest':             { label: 'Gemini Pro',                 description: 'Highest quality reasoning', tier: 'Premium' },
+    'gemini-flash-latest':           { label: 'Gemini Flash',               description: 'Balanced speed and quality', tier: 'Recommended' },
+    'gemini-2.5-flash':              { label: 'Gemini 2.5 Flash',           description: 'Fast Gemini model', tier: 'Standard' },
+    'gemini-2.5-pro':                { label: 'Gemini 2.5 Pro',             description: 'Flagship Gemini model', tier: 'Premium' },
+    'google/gemma-4-31b-it':         { label: 'Gemma 4 31B (OpenRouter)',   description: 'Flagship open model for planning & narrative', tier: 'Premium' },
+    'google/gemma-4-26b-a4b-it':     { label: 'Gemma 4 26B (OpenRouter)',   description: 'Fast MoE model for analysis & speed', tier: 'Standard' },
+    'google/gemma-4-26b-a4b':        { label: 'Gemma 4 26B (OpenRouter)',   description: 'Fast MoE model', tier: 'Standard' },
+    'google/gemma-4-31b-it:free':    { label: 'Gemma 4 31B Free',           description: 'Free tier Gemma 4', tier: 'Free' },
+    'google/gemma-4-26b-a4b-it:free':{ label: 'Gemma 4 26B Free',           description: 'Free tier Gemma 4 MoE', tier: 'Free' },
 };
 
 // ─── In-memory cache to avoid hitting DB on every request ─────────────────────
@@ -55,7 +65,7 @@ const CACHE_TTL_MS = 60_000; // 1 minute
 export async function getActiveModel(): Promise<string> {
     // 1. If OpenRouter API key is present, default to Gemma 4
     if (process.env.OPENROUTER_API_KEY) {
-        return 'google/gemma-4-31b-it';
+        return process.env.OPENROUTER_MODEL || 'google/gemma-4-31b-it';
     }
 
     const now = Date.now();
@@ -101,18 +111,23 @@ export function invalidateModelCache(): void {
 
 /**
  * Get Tiered Model based on agent role.
- * Creative/planning agents use Pro, analytical agents use Flash.
+ * - 'creative' (Agent 8 Composer): Flagship model for long-form narrative synthesis
+ * - 'planner' (Agent 2 Skeleton): Fast structured model for Truth Pool selection & geo-clustering
+ * - 'analytical' (Co-Pilot, Parser, Sentinel): Fast low-latency model for intent & classification
  */
-export async function getTieredModel(role: 'creative' | 'analytical'): Promise<string> {
-    // If OpenRouter is configured, prioritize Gemma 4
+export async function getTieredModel(role: 'creative' | 'analytical' | 'planner'): Promise<string> {
+    // If OpenRouter is configured, prioritize Gemma 4 models
     if (process.env.OPENROUTER_API_KEY) {
-        return 'google/gemma-4-31b-it';
+        if (role === 'analytical' || role === 'planner') {
+            return process.env.OPENROUTER_MODEL_ANALYTICAL || 'google/gemma-4-26b-a4b-it';
+        }
+        return process.env.OPENROUTER_MODEL_CREATIVE || process.env.OPENROUTER_MODEL || 'google/gemma-4-31b-it';
     }
 
     if (role === 'creative') {
-        return 'gemini-pro-latest';
+        return process.env.GEMINI_MODEL_PRO || process.env.GEMINI_MODEL || 'gemini-2.5-flash';
     } else {
-        return 'gemini-flash-latest';
+        return process.env.GEMINI_MODEL_FLASH || 'gemini-2.5-flash';
     }
 }
 
@@ -127,7 +142,7 @@ export async function generateContent(
     promptOrMessages: string | { role: string; content: string }[],
     options: {
         model?: string;
-        role?: 'creative' | 'analytical';
+        role?: 'creative' | 'analytical' | 'planner';
         json?: boolean;
         systemInstruction?: string;
         image?: { mimeType: string; data: string }; // base64
@@ -147,7 +162,7 @@ export async function generateContent(
         try {
             console.log(`[LLM] Attempting OpenRouter call with ${modelName}...`);
             
-            let openRouterMessages = options.systemInstruction 
+            let openRouterMessages: any[] = options.systemInstruction 
                 ? [{ role: 'system', content: options.systemInstruction }, ...messages]
                 : messages;
 
@@ -178,7 +193,7 @@ export async function generateContent(
                     messages: openRouterMessages,
                     response_format: options.json ? { type: 'json_object' } : undefined,
                 }),
-                signal: AbortSignal.timeout(45_000), // 45s timeout — fallback to Gemini if exceeded
+                signal: AbortSignal.timeout(120_000), // 120s timeout for multi-agent generations
             });
 
             if (!response.ok) {
@@ -203,8 +218,10 @@ export async function generateContent(
     }
 
     // 2. Gemini Fallback
-    const geminiModel = options.role === 'analytical' ? 'gemini-2.0-flash' : 'gemini-2.0-flash';
-    console.log(`[LLM] Using Gemini fallback (${geminiModel})...`);
+    const geminiModel = (options.role === 'analytical' || options.role === 'planner')
+        ? (process.env.GEMINI_MODEL_FLASH || 'gemini-2.5-flash')
+        : (process.env.GEMINI_MODEL_PRO || process.env.GEMINI_MODEL || 'gemini-2.5-flash');
+    console.log(`[LLM] Using Gemini (${geminiModel})...`);
     
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
     const model = genAI.getGenerativeModel({
@@ -225,6 +242,7 @@ export async function generateContent(
     let result;
 
     const generationConfig: any = {};
+    if (options.json) generationConfig.responseMimeType = 'application/json';
     if (options.modalities) generationConfig.responseModalities = options.modalities;
     if (options.speechConfig) {
         generationConfig.speechConfig = {
@@ -268,6 +286,108 @@ export async function generateContent(
         model: geminiModel,
         audio
     };
+}
+
+/**
+ * Structured LLM generator with Zod runtime validation and self-healing retry loop
+ * (Thesis Section 4.5, Figure 5: Error-Feedback Regeneration Loop).
+ */
+export async function generateStructuredWithRetry<T>(
+    prompt: string,
+    schema: z.ZodType<T>,
+    options: {
+        model?: string;
+        role?: 'creative' | 'analytical' | 'planner';
+        systemInstruction?: string;
+        maxRetries?: number;
+        customValidator?: (data: T) => string | null;
+    } = {}
+): Promise<{
+    data: T;
+    usage: { inputTokens: number; outputTokens: number; totalTokens: number };
+    model: string;
+    attempts: number;
+}> {
+    const maxRetries = options.maxRetries ?? 2;
+    const conversation: { role: string; content: string }[] = [
+        { role: 'user', content: prompt },
+    ];
+
+    const totalUsage = { inputTokens: 0, outputTokens: 0, totalTokens: 0 };
+    let lastError = 'Unknown schema validation failure';
+    let lastModel = 'unknown';
+
+    for (let attempt = 1; attempt <= maxRetries + 1; attempt++) {
+        const res = await generateContent(conversation, {
+            model: options.model,
+            role: options.role || 'creative',
+            json: true,
+            systemInstruction: options.systemInstruction,
+        });
+
+        lastModel = res.model;
+        totalUsage.inputTokens += res.usage.inputTokens;
+        totalUsage.outputTokens += res.usage.outputTokens;
+        totalUsage.totalTokens += res.usage.totalTokens;
+
+        const cleaned = res.text
+            .replace(/^```(?:json)?\s*/i, '')
+            .replace(/\s*```$/i, '')
+            .trim();
+
+        let rawJson: unknown;
+        try {
+            rawJson = JSON.parse(cleaned);
+        } catch (parseErr: any) {
+            lastError = `JSON syntax error: ${parseErr.message}`;
+            console.warn(`[StructuredLLM] Attempt ${attempt} failed JSON.parse: ${lastError}`);
+            conversation.push({ role: 'assistant', content: res.text });
+            conversation.push({
+                role: 'user',
+                content: `Your output failed JSON parsing (${lastError}). Return ONLY a valid raw JSON object with no markdown fences or trailing text.`,
+            });
+            continue;
+        }
+
+        const parsed = schema.safeParse(rawJson);
+        if (!parsed.success) {
+            const issueSummary = parsed.error.issues
+                .slice(0, 6)
+                .map((iss) => `${iss.path.join('.') || 'root'}: ${iss.message}`)
+                .join('; ');
+            lastError = `Zod schema violation: ${issueSummary}`;
+            console.warn(`[StructuredLLM] Attempt ${attempt} failed Zod validation: ${lastError}`);
+            conversation.push({ role: 'assistant', content: cleaned });
+            conversation.push({
+                role: 'user',
+                content: `Your JSON violated the required schema (${issueSummary}). Fix these exact fields and return ONLY the corrected raw JSON.`,
+            });
+            continue;
+        }
+
+        if (options.customValidator) {
+            const domainErr = options.customValidator(parsed.data);
+            if (domainErr) {
+                lastError = `Domain constraint violation: ${domainErr}`;
+                console.warn(`[StructuredLLM] Attempt ${attempt} failed domain validation: ${lastError}`);
+                conversation.push({ role: 'assistant', content: cleaned });
+                conversation.push({
+                    role: 'user',
+                    content: `Your JSON failed deterministic grounding check: ${domainErr}. Correct it strictly and return ONLY valid raw JSON.`,
+                });
+                continue;
+            }
+        }
+
+        return {
+            data: parsed.data,
+            usage: totalUsage,
+            model: lastModel,
+            attempts: attempt,
+        };
+    }
+
+    throw new Error(`[StructuredLLM] Exhausted ${maxRetries + 1} attempts. Last error: ${lastError}`);
 }
 
 /**
@@ -423,7 +543,7 @@ export function extractTokens(response: any): {
 // ─── Usage Logging Helper ─────────────────────────────────────────────────────
 
 interface LogUsageParams {
-    userId: string;
+    userId?: string | null;
     featureType: string;
     inputTokens: number;
     outputTokens: number;
@@ -441,8 +561,11 @@ export async function logAiUsage(params: LogUsageParams): Promise<void> {
         const costEstimate = calculateCost(params.model, params.inputTokens, params.outputTokens);
         const supabase = createAdminClient();
 
+        // Sanitize userId for Postgres UUID column (guests -> null)
+        const validUserId = params.userId && params.userId !== 'guest' ? params.userId : null;
+
         const { error } = await supabase.from('ai_usage_logs').insert({
-            user_id: params.userId,
+            user_id: validUserId,
             feature_type: params.featureType,
             tokens_used: params.totalTokens,
             input_tokens: params.inputTokens,

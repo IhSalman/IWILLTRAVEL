@@ -15,23 +15,30 @@ export interface MapPoint {
     type: 'activity' | 'restaurant' | 'experience';
     url?: string;
     time?: string;
+    transitToNextMinutes?: number;
+    transitToNextMode?: string;
+    transitToNextKm?: number;
+    rating?: number;
 }
 
 interface Props {
     points: MapPoint[];
+    selectedDay?: number | null;
+    onSelectDay?: (day: number | null) => void;
+    focusedPoint?: { lat: number; lng: number; title?: string; day?: number } | null;
 }
 
 // Day palette — each day gets a distinct color for its markers + route segment
 const DAY_COLORS = [
     '#6366f1', // indigo
-    '#f59e0b', // amber
-    '#10b981', // emerald
+    '#ee9d57', // amber
+    '#80ad88', // emerald
     '#ef4444', // red
     '#3b82f6', // blue
-    '#a855f7', // purple
+    '#f8d4ae', // purple
     '#ec4899', // pink
-    '#14b8a6', // teal
-    '#f97316', // orange
+    '#80ad88', // teal
+    '#e8853a', // orange
     '#84cc16', // lime
 ];
 
@@ -41,7 +48,7 @@ function getDayColor(day: number) {
 
 function markerSvg(label: string, color: string, isRestaurant = false, isExperience = false): string {
     const icon = isRestaurant ? '🍴' : isExperience ? '✦' : label;
-    const bg = isRestaurant ? '#f97316' : isExperience ? '#a855f7' : color;
+    const bg = isRestaurant ? '#e8853a' : isExperience ? '#f8d4ae' : color;
     return `
         <div style="
             background: ${bg};
@@ -98,7 +105,7 @@ function loadGoogleMaps(apiKey: string): Promise<void> {
     });
 }
 
-export default function RoadmapMap({ points }: Props) {
+export default function RoadmapMap({ points, selectedDay, onSelectDay, focusedPoint }: Props) {
     const mapContainer = useRef<HTMLDivElement>(null);
     const mapRef = useRef<any>(null);
     const markersRef = useRef<any[]>([]);
@@ -106,9 +113,15 @@ export default function RoadmapMap({ points }: Props) {
     const infoWindowRef = useRef<any>(null);
     
     const [isLoaded, setIsLoaded] = useState(false);
-    const [activeDay, setActiveDay] = useState<number | null>(null);
+    const [internalDay, setInternalDay] = useState<number | null>(null);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [mapStyle, setMapStyle] = useState<'roadmap' | 'satellite' | 'terrain'>('roadmap');
+
+    const activeDay = selectedDay !== undefined ? selectedDay : internalDay;
+    const setActiveDay = (d: number | null) => {
+        setInternalDay(d);
+        if (onSelectDay) onSelectDay(d);
+    };
 
     const uniqueDays = useMemo(() => {
         return Array.from(new Set(points.filter(p => p.type === 'activity').map(p => p.day))).sort((a, b) => a - b);
@@ -290,7 +303,7 @@ export default function RoadmapMap({ points }: Props) {
                     icon: {
                         path: google.maps.SymbolPath.CIRCLE,
                         scale: isActivity ? 14 : 10,
-                        fillColor: isRestaurant ? '#f97316' : isExp ? '#a855f7' : dayColor,
+                        fillColor: isRestaurant ? '#e8853a' : isExp ? '#f8d4ae' : dayColor,
                         fillOpacity: 1,
                         strokeColor: 'white',
                         strokeWeight: 2.5,
@@ -306,13 +319,13 @@ export default function RoadmapMap({ points }: Props) {
                 ">
                     <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
                         <span style="
-                            background:${isRestaurant ? '#f97316' : isExp ? '#a855f7' : dayColor};
+                            background:${isRestaurant ? '#e8853a' : isExp ? '#f8d4ae' : dayColor};
                             color:white; font-size:9px; font-weight:700;
                             padding:2px 8px; border-radius:20px; text-transform:uppercase; letter-spacing:0.5px;
                         ">Day ${point.day}${isActivity ? ' · Stop ' + (activitySeq - 1) : isRestaurant ? ' · Dining' : ' · Experience'}</span>
                         ${point.time ? `<span style="font-size:10px;color:#9ca3af;">${point.time}</span>` : ''}
                     </div>
-                    <h3 style="margin:0 0 6px;font-size:14px;font-weight:700;color:#111827;line-height:1.3;">${point.title}</h3>
+                    <h3 style="margin:0 0 6px;font-size:14px;font-weight:700;color:#15161a;line-height:1.3;">${point.title}</h3>
                     <p style="margin:0 0 12px;font-size:12px;color:#6b7280;line-height:1.5;
                         display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">
                         ${point.description}
@@ -359,6 +372,13 @@ export default function RoadmapMap({ points }: Props) {
     useEffect(() => {
         if (isLoaded) renderMarkers();
     }, [isLoaded, renderMarkers]);
+
+    useEffect(() => {
+        if (isLoaded && mapRef.current && focusedPoint?.lat && focusedPoint?.lng) {
+            mapRef.current.panTo({ lat: focusedPoint.lat, lng: focusedPoint.lng });
+            mapRef.current.setZoom(15);
+        }
+    }, [isLoaded, focusedPoint]);
 
     // Map style switch
     useEffect(() => {
@@ -507,11 +527,11 @@ export default function RoadmapMap({ points }: Props) {
                         </div>
                         <div className="mt-2 pt-2 border-t border-border/30 space-y-1">
                             <div className="flex items-center gap-2">
-                                <span className="w-3 h-3 rounded-full bg-[#f97316]" />
+                                <span className="w-3 h-3 rounded-full bg-[#e8853a]" />
                                 <span className="text-[10px] text-muted-foreground">Restaurants</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <span className="w-3 h-3 rounded-full bg-[#a855f7]" />
+                                <span className="w-3 h-3 rounded-full bg-[#f8d4ae]" />
                                 <span className="text-[10px] text-muted-foreground">Experiences</span>
                             </div>
                         </div>

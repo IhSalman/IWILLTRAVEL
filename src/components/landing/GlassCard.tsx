@@ -60,7 +60,7 @@ export function GlassCard({ children, className = '', glowColor = '0, 212, 255',
             <div
                 className="absolute inset-0 rounded-2xl pointer-events-none"
                 style={{
-                    background: `linear-gradient(135deg, rgba(${glowColor}, 0.08) 0%, transparent 50%, rgba(99,102,241,0.05) 100%)`,
+                    background: `linear-gradient(135deg, rgba(${glowColor}, 0.08) 0%, transparent 50%, rgba(243,184,127,0.05) 100%)`,
                 }}
             />
             <div className="relative z-10">{children}</div>

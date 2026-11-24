@@ -39,7 +39,7 @@ export function FAQSection() {
     const [openIndex, setOpenIndex] = useState<number | null>(null);
 
     return (
-        <section className="py-24 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #020B18 0%, #03080F 50%, #050D1A 100%)' }}>
+        <section className="py-24 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0b0c0f 0%, #0b0c0f 50%, #0b0c0f 100%)' }}>
             {/* Schema markup for rich results */}
             <script
                 type="application/ld+json"
@@ -63,7 +63,7 @@ export function FAQSection() {
                         whileInView={{ opacity: 1, scale: 1 }}
                         viewport={{ once: true }}
                         className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold mb-6"
-                        style={{ background: 'rgba(0,212,255,0.1)', border: '1px solid rgba(0,212,255,0.25)', color: '#00D4FF' }}
+                        style={{ background: 'rgba(0,212,255,0.1)', border: '1px solid rgba(0,212,255,0.25)', color: '#f3b87f' }}
                     >
                         Common Questions
                     </motion.span>
@@ -96,8 +96,8 @@ export function FAQSection() {
                                 onClick={() => setOpenIndex(isOpen ? null : index)}
                                 className="rounded-2xl overflow-hidden cursor-pointer transition-all duration-200"
                                 style={{
-                                    background: isOpen ? 'rgba(99,102,241,0.06)' : 'rgba(255,255,255,0.02)',
-                                    border: isOpen ? '1px solid rgba(99,102,241,0.25)' : '1px solid rgba(255,255,255,0.07)',
+                                    background: isOpen ? 'rgba(243,184,127,0.06)' : 'rgba(255,255,255,0.02)',
+                                    border: isOpen ? '1px solid rgba(243,184,127,0.25)' : '1px solid rgba(255,255,255,0.07)',
                                 }}
                             >
                                 <div className="px-6 py-5 flex items-center justify-between gap-4">
@@ -108,7 +108,7 @@ export function FAQSection() {
                                         animate={{ rotate: isOpen ? 180 : 0 }}
                                         transition={{ duration: 0.28, ease: 'easeInOut' }}
                                         className="flex-shrink-0"
-                                        style={{ color: isOpen ? '#00D4FF' : 'rgba(255,255,255,0.3)' }}
+                                        style={{ color: isOpen ? '#f3b87f' : 'rgba(255,255,255,0.3)' }}
                                     >
                                         <ChevronDown className="w-5 h-5" />
                                     </motion.div>
@@ -125,7 +125,7 @@ export function FAQSection() {
                                             <p className="px-6 pb-5 pt-0 text-sm leading-relaxed" style={{ color: 'rgba(176,184,204,0.75)' }}>
                                                 {faq.answer}
                                             </p>
-                                            <div className="h-px w-full" style={{ background: 'linear-gradient(90deg, transparent, rgba(99,102,241,0.2), transparent)' }} />
+                                            <div className="h-px w-full" style={{ background: 'linear-gradient(90deg, transparent, rgba(243,184,127,0.2), transparent)' }} />
                                         </motion.div>
                                     )}
                                 </AnimatePresence>

@@ -9,7 +9,7 @@ const THEMES = {
         accentLight: '#dbeafe',
         coverBg: '#0c1821',
         tipBg: '#fffbeb',
-        tipBorder: '#f59e0b',
+        tipBorder: '#ee9d57',
         packingBg: '#f0fdf4',
     },
     dark: {

@@ -38,12 +38,12 @@ function FlyingPlane() {
                     {/* Wings */}
                     <mesh position={[0, -0.05, 0]}>
                         <boxGeometry args={[0.4, 0.08, 0.01]} />
-                        <meshStandardMaterial color="#00D4FF" roughness={0.3} metalness={0.6} />
+                        <meshStandardMaterial color="#f3b87f" roughness={0.3} metalness={0.6} />
                     </mesh>
                     {/* Tail */}
                     <mesh position={[0, -0.15, 0.04]}>
                         <boxGeometry args={[0.12, 0.05, 0.01]} />
-                        <meshStandardMaterial color="#00D4FF" />
+                        <meshStandardMaterial color="#f3b87f" />
                     </mesh>
                     {/* Engine Glow */}
                     <mesh position={[0, -0.15, 0]}>
@@ -55,11 +55,11 @@ function FlyingPlane() {
                 {/* Trail */}
                 <mesh position={[-0.2, 0, 0]}>
                     <sphereGeometry args={[0.01, 8, 8]} />
-                    <meshBasicMaterial color="#00D4FF" transparent opacity={0.6} />
+                    <meshBasicMaterial color="#f3b87f" transparent opacity={0.6} />
                 </mesh>
                 <mesh position={[-0.4, 0, 0]}>
                     <sphereGeometry args={[0.006, 8, 8]} />
-                    <meshBasicMaterial color="#00D4FF" transparent opacity={0.3} />
+                    <meshBasicMaterial color="#f3b87f" transparent opacity={0.3} />
                 </mesh>
             </group>
         </group>
@@ -96,7 +96,7 @@ function NightGlobe() {
             {/* Atmosphere Edge Glow */}
             <Sphere args={[1.85, 32, 32]}>
                 <meshBasicMaterial
-                    color="#00D4FF"
+                    color="#f3b87f"
                     transparent
                     opacity={0.05}
                     side={THREE.BackSide}
@@ -133,7 +133,7 @@ export function PlanTripGlobe() {
                 <Suspense fallback={null}>
                     {/* Subtle lighting since the earth is self-illuminating */}
                     <ambientLight intensity={0.4} />
-                    <directionalLight position={[10, 5, 5]} intensity={1.0} color="#00D4FF" />
+                    <directionalLight position={[10, 5, 5]} intensity={1.0} color="#f3b87f" />
                     <pointLight position={[-10, -5, -10]} intensity={1.5} color="#FF007F" />
                     
                     <group rotation={[0.2, 0, 0]}>

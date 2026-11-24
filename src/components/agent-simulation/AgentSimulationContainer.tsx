@@ -21,48 +21,48 @@ export function AgentSimulationContainer({ logs, isComplete, loadingStage }: Age
             if (!existing || log.status === 'success' || log.status === 'error') {
                 latestLogs.set(log.agent, log);
             } else if (existing.status !== 'success' && existing.status !== 'error') {
-                 latestLogs.set(log.agent, log);
+                latestLogs.set(log.agent, log);
             }
         });
         return latestLogs;
     }, [logs]);
 
-    // Hardcode specific positions and details for each agent desk on the map
+    // Exact 8-agent keys emitted by src/lib/agents/pipeline.ts
     const DESK_LAYOUTS = [
-        { key: 'Agent 1: Planning', label: 'PLANNING DEPT', className: 'top-[20%] left-[20%]', orientation: 'bottom' as const, colorHash: 0 },
-        { key: 'Agent 2: Research', label: 'RESEARCH', className: 'top-[45%] left-[15%]', orientation: 'right' as const, colorHash: 1 },
-        { key: 'Agent 3: Experience', label: 'LOCAL EXP', className: 'top-[65%] left-[15%]', orientation: 'right' as const, colorHash: 2 },
-        
-        { key: 'Agent 4: Flight Analysis', label: 'FLIGHT OP', className: 'bottom-[25%] left-[45%]', orientation: 'top' as const, colorHash: 3 },
-        { key: 'Agent 5: Budget', label: 'FINANCE', className: 'bottom-[25%] left-[65%]', orientation: 'top' as const, colorHash: 4 },
-        { key: 'Agent 6: Route', label: 'LOGISTICS', className: 'bottom-[10%] left-[45%]', orientation: 'bottom' as const, colorHash: 5 },
-        { key: 'Agent 8: Sustainability', label: 'ESG COMPLIANCE', className: 'bottom-[10%] left-[65%]', orientation: 'bottom' as const, colorHash: 3 },
-        
-        { key: 'Agent 9: Composer', label: 'SYNTHESIS (BOSS)', className: 'top-[25%] right-[20%]', orientation: 'bottom' as const, colorHash: 6 },
+        { key: 'Agent 1: Discovery', label: 'PLACES DISCOVERY', className: 'top-[18%] left-[18%]', orientation: 'bottom' as const, colorHash: 0 },
+        { key: 'Agent 2: Planning', label: 'DAY ARCHITECT', className: 'top-[44%] left-[15%]', orientation: 'right' as const, colorHash: 1 },
+        { key: 'Agent 3: Research', label: 'FLIGHTS & STAYS', className: 'top-[68%] left-[15%]', orientation: 'right' as const, colorHash: 2 },
+
+        { key: 'Agent 4: Logic Checker', label: 'LOGIC & BUDGET', className: 'bottom-[26%] left-[44%]', orientation: 'top' as const, colorHash: 3 },
+        { key: 'Agent 5: Experience', label: 'LOCAL INSIDER', className: 'bottom-[26%] left-[65%]', orientation: 'top' as const, colorHash: 4 },
+        { key: 'Agent 6: Logistics', label: 'ROUTE PHYSICS', className: 'bottom-[10%] left-[44%]', orientation: 'bottom' as const, colorHash: 5 },
+        { key: 'Agent 7: Sustainability', label: 'ESG & CARBON', className: 'bottom-[10%] left-[65%]', orientation: 'bottom' as const, colorHash: 3 },
+
+        { key: 'Agent 8: Composer', label: 'COMPOSER', className: 'top-[24%] right-[18%]', orientation: 'bottom' as const, colorHash: 6 },
     ];
 
     const STAGE_TO_AGENTS: Record<string, string[]> = {
-        planning: ['Agent 1: Planning'],
-        researching: ['Agent 2: Research', 'Agent 3: Experience'],
-        optimizing: ['Agent 4: Flight Analysis', 'Agent 5: Budget', 'Agent 6: Route', 'Agent 8: Sustainability'],
-        composing: ['Agent 9: Composer']
+        planning: ['Agent 1: Discovery', 'Agent 2: Planning'],
+        researching: ['Agent 3: Research', 'Agent 4: Logic Checker'],
+        enriching: ['Agent 5: Experience'],
+        optimizing: ['Agent 6: Logistics', 'Agent 7: Sustainability'],
+        composing: ['Agent 8: Composer'],
     };
 
+    const completedCount = Array.from(agentStates.values()).filter(l => l.status === 'success').length;
+
     return (
-        <div className="w-full my-8 relative">
+        <div className="w-full my-6 relative">
             <OfficeFloorplan>
                 {DESK_LAYOUTS.map((desk) => {
                     const logState = agentStates.get(desk.key);
-                    
-                    // Determine if the agent is actively working
-                    const isStageActive = loadingStage && STAGE_TO_AGENTS[loadingStage]?.includes(desk.key);
-                    const isRunning = isStageActive && !logState;
-                    const isActive = isRunning || logState?.status === 'error';
 
-                    // Derive the exact union string for EmployeeAvatar
+                    const isStageActive = loadingStage && STAGE_TO_AGENTS[loadingStage]?.includes(desk.key);
+                    const isRunning = Boolean(isStageActive && !logState) || (logState?.status as string) === 'running';
+                    const isActive = Boolean(isRunning || logState?.status === 'error');
+
                     const avatarStatus = isRunning ? 'running' : (logState ? logState.status : 'idle');
 
-                    // Create an artificial logState for the Workstation if it's currently running
                     const displayLogState = logState || (isRunning ? {
                         agent: desk.key,
                         status: 'running' as any,
@@ -70,7 +70,6 @@ export function AgentSimulationContainer({ logs, isComplete, loadingStage }: Age
                         timestamp: ''
                     } : undefined);
 
-                    // The agent is visible if it has logs, is currently active, or the whole process is done.
                     const isVisible = !!logState || !!isStageActive || isComplete;
 
                     return (
@@ -90,22 +89,22 @@ export function AgentSimulationContainer({ logs, isComplete, loadingStage }: Age
                 })}
             </OfficeFloorplan>
 
-            {/* Status HUD (Pinned to bottom center over the floorplan) */}
-            <motion.div 
-                initial={{ opacity: 0, y: 20 }}
+            {/* Apple Liquid Glass Live Telemetry Pill */}
+            <motion.div
+                initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-md border border-white/10 px-6 py-2 rounded-full z-30"
+                className="absolute bottom-5 left-1/2 -translate-x-1/2 apple-liquid-glass px-5 py-2 rounded-full z-30"
             >
-                <div className="flex items-center gap-3 text-xs font-mono tracking-widest text-[#00D4FF]">
+                <div className="flex items-center gap-3 text-xs font-mono tracking-wider text-sky-300 tabular-nums">
                     {!isComplete ? (
                         <>
-                            <div className="w-2 h-2 rounded-full bg-[#00D4FF] animate-pulse" />
-                            ORCHESTRATING DATA FLOW
+                            <div className="w-2 h-2 rounded-full bg-sky-400 animate-pulse" />
+                            <span>8-AGENT PIPELINE ACTIVE · {completedCount}/8 VERIFIED</span>
                         </>
                     ) : (
                         <>
-                            <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_#10b981]" />
-                            <span className="text-emerald-400 font-bold">SYNTHESIS COMPLETE</span>
+                            <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_10px_#80ad88]" />
+                            <span className="text-emerald-300 font-semibold">8/8 AGENTS COMPLETE</span>
                         </>
                     )}
                 </div>

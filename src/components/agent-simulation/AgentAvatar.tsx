@@ -19,7 +19,7 @@ export function AgentAvatar({ agentName, status, message, className }: AgentAvat
             case 'success': return 'ring-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.5)]';
             case 'error': return 'ring-rose-500 shadow-[0_0_20px_rgba(244,63,94,0.5)]';
             case 'idle': return 'ring-white/20 shadow-none';
-            default: return 'ring-[#00D4FF] shadow-[0_0_30px_rgba(0,212,255,0.6)]'; // running
+            default: return 'ring-[#f3b87f] shadow-[0_0_30px_rgba(0,212,255,0.6)]'; // running
         }
     };
 
@@ -28,7 +28,7 @@ export function AgentAvatar({ agentName, status, message, className }: AgentAvat
             case 'success': return 'bg-emerald-500/20';
             case 'error': return 'bg-rose-500/20';
             case 'idle': return 'bg-white/5';
-            default: return 'bg-[#00D4FF]/20';
+            default: return 'bg-[#f3b87f]/20';
         }
     };
 
@@ -56,7 +56,7 @@ export function AgentAvatar({ agentName, status, message, className }: AgentAvat
                     )}
                     {status !== 'idle' && status !== 'success' && status !== 'error' && (
                         <motion.div key="running" initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}>
-                            <Loader2 className="w-5 h-5 text-[#00D4FF] animate-spin bg-black rounded-full p-[1px]" />
+                            <Loader2 className="w-5 h-5 text-[#f3b87f] animate-spin bg-black rounded-full p-[1px]" />
                         </motion.div>
                     )}
                 </AnimatePresence>
@@ -95,7 +95,7 @@ export function AgentAvatar({ agentName, status, message, className }: AgentAvat
                         initial={{ opacity: 0, y: 10, scale: 0.9 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -10, scale: 0.9 }}
-                        className="absolute -bottom-10 left-1/2 -translate-x-1/2 whitespace-nowrap bg-[#00D4FF]/10 border border-[#00D4FF]/30 text-[#00D4FF] text-[10px] px-3 py-1.5 rounded-full backdrop-blur-md"
+                        className="absolute -bottom-10 left-1/2 -translate-x-1/2 whitespace-nowrap bg-[#f3b87f]/10 border border-[#f3b87f]/30 text-[#f3b87f] text-[10px] px-3 py-1.5 rounded-full backdrop-blur-md"
                     >
                         {message}
                     </motion.div>

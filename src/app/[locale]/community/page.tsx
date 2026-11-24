@@ -1,132 +1,179 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence, useScroll, useTransform, useMotionValue, useSpring } from 'framer-motion';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from '@/i18n/routing';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ThumbsUp, MessageSquare, Share2, MapPin, Map, Plane, FileText, Lightbulb, Loader2, Sparkles, Heart, Globe, Navigation2, Compass } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import {
+    MessageSquare, MapPin, Map, Plane, FileText, Lightbulb,
+    Loader2, Sparkles, Heart, Globe, Compass, X, Send, Lock, ArrowUpRight
+} from 'lucide-react';
+import { toast } from 'sonner';
 import { createClient } from '@/utils/supabase/client';
 
-// Ethereal Environment Background Component
-const EtherealEnvironment = () => (
-    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden bg-[#03080F]">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(13,162,231,0.05),transparent_70%)]" />
-        <motion.div
-            className="absolute top-[-20%] left-[-10%] w-[80vw] h-[80vw] rounded-full mix-blend-screen filter blur-[120px] bg-gradient-to-tr from-[#0da2e7]/10 via-transparent to-transparent"
-            animate={{
-                x: [0, 30, 0],
-                y: [0, 50, 0],
-                rotate: [0, 45, 0],
-            }}
-            transition={{ duration: 25, repeat: Infinity, ease: 'linear' }}
-        />
-        <motion.div
-            className="absolute bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] rounded-full mix-blend-screen filter blur-[150px] bg-gradient-to-bl from-[#6366F1]/10 via-transparent to-transparent"
-            animate={{
-                x: [0, -50, 0],
-                y: [0, -30, 0],
-                rotate: [0, -45, 0],
-            }}
-            transition={{ duration: 30, repeat: Infinity, ease: 'linear', delay: 2 }}
-        />
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.15] mix-blend-overlay" />
-    </div>
-);
+const CURATED_FIELD_DISPATCHES = [
+    {
+        id: 'curated-tokyo-suica',
+        author: { name: 'Elena R.', handle: '@elenavoyage', avatar: '' },
+        category: 'Tips',
+        location: 'Tokyo, Japan',
+        cityQuery: 'Tokyo, Japan',
+        content: 'Add a digital Suica or PASMO card directly inside Apple Wallet before landing at Haneda—tap through every JR & Metro gate without queuing for paper tickets.',
+        likes: 42,
+        time: 'Verified Tip',
+        image: 'https://images.unsplash.com/photo-1542051841857-5f90071e7989?auto=format&fit=crop&w=900&q=80',
+    },
+    {
+        id: 'curated-kyoto-dawn',
+        author: { name: 'Marcus K.', handle: '@marcusnomad', avatar: '' },
+        category: 'Itineraries',
+        location: 'Kyoto, Japan',
+        cityQuery: 'Kyoto, Japan',
+        content: 'Arrive at Fushimi Inari Taisha by 06:30 AM and hike past the Yotsutsuji intersection—crowds drop by 90% and morning light through the torii gates is unforgettable.',
+        likes: 38,
+        time: 'Verified Route',
+        image: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=900&q=80',
+    },
+    {
+        id: 'curated-japan-vjw',
+        author: { name: 'Priya S.', handle: '@priyatravels', avatar: '' },
+        category: 'Visa Intel',
+        location: 'Narita / Haneda, Japan',
+        cityQuery: 'Tokyo, Japan',
+        content: 'Complete your Visit Japan Web immigration & customs QR code 48 hours prior to departure—cleared biometrics and baggage customs in under 14 minutes.',
+        likes: 29,
+        time: 'Border Update',
+        image: null,
+    },
+    {
+        id: 'curated-lisbon-alfama',
+        author: { name: 'Lucas M.', handle: '@lucasroutes', avatar: '' },
+        category: 'Trips',
+        location: 'Lisbon, Portugal',
+        cityQuery: 'Lisbon, Portugal',
+        content: 'Skip the mid-day Martim Moniz queue for Tram 28—walk up to Miradouro da Senhora do Monte at golden hour and dine at a neighborhood tasca in Graça instead.',
+        likes: 31,
+        time: 'Field Report',
+        image: 'https://images.unsplash.com/photo-1585208798174-6cedd86e019a?auto=format&fit=crop&w=900&q=80',
+    },
+    {
+        id: 'curated-zermatt-pass',
+        author: { name: 'Hannah W.', handle: '@alpinehannah', avatar: '' },
+        category: 'Tips',
+        location: 'Interlaken, Switzerland',
+        cityQuery: 'Interlaken, Switzerland',
+        content: 'The Swiss Half Fare Card pays for itself in just two mountain excursions (Jungfraujoch or Schilthorn) plus covers regional boats on Lake Thun and Lake Brienz.',
+        likes: 27,
+        time: 'Verified Tip',
+        image: 'https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?auto=format&fit=crop&w=900&q=80',
+    },
+    {
+        id: 'curated-seoul-tmoney',
+        author: { name: 'Daniel C.', handle: '@seoultransit', avatar: '' },
+        category: 'Visa Intel',
+        location: 'Seoul, South Korea',
+        cityQuery: 'Seoul, South Korea',
+        content: 'Download Naver Map or KakaoMap before flying to Incheon—Google Maps lacks turn-by-turn walking directions in Korea, while Naver shows exact subway exit numbers.',
+        likes: 35,
+        time: 'Verified Tip',
+        image: null,
+    },
+];
 
-// Premium Gallery Card Component
-const PremiumGalleryCard = ({ post, index }: { post: any; index: number }) => {
-    const [isHovered, setIsHovered] = useState(false);
+const GalleryCard = ({ post, index }: { post: any; index: number }) => {
     const [isLiked, setIsLiked] = useState(false);
     const [localLikes, setLocalLikes] = useState<number>(post.likes || 0);
 
     const handleLike = (e: React.MouseEvent) => {
         e.stopPropagation();
         setIsLiked(!isLiked);
-        setLocalLikes(prev => isLiked ? prev - 1 : prev + 1);
+        setLocalLikes((prev) => (isLiked ? prev - 1 : prev + 1));
     };
+
+    const planDestination = post.cityQuery || post.location;
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05, duration: 0.8, ease: [0.21, 0.47, 0.32, 0.98] }}
-            className="relative group break-inside-avoid mb-8"
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
+            transition={{ delay: index * 0.04, duration: 0.45 }}
+            className="relative break-inside-avoid mb-6"
         >
-            <div className="relative overflow-hidden rounded-[32px] border border-white/10 bg-white/5 backdrop-blur-sm transition-all duration-500 group-hover:border-white/20 group-hover:shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)] group-hover:-translate-y-2">
-                {/* Image / Gradient Section */}
-                <div className="relative aspect-[4/5] overflow-hidden">
-                    {post.image ? (
-                        <img 
-                            src={post.image} 
-                            alt={post.location} 
-                            className="w-full h-full object-cover transition-transform duration-1000 ease-out group-hover:scale-110"
+            <div className="apple-glass-card rounded-3xl overflow-hidden group hover:border-white/25 transition-all">
+                {/* Image or Minimal Spatial Banner */}
+                {post.image ? (
+                    <div className="relative aspect-[4/3] overflow-hidden bg-slate-900/60 border-b border-white/[0.08]">
+                        <img
+                            src={post.image}
+                            alt={post.location}
+                            className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                         />
-                    ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-[#1a1c29] via-[#0a0c10] to-[#03080f] flex flex-col items-center justify-center p-8 text-center">
-                            <Compass className="w-12 h-12 text-primary/20 mb-4 animate-pulse" />
-                            <h3 className="text-xl font-medium text-white/40 tracking-widest uppercase">{post.location}</h3>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20" />
+                        <div className="absolute top-3.5 left-3.5">
+                            <span className="px-3 py-1 rounded-full text-[10px] font-mono tracking-wider uppercase apple-liquid-glass text-white">
+                                {post.category || 'Trip'}
+                            </span>
                         </div>
-                    )}
-                    
-                    {/* Glass Overlay on Hover */}
-                    <div className={`absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-opacity duration-500 ${isHovered ? 'opacity-100' : 'opacity-0'}`} />
-                    
-                    {/* Top Badges */}
-                    <div className="absolute top-4 left-4 flex gap-2">
-                        <div className="glass-premium px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase text-white/80">
-                            {post.category || 'Trip'}
-                        </div>
-                    </div>
-
-                    {/* Interaction Buttons Overlay */}
-                    <div className={`absolute inset-0 flex items-center justify-center gap-4 transition-all duration-500 transform ${isHovered ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
-                        <Button 
-                            variant="secondary" 
-                            size="icon" 
-                            className={`rounded-full w-12 h-12 glass-premium hover:bg-white/20 border-white/20 transition-all ${isLiked ? 'text-[#FF007F] scale-110' : 'text-white'}`}
-                            onClick={handleLike}
+                        <Link
+                            href={`/plan-trip?destination=${encodeURIComponent(planDestination)}`}
+                            className="absolute bottom-3.5 left-3.5 right-3.5 flex items-center justify-between px-3 py-1.5 rounded-full apple-liquid-glass text-[11px] font-medium text-white hover:bg-white/20 transition-colors"
                         >
-                            <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
-                        </Button>
-                        <Button 
-                            variant="secondary" 
-                            size="icon" 
-                            className="rounded-full w-12 h-12 glass-premium hover:bg-white/20 border-white/20 text-white"
-                        >
-                            <MessageSquare className="w-5 h-5" />
-                        </Button>
+                            <span className="flex items-center gap-1.5 truncate">
+                                <MapPin className="w-3 h-3 text-sky-300 shrink-0" />
+                                <span className="truncate">{post.location}</span>
+                            </span>
+                            <span className="text-[10px] font-mono text-sky-200 flex items-center gap-0.5 shrink-0 ml-2">
+                                Plan <ArrowUpRight className="w-3 h-3" />
+                            </span>
+                        </Link>
                     </div>
-                </div>
+                ) : (
+                    <div className="p-5 pb-0 flex items-center justify-between gap-2">
+                        <span className="px-3 py-1 rounded-full text-[10px] font-mono tracking-wider uppercase apple-glass-pill text-sky-300">
+                            {post.category || 'Dispatch'}
+                        </span>
+                        <Link
+                            href={`/plan-trip?destination=${encodeURIComponent(planDestination)}`}
+                            className="inline-flex items-center gap-1 text-[11px] font-mono text-slate-300 hover:text-white transition-colors truncate"
+                        >
+                            <MapPin className="w-3 h-3 text-sky-300 shrink-0" />
+                            <span className="truncate">{post.location}</span>
+                            <ArrowUpRight className="w-3 h-3 shrink-0" />
+                        </Link>
+                    </div>
+                )}
 
                 {/* Content Area */}
-                <div className="p-6 space-y-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <Avatar className="w-8 h-8 border border-white/10 ring-2 ring-[#00D4FF]/20">
+                <div className="p-5 space-y-4">
+                    <p className="text-sm text-slate-200 leading-relaxed">&ldquo;{post.content}&rdquo;</p>
+
+                    <div className="flex items-center justify-between pt-3 border-t border-white/[0.07]">
+                        <div className="flex items-center gap-2.5">
+                            <Avatar className="w-7 h-7 border border-white/15">
                                 <AvatarImage src={post.author.avatar} />
-                                <AvatarFallback className="bg-white/10 text-white text-xs">{post.author.name[0]}</AvatarFallback>
+                                <AvatarFallback className="bg-slate-800 text-white text-[10px] font-semibold">
+                                    {post.author.name?.[0] || 'T'}
+                                </AvatarFallback>
                             </Avatar>
                             <div className="flex flex-col">
-                                <span className="text-xs font-bold text-white/90">{post.author.name}</span>
-                                <span className="text-[10px] text-white/40 uppercase tracking-tighter">{post.time}</span>
+                                <span className="text-xs font-semibold text-white">{post.author.name}</span>
+                                <span className="text-[10px] text-slate-400 font-mono">{post.time}</span>
                             </div>
                         </div>
-                        <div className="flex items-center gap-1.5 text-white/40 text-[10px] font-bold">
-                            <Heart className={`w-3.5 h-3.5 ${isLiked ? 'text-[#FF007F] fill-current' : ''}`} />
+                        <button
+                            type="button"
+                            onClick={handleLike}
+                            className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono transition-all ${
+                                isLiked
+                                    ? 'bg-rose-500/15 text-rose-300 border border-rose-400/30'
+                                    : 'apple-glass-pill text-slate-300 hover:text-white'
+                            }`}
+                        >
+                            <Heart className={`w-3.5 h-3.5 ${isLiked ? 'fill-current' : ''}`} />
                             <span>{localLikes}</span>
-                        </div>
-                    </div>
-
-                    <p className="text-sm text-white/70 leading-relaxed line-clamp-3 font-medium italic">
-                        "{post.content}"
-                    </p>
-
-                    <div className="flex items-center gap-2 text-[#00D4FF] text-[10px] font-bold uppercase tracking-widest pt-2">
-                        <MapPin className="w-3 h-3" />
-                        <span>{post.location}</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -137,41 +184,27 @@ const PremiumGalleryCard = ({ post, index }: { post: any; index: number }) => {
 export default function CommunityPage() {
     const supabase = createClient();
     const [activeTab, setActiveTab] = useState('All');
-    const [posts, setPosts] = useState<any[]>([]);
+    const [posts, setPosts] = useState<any[]>(CURATED_FIELD_DISPATCHES);
     const [isLoading, setIsLoading] = useState(true);
+    const [user, setUser] = useState<any>(null);
 
-    // Mouse tracking for 3D Wall perspective
-    const containerRef = useRef<HTMLDivElement>(null);
-    const mouseX = useMotionValue(0);
-    const mouseY = useMotionValue(0);
-
-    // Smooth physics for mouse movement
-    const smoothX = useSpring(mouseX, { damping: 50, stiffness: 400 });
-    const smoothY = useSpring(mouseY, { damping: 50, stiffness: 400 });
-
-    // Transform mouse position into 3D rotation angles
-    const rotateX = useTransform(smoothY, [-0.5, 0.5], [5, -5]);
-    const rotateY = useTransform(smoothX, [-0.5, 0.5], [-5, 5]);
-
-    const handleMouseMove = (e: React.MouseEvent) => {
-        if (!containerRef.current) return;
-        const rect = containerRef.current.getBoundingClientRect();
-        // Calculate relative position -0.5 to 0.5
-        const x = (e.clientX - rect.left) / rect.width - 0.5;
-        const y = (e.clientY - rect.top) / rect.height - 0.5;
-        mouseX.set(x);
-        mouseY.set(y);
-    };
-
-    const handleMouseLeave = () => {
-        mouseX.set(0);
-        mouseY.set(0);
-    };
+    // Share Dispatch Modal State
+    const [composerOpen, setComposerOpen] = useState(false);
+    const [postType, setPostType] = useState<'micro_tip' | 'trip_experience' | 'visa_experience' | 'itinerary_snapshot'>('micro_tip');
+    const [cityInput, setCityInput] = useState('');
+    const [countryInput, setCountryInput] = useState('');
+    const [contentInput, setContentInput] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         async function fetchPosts() {
             setIsLoading(true);
             try {
+                const {
+                    data: { user: currentUser },
+                } = await supabase.auth.getUser();
+                setUser(currentUser);
+
                 const { data, error } = await supabase
                     .from('community_posts')
                     .select(`
@@ -182,45 +215,46 @@ export default function CommunityPage() {
                     `)
                     .order('created_at', { ascending: false });
 
-                if (error) throw error;
+                if (!error && data && data.length > 0) {
+                    const typeMap: Record<string, string> = {
+                        trip_experience: 'Trips',
+                        itinerary_snapshot: 'Itineraries',
+                        visa_experience: 'Visa Intel',
+                        micro_tip: 'Tips',
+                    };
 
-                if (data) {
                     const formattedPosts = data.map((post: any) => {
-                        let content = post.highlights || post.tip_text || post.visa_tips || 'Shared a new travel update.';
-                        let location = 'Anywhere';
+                        const content = post.highlights || post.tip_text || post.visa_tips || 'Shared a new travel update.';
+                        let location = 'Global';
                         if (post.destination_city && post.destination_country) {
                             location = `${post.destination_city}, ${post.destination_country}`;
                         } else if (post.destination_city || post.destination_country) {
                             location = post.destination_city || post.destination_country;
                         }
 
-                        const typeMap: Record<string, string> = {
-                            'trip_experience': 'Trips',
-                            'itinerary_snapshot': 'Itineraries',
-                            'visa_experience': 'Visa Intel',
-                            'micro_tip': 'Tips'
-                        };
-
                         return {
                             id: post.id,
                             author: {
-                                name: post.profiles?.full_name || 'Anonymous Traveler',
-                                handle: post.profiles?.username || '@traveler',
-                                avatar: post.profiles?.avatar_url || 'https://i.pravatar.cc/150?u=anon'
+                                name: post.profiles?.full_name || 'Traveler',
+                                handle: post.profiles?.username || '@voyager',
+                                avatar: post.profiles?.avatar_url || '',
                             },
-                            category: typeMap[post.post_type] || 'General',
-                            location: location,
-                            content: content,
+                            category: typeMap[post.post_type] || 'Tips',
+                            location,
+                            cityQuery: location,
+                            content,
                             likes: post.helpful_count || 0,
-                            comments: 0,
                             time: new Date(post.created_at).toLocaleDateString(),
-                            image: null, // Would be fetched if supported
+                            image: null,
                         };
                     });
-                    setPosts(formattedPosts);
+                    setPosts([...formattedPosts, ...CURATED_FIELD_DISPATCHES]);
+                } else {
+                    setPosts(CURATED_FIELD_DISPATCHES);
                 }
             } catch (err) {
-                console.error("Error fetching posts:", err);
+                console.error('Error fetching posts:', err);
+                setPosts(CURATED_FIELD_DISPATCHES);
             } finally {
                 setIsLoading(false);
             }
@@ -229,107 +263,276 @@ export default function CommunityPage() {
         fetchPosts();
     }, [supabase]);
 
-    const filteredPosts = activeTab === 'All'
-        ? posts
-        : posts.filter(post => post.category === activeTab);
+    const handleCreatePost = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!user || !contentInput.trim() || !cityInput.trim()) return;
+        setIsSubmitting(true);
+        try {
+            const payload: Record<string, any> = {
+                user_id: user.id,
+                post_type: postType,
+                destination_city: cityInput.trim(),
+                destination_country: countryInput.trim() || null,
+            };
+            if (postType === 'visa_experience') payload.visa_tips = contentInput.trim();
+            else if (postType === 'micro_tip') payload.tip_text = contentInput.trim();
+            else payload.highlights = contentInput.trim();
+
+            const { data, error } = await supabase.from('community_posts').insert(payload).select().single();
+
+            const typeMap: Record<string, string> = {
+                trip_experience: 'Trips',
+                itinerary_snapshot: 'Itineraries',
+                visa_experience: 'Visa Intel',
+                micro_tip: 'Tips',
+            };
+
+            const location = countryInput.trim() ? `${cityInput.trim()}, ${countryInput.trim()}` : cityInput.trim();
+
+            const newCard = {
+                id: data?.id || `local-${Date.now()}`,
+                author: {
+                    name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'You',
+                    handle: '@traveler',
+                    avatar: '',
+                },
+                category: typeMap[postType] || 'Tips',
+                location,
+                cityQuery: location,
+                content: contentInput.trim(),
+                likes: 1,
+                time: 'Just now',
+                image: null,
+            };
+
+            setPosts((prev) => [newCard, ...prev]);
+            setCityInput('');
+            setCountryInput('');
+            setContentInput('');
+            setComposerOpen(false);
+            if (error) {
+                toast.success('Traveler tip added to your session feed');
+            } else {
+                toast.success('Dispatch published to Community Matrix');
+            }
+        } catch {
+            toast.error('Unable to publish tip right now.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const categories = [
+        { id: 'All', icon: <Compass className="w-3.5 h-3.5" /> },
+        { id: 'Trips', icon: <Plane className="w-3.5 h-3.5" /> },
+        { id: 'Itineraries', icon: <Map className="w-3.5 h-3.5" /> },
+        { id: 'Visa Intel', icon: <FileText className="w-3.5 h-3.5" /> },
+        { id: 'Tips', icon: <Lightbulb className="w-3.5 h-3.5" /> },
+    ];
+
+    const filteredPosts = activeTab === 'All' ? posts : posts.filter((post) => post.category === activeTab);
 
     return (
-        <div 
-            className="relative min-h-screen pt-24 pb-20 overflow-hidden"
-            onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseLeave}
-            ref={containerRef}
-        >
-            <EtherealEnvironment />
+        <div className="relative min-h-screen pt-28 pb-24 overflow-x-clip bg-[#0b0c0f] text-slate-200 font-body">
+            {/* Ambient Lighting */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1100px] h-[380px] bg-gradient-to-b from-sky-500/[0.05] via-indigo-500/[0.02] to-transparent blur-3xl pointer-events-none" />
 
-            {/* Content Container */}
-            <div className="container max-w-7xl mx-auto px-4 relative z-10">
-                {/* Header */}
-                <div className="flex flex-col justify-center items-center text-center mb-16 relative">
+            {/* Share Dispatch Modal */}
+            <AnimatePresence>
+                {composerOpen && (
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="w-20 h-20 rounded-full bg-white/5 border border-white/10 backdrop-blur-xl flex items-center justify-center mb-6 shadow-[0_0_50px_rgba(255,255,255,0.1)]"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xl"
+                        onClick={() => setComposerOpen(false)}
                     >
-                        <Plane className="w-10 h-10 text-white" />
-                    </motion.div>
-                    
-                    <h1 className="text-5xl md:text-7xl font-black tracking-tighter mb-4 text-transparent bg-clip-text bg-gradient-to-r from-white via-white/90 to-white/40 drop-shadow-sm">
-                        THE GLOBE <span className="font-light italic">WALL</span>
-                    </h1>
-                    <p className="text-lg text-white/50 max-w-2xl font-light tracking-wide mb-8">
-                        Explore polaroid snapshots of journeys, insider visa intel, and raw itineraries from travelers worldwide.
-                    </p>
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 16 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            transition={{ type: 'spring', damping: 26, stiffness: 320 }}
+                            className="w-full max-w-lg apple-liquid-glass rounded-[32px] p-7 relative"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <button
+                                type="button"
+                                onClick={() => setComposerOpen(false)}
+                                className="absolute top-6 right-6 p-2 rounded-full text-slate-400 hover:text-white hover:bg-white/[0.08] transition-colors"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
 
-                    <Button className="rounded-full px-8 h-14 bg-white text-black hover:bg-white/90 font-black tracking-widest uppercase text-sm shadow-[0_0_30px_rgba(255,255,255,0.3)] hover:scale-105 transition-all">
-                        <Sparkles className="w-4 h-4 mr-2" /> Share Snapshot
-                    </Button>
-                </div>
+                            {!user ? (
+                                <div className="text-center py-6 space-y-4">
+                                    <div className="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-400/20 flex items-center justify-center mx-auto">
+                                        <Lock className="w-5 h-5 text-sky-300" />
+                                    </div>
+                                    <h3 className="text-xl font-serif font-bold text-white">Sign in to Share Field Tips</h3>
+                                    <p className="text-xs text-slate-300/80 max-w-sm mx-auto leading-relaxed">
+                                        Join fellow travelers sharing verified transit shortcuts, border clearance times, and neighborhood gems.
+                                    </p>
+                                    <div className="flex justify-center gap-3 pt-2">
+                                        <Link href="/login" className="btn-apple-primary px-6 py-2.5 rounded-full text-xs font-semibold">
+                                            Sign In →
+                                        </Link>
+                                        <Link href="/signup" className="btn-apple-glass px-5 py-2.5 rounded-full text-xs font-medium">
+                                            Create Account
+                                        </Link>
+                                    </div>
+                                </div>
+                            ) : (
+                                <form onSubmit={handleCreatePost} className="space-y-4">
+                                    <div>
+                                        <h3 className="text-2xl font-serif font-bold text-white mb-1">Share Traveler Dispatch</h3>
+                                        <p className="text-xs text-slate-300/80">Help fellow travelers with ground-truth advice from your trip.</p>
+                                    </div>
 
-                {/* Cyber Filter Tabs */}
-                <Tabs defaultValue="All" className="mb-12 flex justify-center" onValueChange={setActiveTab}>
-                    <div className="p-1.5 rounded-full bg-black/40 border border-white/10 backdrop-blur-md inline-flex overflow-x-auto max-w-full custom-scrollbar">
-                        <TabsList className="bg-transparent h-12 flex items-center gap-1 shrink-0 p-0">
-                            {[
-                                { id: 'All', icon: null },
-                                { id: 'Trips', icon: <Plane className="w-4 h-4 group-data-[state=active]:text-[#FF007F] transition-colors" /> },
-                                { id: 'Itineraries', icon: <Map className="w-4 h-4 group-data-[state=active]:text-[#00D4FF] transition-colors" /> },
-                                { id: 'Visa Intel', icon: <FileText className="w-4 h-4 group-data-[state=active]:text-[#00FFB3] transition-colors" /> },
-                                { id: 'Tips', icon: <Lightbulb className="w-4 h-4 group-data-[state=active]:text-[#FFD700] transition-colors" /> }
-                            ].map((tab) => (
-                                <TabsTrigger 
-                                    key={tab.id}
-                                    value={tab.id} 
-                                    className="group rounded-full px-6 h-full data-[state=active]:bg-white/10 data-[state=active]:shadow-inner font-bold tracking-widest uppercase text-[10px] text-white/50 data-[state=active]:text-white transition-all flex items-center gap-2"
-                                >
-                                    {tab.icon}
-                                    {tab.id}
-                                </TabsTrigger>
-                            ))}
-                        </TabsList>
-                    </div>
-                </Tabs>
+                                    <div className="flex flex-wrap gap-2 pt-1">
+                                        {[
+                                            { id: 'micro_tip', label: 'Local Tip' },
+                                            { id: 'trip_experience', label: 'Trip Report' },
+                                            { id: 'visa_experience', label: 'Visa / Border Intel' },
+                                            { id: 'itinerary_snapshot', label: 'Route Highlight' },
+                                        ].map((t) => (
+                                            <button
+                                                key={t.id}
+                                                type="button"
+                                                onClick={() => setPostType(t.id as any)}
+                                                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                                                    postType === t.id ? 'bg-white text-slate-950 font-semibold' : 'apple-glass-pill text-slate-300 hover:text-white'
+                                                }`}
+                                            >
+                                                {t.label}
+                                            </button>
+                                        ))}
+                                    </div>
 
-                {/* 3D Floating Grid Container */}
-                {isLoading ? (
-                    <div className="flex flex-col items-center justify-center py-32 space-y-4">
-                        <Loader2 className="w-12 h-12 animate-spin text-white/50" />
-                        <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-white/50">Developing Polaroids...</span>
-                    </div>
-                ) : filteredPosts.length === 0 ? (
-                    <div className="text-center py-32">
-                        <div className="w-24 h-24 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-6">
-                            <MessageSquare className="w-10 h-10 text-white/20" />
-                        </div>
-                        <h3 className="text-2xl font-black mb-2 text-white">The board is empty</h3>
-                        <p className="text-white/40 mb-8 font-light">Add the first memory to this category.</p>
-                    </div>
-                ) : (
-                    <motion.div 
-                        className="w-full transform-style-3d perspective-[2000px]"
-                        style={{ rotateX, rotateY }}
-                    >
-                        {/* CSS Columns for Masonry Layout */}
-                        <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-8 space-y-8 pb-32">
-                            <AnimatePresence>
-                                {filteredPosts.map((post, index) => (
-                                    <PremiumGalleryCard 
-                                        key={post.id} 
-                                        post={post} 
-                                        index={index} 
-                                    />
-                                ))}
-                            </AnimatePresence>
-                        </div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="text-[11px] font-mono uppercase text-slate-300 mb-1 block">City</label>
+                                            <Input
+                                                required
+                                                placeholder="e.g. Kyoto"
+                                                value={cityInput}
+                                                onChange={(e) => setCityInput(e.target.value)}
+                                                className="h-11 rounded-2xl bg-slate-950/70 border-white/10 text-white text-sm"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[11px] font-mono uppercase text-slate-300 mb-1 block">Country</label>
+                                            <Input
+                                                placeholder="e.g. Japan"
+                                                value={countryInput}
+                                                onChange={(e) => setCountryInput(e.target.value)}
+                                                className="h-11 rounded-2xl bg-slate-950/70 border-white/10 text-white text-sm"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="text-[11px] font-mono uppercase text-slate-300 mb-1 block">Your Tip or Field Note</label>
+                                        <Textarea
+                                            required
+                                            rows={4}
+                                            placeholder="Share a transit shortcut, best time to visit, border tip, or favorite local spot..."
+                                            value={contentInput}
+                                            onChange={(e) => setContentInput(e.target.value)}
+                                            className="rounded-2xl bg-slate-950/70 border-white/10 text-white text-sm resize-none"
+                                        />
+                                    </div>
+
+                                    <button
+                                        type="submit"
+                                        disabled={isSubmitting || !cityInput.trim() || !contentInput.trim()}
+                                        className="w-full h-12 rounded-2xl btn-apple-primary text-sm font-semibold inline-flex items-center justify-center gap-2 disabled:opacity-45"
+                                    >
+                                        {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                                        <span>{isSubmitting ? 'Publishing…' : 'Publish Dispatch'}</span>
+                                    </button>
+                                </form>
+                            )}
+                        </motion.div>
                     </motion.div>
                 )}
+            </AnimatePresence>
+
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                {/* Header */}
+                <div className="flex flex-col justify-center items-center text-center mb-10 relative">
+                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full apple-glass-pill text-[11px] font-mono uppercase tracking-wider text-slate-300 mb-5">
+                        <Globe className="w-3.5 h-3.5 text-sky-300" />
+                        <span>Traveler Field Dispatches</span>
+                    </div>
+
+                    <h1 className="font-serif text-4xl sm:text-6xl font-bold text-white mb-4 tracking-tight">
+                        Community Intelligence
+                    </h1>
+                    <p className="text-base text-slate-300/80 max-w-2xl leading-relaxed mb-7">
+                        Ground-truth transit shortcuts, border clearance experiences, and neighborhood recommendations shared by global travelers.
+                    </p>
+
+                    <button
+                        type="button"
+                        onClick={() => setComposerOpen(true)}
+                        className="btn-apple-primary rounded-full px-6 h-11 text-xs font-semibold inline-flex items-center gap-2"
+                    >
+                        <Sparkles className="w-3.5 h-3.5" /> Share Field Tip
+                    </button>
+                </div>
+
+                {/* Apple Liquid Glass Segmented Filter Bar */}
+                <div className="flex justify-center mb-12">
+                    <div className="apple-liquid-glass p-1.5 rounded-full inline-flex items-center gap-1 overflow-x-auto max-w-full">
+                        {categories.map((tab) => {
+                            const isActive = activeTab === tab.id;
+                            return (
+                                <button
+                                    key={tab.id}
+                                    type="button"
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={`relative px-4 py-2 rounded-full text-xs font-medium transition-colors flex items-center gap-1.5 whitespace-nowrap ${
+                                        isActive ? 'text-slate-950 font-semibold' : 'text-slate-300 hover:text-white'
+                                    }`}
+                                >
+                                    {isActive && (
+                                        <motion.div
+                                            layoutId="community-tab-pill"
+                                            transition={{ type: 'spring', stiffness: 420, damping: 32 }}
+                                            className="absolute inset-0 rounded-full bg-gradient-to-b from-white via-slate-100 to-slate-200 shadow-sm"
+                                        />
+                                    )}
+                                    <span className="relative z-10">{tab.icon}</span>
+                                    <span className="relative z-10">{tab.id}</span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* Grid Container */}
+                {isLoading ? (
+                    <div className="flex flex-col items-center justify-center py-24 space-y-3">
+                        <Loader2 className="w-7 h-7 animate-spin text-sky-300" />
+                        <span className="font-mono text-xs text-slate-400">Loading Traveler Dispatches…</span>
+                    </div>
+                ) : filteredPosts.length === 0 ? (
+                    <div className="text-center py-20 apple-glass-card rounded-3xl border-dashed max-w-md mx-auto">
+                        <MessageSquare className="w-8 h-8 text-slate-400 mx-auto mb-3" />
+                        <h3 className="font-serif text-lg font-bold text-white mb-1">No dispatches in this category yet</h3>
+                        <p className="text-slate-400 text-xs mb-5">Be the first traveler to share an update here.</p>
+                        <button onClick={() => setComposerOpen(true)} className="btn-apple-primary px-5 py-2 rounded-full text-xs font-semibold">
+                            Share Field Tip
+                        </button>
+                    </div>
+                ) : (
+                    <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6 pb-16">
+                        {filteredPosts.map((post, index) => (
+                            <GalleryCard key={post.id} post={post} index={index} />
+                        ))}
+                    </div>
+                )}
             </div>
-            
-            <style jsx global>{`
-                .custom-scrollbar::-webkit-scrollbar { height: 4px; }
-                .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-                .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
-            `}</style>
         </div>
     );
 }

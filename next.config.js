@@ -51,14 +51,15 @@ const nextConfig = {
                         key: 'Content-Security-Policy',
                         value: [
                             "default-src 'self'",
-                            "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://tp-em.com http://tp-em.com https://maps.googleapis.com https://maps.gstatic.com",
+                            "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://tp-em.com http://tp-em.com https://maps.googleapis.com https://maps.gstatic.com https://www.clarity.ms https://*.clarity.ms https://va.vercel-scripts.com",
                             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://tp-em.com http://tp-em.com",
                             "font-src 'self' https://fonts.gstatic.com https://tp-em.com http://tp-em.com",
                             // Allow self, data URIs, blobs, and all HTTPS image sources (avatars, noise textures, maps, etc.)
                             "img-src 'self' data: blob: https:",
                             "media-src 'self' blob:",
                             // ws/wss needed for Next.js HMR in dev; include all known external API origins
-                            "connect-src 'self' ws: wss: https://tp-em.com http://tp-em.com https://*.supabase.co https://generativelanguage.googleapis.com https://api.elevenlabs.io https://api.amadeus.com https://maps.googleapis.com https://maps.gstatic.com https://places.googleapis.com https://routes.googleapis.com https://aerialview.googleapis.com https://weather.googleapis.com https://airquality.googleapis.com https://api.mapbox.com https://api.resend.com https://tpu.googleapis.com",
+                            "connect-src 'self' ws: wss: https://tp-em.com http://tp-em.com https://*.supabase.co https://generativelanguage.googleapis.com https://api.elevenlabs.io https://api.amadeus.com https://maps.googleapis.com https://maps.gstatic.com https://places.googleapis.com https://routes.googleapis.com https://aerialview.googleapis.com https://weather.googleapis.com https://airquality.googleapis.com https://api.mapbox.com https://api.resend.com https://tpu.googleapis.com https://*.clarity.ms https://c.bing.com https://va.vercel-scripts.com https://vitals.vercel-insights.com",
+                            "frame-src https://www.google.com https://maps.google.com",
                             "frame-ancestors 'none'",
                         ].join('; '),
                     },

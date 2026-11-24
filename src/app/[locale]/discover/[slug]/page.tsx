@@ -2,63 +2,85 @@ import { notFound } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
 import { Metadata } from 'next';
 import Image from 'next/image';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Link, routing } from '@/i18n/routing';
 import {
     MapPin, Thermometer, Wifi, DollarSign,
     Shield, Calendar, ChevronLeft, Lightbulb,
-    Info, Compass, Star
+    Info, Compass, Star, ArrowRight, Sparkles, Search
 } from 'lucide-react';
 import Script from 'next/script';
-import { routing } from '@/i18n/routing';
+import { destinations as curatedDestinations } from '@/data/destinations';
 
-// Tell Next.js to pre-render all standard city slugs at build time
+function findCuratedDestination(slug: string) {
+    const clean = slug.toLowerCase().trim();
+    return curatedDestinations.find(
+        (d) =>
+            d.slug === clean ||
+            d.slug.startsWith(`${clean}-`) ||
+            d.name.toLowerCase().replace(/\s+/g, '-') === clean
+    );
+}
+
+// Pre-render curated + DB city slugs at build time
 export async function generateStaticParams() {
-    const params: { locale: string; slug: string }[] = [];
-
-    // We can't easily await inside generateStaticParams synchronously without making the whole thing async
-    // Since Next.js supports async generateStaticParams, we can fetch from Supabase.
+    const slugSet = new Set<string>(curatedDestinations.map((d) => d.slug));
 
     try {
         const supabase = await createClient();
-        const { data: destinations } = await supabase.from('destinations').select('slug');
-
-        if (destinations) {
-            for (const locale of routing.locales) {
-                for (const dest of destinations) {
-                    if (dest.slug) {
-                        params.push({ locale, slug: dest.slug });
-                    }
-                }
+        const { data: dbDests } = await supabase.from('destinations').select('slug');
+        if (dbDests) {
+            for (const dest of dbDests) {
+                if (dest.slug) slugSet.add(dest.slug);
             }
         }
-    } catch (error) {
-        console.error("Error generating static params for destinations:", error);
+    } catch {
+        // Curated slugs still pre-render cleanly
     }
 
+    const allSlugs = Array.from(slugSet);
+    const params: { locale: string; slug: string }[] = [];
+    for (const locale of routing.locales) {
+        for (const slug of allSlugs) {
+            params.push({ locale, slug });
+        }
+    }
     return params;
 }
 
-// Dynamically generate SEO metadata based on the city slug
+// Dynamically generate SEO metadata from DB or curated destination
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
     const resolvedParams = await params;
 
-    const supabase = await createClient();
-    const { data: dest } = await supabase
-        .from('destinations')
-        .select('name, country, meta_title, meta_description, image_url')
-        .eq('slug', resolvedParams.slug)
-        .single();
-
-    if (!dest) {
-        return { title: 'Destination Not Found' };
+    let dbDest: any = null;
+    try {
+        const supabase = await createClient();
+        const { data } = await supabase
+            .from('destinations')
+            .select('name, country, meta_title, meta_description, image_url')
+            .eq('slug', resolvedParams.slug)
+            .single();
+        dbDest = data;
+    } catch {
+        // Fallback to curated catalog
     }
 
-    const title = dest.meta_title || `${dest.name}, ${dest.country} Travel Guide | iWillTravel`;
-    const description = dest.meta_description || `Discover the best of ${dest.name}. Detailed travel guides, costs, tips, and attractions.`;
-    const headerImage = dest.image_url || 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&q=80';
+    const curated = findCuratedDestination(resolvedParams.slug);
+    const name = dbDest?.name || curated?.name;
+    const country = dbDest?.country || curated?.country;
+
+    if (!name) {
+        return { title: 'Destination Not Found | iWillTravel' };
+    }
+
+    const title = dbDest?.meta_title || `${name}, ${country} Travel Guide — Costs, Best Season & Tips | iWillTravel`;
+    const description =
+        dbDest?.meta_description ||
+        curated?.heroDescription ||
+        `Discover ${name}, ${country}: daily costs, safety index, optimal travel months, neighborhood highlights, and AI itinerary planning.`;
+    const headerImage =
+        dbDest?.image_url ||
+        curated?.image ||
+        'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&q=80';
 
     return {
         title,
@@ -75,80 +97,129 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
             title,
             description,
             images: [headerImage],
-        }
+        },
     };
 }
 
 export default async function CityTravelGuidePage({ params }: { params: Promise<{ locale: string; slug: string }> }) {
     const resolvedParams = await params;
 
-    const supabase = await createClient();
-    const { data: dbDest } = await supabase
-        .from('destinations')
-        .select('*')
-        .eq('slug', resolvedParams.slug)
-        .single();
+    let dbDest: any = null;
+    try {
+        const supabase = await createClient();
+        const { data } = await supabase
+            .from('destinations')
+            .select('*')
+            .eq('slug', resolvedParams.slug)
+            .single();
+        dbDest = data;
+    } catch {
+        // Seamless fallback to curated data
+    }
 
-    if (!dbDest) {
+    const curated = findCuratedDestination(resolvedParams.slug);
+
+    if (!dbDest && !curated) {
         notFound();
     }
 
-    // Map DB fields back to the format the UI expects
+    const dailyCost = dbDest?.cost_estimate_weekly
+        ? Math.round(dbDest.cost_estimate_weekly / 7)
+        : curated?.cost || 115;
+    const weeklyCost = dbDest?.cost_estimate_weekly || dailyCost * 7;
+
+    const cityName = dbDest?.name || curated!.name;
+    const countryName = dbDest?.country || curated!.country;
+
     const dest = {
-        id: dbDest.id,
-        slug: dbDest.slug,
-        name: dbDest.name,
-        country: dbDest.country,
-        image: dbDest.image_url || 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&q=80',
-        cost: dbDest.cost_per_day || 0,
-        safety: dbDest.safety_score || 0,
-        temp: dbDest.temperature || 0,
-        internet: dbDest.internet_speed || 0,
-        tags: dbDest.vibes || [],
-        metaTitle: dbDest.meta_title || '',
-        metaDescription: dbDest.meta_description || '',
-        heroDescription: dbDest.hero_description || '',
-        overview: dbDest.overview || '',
-        bestTimeToVisit: {
-            months: dbDest.best_time_months || '',
-            reason: dbDest.best_time_reason || ''
+        id: dbDest?.id || curated?.id || resolvedParams.slug,
+        slug: dbDest?.slug || curated?.slug || resolvedParams.slug,
+        name: cityName,
+        country: countryName,
+        image:
+            dbDest?.image_url ||
+            curated?.image ||
+            'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&q=80',
+        tags: dbDest?.tags || curated?.tags || ['Cultural', 'Sightseeing'],
+        dailyCost,
+        weeklyCost,
+        temp: dbDest?.climate_temp_c ?? curated?.temp ?? 22,
+        internet: dbDest?.internet_speed_mbps ?? curated?.internet ?? 100,
+        safety: dbDest?.safety_rating ?? curated?.safety ?? 8.5,
+        heroDescription:
+            dbDest?.hero_description ||
+            curated?.heroDescription ||
+            `Experience the neighborhoods, culinary scene, and architectural heritage of ${cityName}.`,
+        overview:
+            dbDest?.overview ||
+            curated?.overview ||
+            `${cityName} offers rich neighborhood variety best explored with geo-clustered daily planning.`,
+        bestTimeToVisit: dbDest?.best_time_to_visit || {
+            months: curated?.bestMonths || 'Spring & Autumn',
+            reason: curated?.bestSeasonReason || 'Comfortable temperatures, clear skies, and lighter queues at major landmarks.',
         },
-        topAttractions: dbDest.top_attractions || [],
-        localTips: dbDest.local_tips || [],
-        costBreakdown: dbDest.cost_breakdown || [],
-        faqs: dbDest.faqs || []
+        topAttractions:
+            (Array.isArray(dbDest?.top_attractions) && dbDest.top_attractions.length > 0
+                ? dbDest.top_attractions
+                : curated?.highlights) || [],
+        localTips:
+            (Array.isArray(dbDest?.local_tips) && dbDest.local_tips.length > 0
+                ? dbDest.local_tips
+                : curated?.localTips) || [],
+        costBreakdown:
+            (Array.isArray(dbDest?.cost_breakdown) && dbDest.cost_breakdown.length > 0
+                ? dbDest.cost_breakdown
+                : [
+                    { category: 'Accommodation (7 nights)', amount: Math.round(weeklyCost * 0.46) },
+                    { category: 'Dining & Local Cafés', amount: Math.round(weeklyCost * 0.30) },
+                    { category: 'Transit, Museums & Experiences', amount: Math.round(weeklyCost * 0.24) },
+                ]),
+        faqs:
+            (Array.isArray(dbDest?.faqs) && dbDest.faqs.length > 0
+                ? dbDest.faqs
+                : [
+                    {
+                        q: `How many days should I plan for ${cityName}?`,
+                        a: `Most travelers find 4 to 7 days ideal for exploring ${cityName}’s core neighborhoods without rushing, plus one regional day excursion.`,
+                    },
+                    {
+                        q: `Do I need a visa to visit ${countryName}?`,
+                        a: `Entry rules depend on your passport nationality. Use our Visa & Border Hub to verify visa-free stays, e-visas, and required documents for ${countryName}.`,
+                    },
+                ]),
     };
 
-    // Structured Data (JSON-LD) for rich Google Search results
     const jsonLd = {
-        "@context": "https://schema.org",
-        "@graph": [
+        '@context': 'https://schema.org',
+        '@graph': [
             {
-                "@type": "TouristDestination",
-                "name": dest.name,
-                "description": dest.overview,
-                "image": dest.image,
-                "touristType": dest.tags.map((tag: string) => ({
-                    "@type": "Audience",
-                    "audienceType": tag
-                }))
+                '@type': 'TouristDestination',
+                name: dest.name,
+                description: dest.heroDescription,
+                image: dest.image,
+                touristType: dest.tags.map((tag: string) => ({
+                    '@type': 'Audience',
+                    audienceType: tag,
+                })),
             },
             {
-                "@type": "FAQPage",
-                "mainEntity": dest.faqs.map((faq: any) => ({
-                    "@type": "Question",
-                    "name": faq.q,
-                    "acceptedAnswer": {
-                        "@type": "Answer",
-                        "text": faq.a
-                    }
-                }))
-            }
-        ]
+                '@type': 'FAQPage',
+                mainEntity: dest.faqs.map((faq: any) => ({
+                    '@type': 'Question',
+                    name: faq.q,
+                    acceptedAnswer: {
+                        '@type': 'Answer',
+                        text: faq.a,
+                    },
+                })),
+            },
+        ],
     };
 
+    const paragraphs = dest.overview.split(/\n\n+/).filter(Boolean);
+
     return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-[#0b0c0f] text-slate-100 font-body relative overflow-x-clip">
             <Script
                 id="destination-jsonld"
                 type="application/ld+json"
@@ -156,7 +227,7 @@ export default async function CityTravelGuidePage({ params }: { params: Promise<
             />
 
             {/* Hero Section */}
-            <div className="relative h-[60vh] md:h-[70vh] w-full">
+            <div className="relative h-[56vh] md:h-[64vh] w-full overflow-hidden border-b border-white/[0.08]">
                 <div className="absolute inset-0">
                     <Image
                         src={dest.image}
@@ -164,33 +235,39 @@ export default async function CityTravelGuidePage({ params }: { params: Promise<
                         fill
                         priority
                         sizes="100vw"
-                        className="object-cover"
+                        className="object-cover opacity-75"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-background via-black/40 to-black/20" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0b0c0f] via-[#0b0c0f]/55 to-transparent" />
                 </div>
 
                 <div className="absolute inset-0 flex flex-col justify-end">
-                    <div className="container pb-10">
-                        <Link href={`/${resolvedParams.locale}/discover`} className="inline-flex items-center text-sm font-medium text-white/80 hover:text-white mb-6 bg-black/20 px-3 py-1.5 rounded-full backdrop-blur-sm border border-white/10 transition-colors">
-                            <ChevronLeft className="w-4 h-4 mr-1" /> Back to Discover
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 w-full">
+                        <Link
+                            href="/discover"
+                            className="inline-flex items-center text-xs font-medium text-slate-200 hover:text-white mb-6 apple-liquid-glass px-3.5 py-1.5 rounded-full transition-colors"
+                        >
+                            <ChevronLeft className="w-3.5 h-3.5 mr-1" /> All Destinations
                         </Link>
 
                         <div className="flex flex-wrap gap-2 mb-4">
                             {dest.tags.map((tag: string) => (
-                                <Badge key={tag} className="bg-primary hover:bg-primary/90 text-white border-none font-semibold px-3 py-1">
+                                <span
+                                    key={tag}
+                                    className="px-3 py-0.5 rounded-full text-[11px] font-mono uppercase tracking-wider apple-glass-pill text-slate-100"
+                                >
                                     {tag}
-                                </Badge>
+                                </span>
                             ))}
                         </div>
 
-                        <h1 className="text-5xl md:text-7xl font-black text-white tracking-tight mb-4 drop-shadow-lg">
+                        <h1 className="font-heading text-4xl sm:text-6xl md:text-7xl font-bold text-white mb-2 tracking-tight">
                             {dest.name}
                         </h1>
-                        <div className="flex items-center text-xl md:text-2xl text-white/90 font-medium mb-6 drop-shadow-md">
-                            <MapPin className="w-6 h-6 mr-2 text-sunset" /> {dest.country}
+                        <div className="flex items-center text-sm md:text-base text-slate-300 mb-4">
+                            <MapPin className="w-4 h-4 mr-1.5 text-sky-300" /> {dest.country}
                         </div>
 
-                        <p className="text-lg md:text-xl text-white/90 max-w-3xl font-medium leading-relaxed drop-shadow-md">
+                        <p className="text-sm md:text-base text-slate-200/90 max-w-2xl leading-relaxed">
                             {dest.heroDescription}
                         </p>
                     </div>
@@ -198,150 +275,189 @@ export default async function CityTravelGuidePage({ params }: { params: Promise<
             </div>
 
             {/* Main Content Container */}
-            <div className="container py-12">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
 
-                    {/* Left Column: Extensive Content (SEO Goldmine) */}
-                    <div className="lg:col-span-2 space-y-12">
+                    {/* Left Column */}
+                    <div className="lg:col-span-2 space-y-8">
 
-                        {/* Quick Stats Banner */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-card border rounded-3xl p-6 shadow-sm">
+                        {/* Traveler Telemetry Banner */}
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 apple-glass-card rounded-[26px] p-6 tabular-nums">
                             <div className="flex flex-col gap-1 items-center text-center">
-                                <DollarSign className="w-6 h-6 text-emerald-500 mb-1" />
-                                <span className="text-sm text-muted-foreground font-semibold uppercase tracking-wider">Est. Cost</span>
-                                <span className="text-lg font-black">${dest.cost} <span className="text-sm font-normal text-muted-foreground">/w</span></span>
+                                <DollarSign className="w-5 h-5 text-emerald-400 mb-1" />
+                                <span className="text-[10px] text-slate-400 font-mono uppercase tracking-wider">Avg Daily</span>
+                                <span className="text-lg font-heading font-bold text-white">
+                                    ${dest.dailyCost}<span className="text-xs font-mono text-slate-400 font-normal">/day</span>
+                                </span>
                             </div>
                             <div className="flex flex-col gap-1 items-center text-center">
-                                <Shield className="w-6 h-6 text-blue-500 mb-1" />
-                                <span className="text-sm text-muted-foreground font-semibold uppercase tracking-wider">Safety</span>
-                                <span className="text-lg font-black">{dest.safety}<span className="text-sm font-normal text-muted-foreground">/10</span></span>
+                                <Shield className="w-5 h-5 text-sky-300 mb-1" />
+                                <span className="text-[10px] text-slate-400 font-mono uppercase tracking-wider">Safety Index</span>
+                                <span className="text-lg font-heading font-bold text-white">
+                                    {dest.safety}<span className="text-xs font-mono text-slate-400 font-normal">/10</span>
+                                </span>
                             </div>
                             <div className="flex flex-col gap-1 items-center text-center">
-                                <Thermometer className="w-6 h-6 text-orange-500 mb-1" />
-                                <span className="text-sm text-muted-foreground font-semibold uppercase tracking-wider">Climate</span>
-                                <span className="text-lg font-black">{dest.temp}°C</span>
+                                <Thermometer className="w-5 h-5 text-amber-300 mb-1" />
+                                <span className="text-[10px] text-slate-400 font-mono uppercase tracking-wider">Avg Climate</span>
+                                <span className="text-lg font-heading font-bold text-white">{dest.temp}°C</span>
                             </div>
                             <div className="flex flex-col gap-1 items-center text-center">
-                                <Wifi className="w-6 h-6 text-sky-500 mb-1" />
-                                <span className="text-sm text-muted-foreground font-semibold uppercase tracking-wider">Internet</span>
-                                <span className="text-lg font-black">{dest.internet} <span className="text-sm font-normal text-muted-foreground">Mbps</span></span>
+                                <Wifi className="w-5 h-5 text-indigo-300 mb-1" />
+                                <span className="text-[10px] text-slate-400 font-mono uppercase tracking-wider">Avg Wi-Fi</span>
+                                <span className="text-lg font-heading font-bold text-white">
+                                    {dest.internet} <span className="text-xs font-mono text-slate-400 font-normal">Mbps</span>
+                                </span>
                             </div>
                         </div>
 
                         {/* Overview Section */}
-                        <section className="prose prose-lg dark:prose-invert max-w-none">
-                            <h2 className="text-3xl font-black mb-6 border-b pb-4">Overview of {dest.name}</h2>
-                            <div className="text-muted-foreground leading-loose" dangerouslySetInnerHTML={{ __html: dest.overview.replace(/\n\n/g, '<br/><br/>') }} />
+                        <section className="apple-glass-card rounded-[26px] p-6 sm:p-8 space-y-4">
+                            <h2 className="font-heading text-2xl font-bold text-white border-b border-white/[0.08] pb-3">
+                                Destination Overview
+                            </h2>
+                            <div className="text-slate-200/90 text-sm sm:text-base leading-relaxed space-y-4">
+                                {paragraphs.map((para: string, idx: number) => (
+                                    <p key={idx}>{para}</p>
+                                ))}
+                            </div>
                         </section>
 
-                        {/* Best Time to Visit Callout */}
-                        <section className="bg-primary/5 border border-primary/20 rounded-3xl p-8">
-                            <div className="flex items-center gap-3 mb-4">
-                                <Calendar className="w-8 h-8 text-primary" />
-                                <h3 className="text-2xl font-black text-foreground">Best Time To Visit</h3>
+                        {/* Best Time to Visit */}
+                        <section className="apple-glass-card rounded-[26px] p-6 sm:p-8 space-y-3">
+                            <div className="flex items-center gap-2.5 text-amber-200">
+                                <Calendar className="w-5 h-5" />
+                                <h3 className="font-heading text-xl font-bold text-white">Best Time to Visit</h3>
                             </div>
-                            <div className="text-xl font-bold text-primary mb-2">{dest.bestTimeToVisit.months}</div>
-                            <p className="text-muted-foreground leading-relaxed font-medium">{dest.bestTimeToVisit.reason}</p>
+                            <div className="text-sm font-mono font-semibold text-sky-300">{dest.bestTimeToVisit.months}</div>
+                            <p className="text-slate-300 text-sm leading-relaxed">{dest.bestTimeToVisit.reason}</p>
                         </section>
 
                         {/* Top Attractions */}
-                        <section>
-                            <h2 className="text-3xl font-black mb-6 border-b pb-4 flex items-center gap-2"><Star className="w-7 h-7 text-sunset" /> Top Attractions in {dest.name}</h2>
-                            <div className="grid sm:grid-cols-2 gap-4">
-                                {dest.topAttractions.map((attr: any, i: number) => (
-                                    <Card key={i} className="bg-card hover:border-primary/50 transition-colors">
-                                        <CardContent className="p-5">
-                                            <h4 className="text-xl font-bold text-foreground mb-2">{attr.name}</h4>
-                                            <p className="text-sm text-muted-foreground leading-relaxed">{attr.description}</p>
-                                        </CardContent>
-                                    </Card>
-                                ))}
-                            </div>
-                        </section>
+                        {dest.topAttractions.length > 0 && (
+                            <section className="space-y-4">
+                                <h2 className="font-heading text-2xl font-bold text-white flex items-center gap-2">
+                                    <Star className="w-5 h-5 text-amber-300" /> Essential Neighborhoods & Sights
+                                </h2>
+                                <div className="grid sm:grid-cols-2 gap-4">
+                                    {dest.topAttractions.map((attr: any, i: number) => (
+                                        <div key={i} className="apple-glass-card card-3d-interactive rounded-2xl p-5">
+                                            <h4 className="font-heading text-base font-bold text-white mb-1.5">{attr.name}</h4>
+                                            <p className="text-xs sm:text-sm text-slate-300/85 leading-relaxed">{attr.description}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+                        )}
 
                         {/* Local Tips */}
-                        <section>
-                            <h2 className="text-3xl font-black mb-6 border-b pb-4 flex items-center gap-2"><Lightbulb className="w-7 h-7 text-yellow-500" /> Insider Tips for Travelers</h2>
-                            <ul className="space-y-4">
-                                {dest.localTips.map((tip: string, i: number) => (
-                                    <li key={i} className="flex items-start gap-3 bg-muted/50 p-4 rounded-2xl">
-                                        <div className="mt-0.5 bg-yellow-500/20 p-1.5 rounded-full shrink-0">
-                                            <Info className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
+                        {dest.localTips.length > 0 && (
+                            <section className="space-y-4">
+                                <h2 className="font-heading text-2xl font-bold text-white flex items-center gap-2">
+                                    <Lightbulb className="w-5 h-5 text-amber-300" /> Practical Traveler Tips
+                                </h2>
+                                <div className="space-y-3">
+                                    {dest.localTips.map((tip: string, i: number) => (
+                                        <div key={i} className="apple-glass-card rounded-2xl p-4 flex items-start gap-3">
+                                            <div className="mt-0.5 p-1.5 rounded-xl apple-glass-pill text-sky-300 shrink-0">
+                                                <Info className="w-3.5 h-3.5" />
+                                            </div>
+                                            <span className="text-xs sm:text-sm text-slate-200 leading-relaxed">{tip}</span>
                                         </div>
-                                        <span className="text-foreground font-medium leading-relaxed">{tip}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </section>
+                                    ))}
+                                </div>
+                            </section>
+                        )}
 
-                        {/* FAQ Section (For FAQ Schema) */}
-                        <section>
-                            <h2 className="text-3xl font-black mb-6 border-b pb-4">Frequently Asked Questions</h2>
-                            <div className="space-y-4">
+                        {/* FAQ Section */}
+                        <section className="space-y-4">
+                            <h2 className="font-heading text-2xl font-bold text-white">Frequently Asked Questions</h2>
+                            <div className="space-y-3">
                                 {dest.faqs.map((faq: any, i: number) => (
-                                    <div key={i} className="border rounded-2xl p-6 bg-card">
-                                        <h4 className="text-lg font-bold text-foreground mb-3">{faq.q}</h4>
-                                        <p className="text-muted-foreground leading-relaxed">{faq.a}</p>
+                                    <div key={i} className="apple-glass-card rounded-2xl p-5">
+                                        <h4 className="font-semibold text-sm text-white mb-1.5">{faq.q}</h4>
+                                        <p className="text-xs sm:text-sm text-slate-300/85 leading-relaxed">{faq.a}</p>
                                     </div>
                                 ))}
                             </div>
                         </section>
                     </div>
 
-                    {/* Right Column: Sticky Sidebar */}
+                    {/* Right Column: Sticky Traveler Action Card */}
                     <div className="lg:col-span-1">
                         <div className="sticky top-24 space-y-6">
 
-                            {/* CTA Card */}
-                            <Card className="border-primary/20 shadow-lg bg-card/50 backdrop-blur-sm overflow-hidden border-2">
-                                <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-50 pointer-events-none" />
-                                <CardContent className="p-8 relative z-10">
-                                    <div className="w-14 h-14 bg-primary/20 rounded-2xl flex items-center justify-center mb-6">
-                                        <Compass className="w-8 h-8 text-primary" />
-                                    </div>
-                                    <h3 className="text-2xl font-black mb-2">Ready to visit {dest.name}?</h3>
-                                    <p className="text-muted-foreground mb-6 font-medium">Let our AI build a personalized itinerary for you, completely free.</p>
-                                    <Link href={`/${resolvedParams.locale}/plan-trip?destination=${encodeURIComponent(dest.name)}`} className="w-full">
-                                        <Button className="w-full h-14 text-lg font-bold rounded-xl shadow-xl shadow-primary/20 hover:scale-[1.02] transition-transform">
-                                            Plan Your Trip Now
-                                        </Button>
+                            {/* Primary AI Planner CTA Card */}
+                            <div className="apple-liquid-glass rounded-[28px] p-7 text-left space-y-4">
+                                <div className="w-11 h-11 rounded-2xl apple-glass-pill flex items-center justify-center text-sky-300">
+                                    <Compass className="w-5 h-5" />
+                                </div>
+                                <h3 className="font-heading text-2xl font-bold text-white">
+                                    Plan Your Trip to {dest.name}
+                                </h3>
+                                <p className="text-xs sm:text-sm text-slate-200/85 leading-relaxed">
+                                    Generate a neighborhood-clustered day-by-day itinerary with verified Google Places stops, transit times, flights, and hotels.
+                                </p>
+                                <div className="space-y-2.5 pt-2">
+                                    <Link
+                                        href={`/plan-trip?destination=${encodeURIComponent(`${dest.name}, ${dest.country}`)}` as any}
+                                        className="block"
+                                    >
+                                        <button className="w-full h-12 text-xs sm:text-sm rounded-full btn-apple-primary inline-flex items-center justify-center gap-2">
+                                            <Sparkles className="w-4 h-4" />
+                                            <span>Build {dest.name} Itinerary</span>
+                                            <ArrowRight className="w-4 h-4" />
+                                        </button>
                                     </Link>
-                                </CardContent>
-                            </Card>
+                                    <Link href="/visa-hub" className="block">
+                                        <button className="w-full h-10 text-xs font-medium rounded-full btn-apple-glass inline-flex items-center justify-center gap-2">
+                                            <Shield className="w-3.5 h-3.5 text-emerald-300" />
+                                            <span>Check {dest.country} Visa Rules</span>
+                                        </button>
+                                    </Link>
+                                    <Link href="/travel-research" className="block">
+                                        <button className="w-full h-10 text-xs font-medium rounded-full btn-apple-glass inline-flex items-center justify-center gap-2">
+                                            <Search className="w-3.5 h-3.5 text-sky-300" />
+                                            <span>Deep-Dive Local Research</span>
+                                        </button>
+                                    </Link>
+                                </div>
+                            </div>
 
-                            {/* Cost Breakdown */}
-                            <Card>
-                                <CardContent className="p-6">
-                                    <h3 className="font-bold text-lg mb-4 uppercase tracking-widest text-muted-foreground text-center border-b pb-4">Weekly Budget</h3>
-                                    <div className="space-y-5 mt-4">
-                                        {dest.costBreakdown.map((item: any, i: number) => {
-                                            // Calculate percentage relative to max cost in breakdown just for visual bar
-                                            const maxCost = Math.max(...dest.costBreakdown.map((c: any) => c.amount));
-                                            const widthPercent = Math.max(10, Math.round((item.amount / maxCost) * 100));
+                            {/* Weekly Cost Breakdown */}
+                            <div className="apple-glass-card rounded-[26px] p-6 space-y-4 tabular-nums">
+                                <h3 className="text-xs font-mono uppercase tracking-wider text-slate-300 border-b border-white/[0.08] pb-3 text-center">
+                                    7-Day Budget Estimate
+                                </h3>
+                                <div className="space-y-4 pt-1">
+                                    {dest.costBreakdown.map((item: any, i: number) => {
+                                        const maxCost = Math.max(...dest.costBreakdown.map((c: any) => c.amount));
+                                        const widthPercent = Math.max(14, Math.round((item.amount / maxCost) * 100));
 
-                                            return (
-                                                <div key={i}>
-                                                    <div className="flex justify-between text-sm font-bold text-foreground mb-2">
-                                                        <span>{item.category}</span>
-                                                        <span>${item.amount}</span>
-                                                    </div>
-                                                    <div className="h-2.5 w-full bg-muted rounded-full overflow-hidden">
-                                                        <div
-                                                            className="h-full bg-primary rounded-full transition-all duration-1000"
-                                                            style={{ width: `${widthPercent}%` }}
-                                                        />
-                                                    </div>
+                                        return (
+                                            <div key={i} className="space-y-1.5">
+                                                <div className="flex justify-between text-xs font-mono text-slate-200">
+                                                    <span>{item.category}</span>
+                                                    <span className="font-semibold text-white">${item.amount}</span>
                                                 </div>
-                                            )
-                                        })}
-                                        <div className="pt-4 border-t mt-4 flex justify-between items-center text-xl font-black">
-                                            <span>Total Est.</span>
-                                            <span className="text-primary">${dest.cost}</span>
-                                        </div>
-                                        <p className="text-xs text-muted-foreground text-center mt-2">Prices are approximate estimates for one person for 7 days.</p>
+                                                <div className="h-1.5 w-full bg-white/[0.07] rounded-full overflow-hidden">
+                                                    <div
+                                                        className="h-full bg-gradient-to-r from-sky-400 to-emerald-300 rounded-full"
+                                                        style={{ width: `${widthPercent}%` }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                    <div className="pt-3 border-t border-white/[0.08] flex justify-between items-center">
+                                        <span className="text-xs text-slate-400 font-mono">7-Day Total (1 Traveler)</span>
+                                        <span className="text-white text-lg font-heading font-bold">${dest.weeklyCost}</span>
                                     </div>
-                                </CardContent>
-                            </Card>
+                                    <p className="text-[11px] text-slate-400 text-center">
+                                        Mid-range estimate (~${dest.dailyCost}/day) excluding international airfare.
+                                    </p>
+                                </div>
+                            </div>
 
                         </div>
                     </div>

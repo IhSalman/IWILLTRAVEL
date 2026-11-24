@@ -22,6 +22,7 @@ import {
     type QuotaResult,
 } from './usage';
 import { PLAN_LIMITS } from './plan-limits';
+import { consumeGuestQuota } from './guest-limit';
 
 type FeatureType = 'itinerary' | 'translation' | 'voice';
 
@@ -53,7 +54,20 @@ export async function requirePlan(
 
     if (error || !user) {
         if (options.allowGuest) {
-            // Guest mode: Give them the free tier limits so they can experience the "Small win"
+            // Guest mode: free tier limits so they can experience the "Small win",
+            // capped per IP per day to protect API costs.
+            if (!(await consumeGuestQuota(feature))) {
+                return {
+                    error: NextResponse.json(
+                        {
+                            error: 'You have used your free guest preview for today. Sign up free to plan more trips.',
+                            signupRequired: true,
+                            limitReached: true,
+                        },
+                        { status: 429 }
+                    ),
+                };
+            }
             return {
                 user: null,
                 supabase,

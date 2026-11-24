@@ -35,10 +35,10 @@ export interface PlanLimits {
 export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
     /**
      * Free — "Try it"
-     * DEV MODE: Unlimited. Change maxItinerariesPerMonth back to 2 before going live.
+     * 2 itineraries per month; extra trips via credit packs or an upgrade.
      */
     free: {
-        maxItinerariesPerMonth: -1, // TODO: set back to 2 for production
+        maxItinerariesPerMonth: 2,
         maxItinerariesTotal: -1,
         maxItineraryDays: -1,
         voiceMinutesPerMonth: 0,

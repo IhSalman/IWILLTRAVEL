@@ -62,9 +62,12 @@ export async function POST(req: Request) {
         // Cache lookup
         const hash = crypto.createHash('sha256').update(JSON.stringify(input)).digest('hex');
         const cacheKey = `agent_itinerary_${hash}`;
-        const cached = await getCache(cacheKey);
+        const cached: any = await getCache(cacheKey);
         if (cached) {
-            return new Response(`event: result\ndata: ${JSON.stringify({ itinerary: cached, agents: [], fromCache: true })}\n\n`, {
+            const payload = cached?.itinerary
+                ? { ...cached, fromCache: true }
+                : { itinerary: cached, flights: [], hotels: [], flightAnalysis: null, agents: [], fromCache: true };
+            return new Response(`event: result\ndata: ${JSON.stringify(payload)}\n\n`, {
                 headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache' }
             });
         }
@@ -72,19 +75,21 @@ export async function POST(req: Request) {
         const encoder = new TextEncoder();
         const stream = new ReadableStream({
             async start(controller) {
-                const agentLogs: AgentLog[] = [];
-                const pipelineStart = Date.now();
-
-                const streamLog = (agent: string, startMs: number, status: AgentLog['status'], details?: string) => {
-                    const log: AgentLog = { agent, durationMs: Date.now() - startMs, status, details, timestamp: new Date().toISOString() };
-                    agentLogs.push(log);
-                    controller.enqueue(encoder.encode(`event: log\ndata: ${JSON.stringify(log)}\n\n`));
-                };
-
                 try {
-                    const result = await executeItineraryPipeline(input, (log) => {
-                        controller.enqueue(encoder.encode(`event: log\ndata: ${JSON.stringify(log)}\n\n`));
-                    }, { userId: user?.id ?? null });
+                    const result = await executeItineraryPipeline(
+                        input,
+                        (log) => {
+                            controller.enqueue(encoder.encode(`event: log\ndata: ${JSON.stringify(log)}\n\n`));
+                        },
+                        {
+                            userId: user?.id ?? null,
+                            onSkeleton: (skeletonPlan) => {
+                                controller.enqueue(
+                                    encoder.encode(`event: skeleton\ndata: ${JSON.stringify({ plan: skeletonPlan.plan })}\n\n`)
+                                );
+                            },
+                        }
+                    );
 
                     const { itinerary, research, flightAnalysis, agentLogs, totalMs } = result;
 
@@ -103,13 +108,13 @@ export async function POST(req: Request) {
                     // Async cleanup
                     (async () => {
                         if (user) useCredits ? await deductCredits(user.id, 1) : await deductUsage(user.id, 'itinerary', 1);
-                        await setCache(cacheKey, itinerary);
+                        await setCache(cacheKey, resultData);
                         const activeModelName = await getActiveModel();
                         const totalInputTokens = (result.itinerary._tokens?.inputTokens || 0); // Simplified for now
                         const totalOutputTokens = (result.itinerary._tokens?.outputTokens || 0);
                         
                         await logAiUsage({
-                            userId: user ? user.id : 'guest',
+                            userId: user ? user.id : null,
                             featureType: 'agent_itinerary',
                             inputTokens: totalInputTokens,
                             outputTokens: totalOutputTokens,

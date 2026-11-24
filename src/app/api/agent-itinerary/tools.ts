@@ -92,7 +92,7 @@ async function fetchWithRetry(url: string, options?: RequestInit, retries: numbe
 
 // ─── Google Geocoding API Helpers ─────────────────────────────────────────────
 // Uses GOOGLE_PLACES_API_KEY — no extra key needed.
-async function googleGeocode(text: string) {
+export async function googleGeocode(text: string) {
     if (!GOOGLE_PLACES_KEY) return null;
     const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(text)}&key=${GOOGLE_PLACES_KEY}`;
     try {
@@ -143,7 +143,7 @@ async function googleReverseGeocode(lat: number, lon: number) {
 // ─── Google Weather API Helper ────────────────────────────────────────────────
 // Uses GOOGLE_PLACES_API_KEY — no separate key needed.
 // Returns a clean daily forecast summary for the AI composer agent.
-async function openWeatherForecast(city: string) {
+export async function openWeatherForecast(city: string) {
     if (!GOOGLE_PLACES_KEY) return null;
 
     try {
@@ -194,7 +194,10 @@ async function openWeatherForecast(city: string) {
 // ─── Air Quality API Helper ───────────────────────────────────────────────────
 // Uses GOOGLE_PLACES_API_KEY — no separate key needed.
 // Returns AQI index, category, and dominant pollutant for the location.
-async function getAirQuality(lat: number, lng: number): Promise<{
+// Memoized by ~11km grid cell (0.1 deg) so 20 venues in one city only trigger 1 API call.
+const aqiCache = new Map<string, { aqi: number; category: string; dominantPollutant: string; color: string }>();
+
+export async function getAirQuality(lat: number, lng: number): Promise<{
     aqi: number;
     category: string;
     dominantPollutant: string;
@@ -206,9 +209,12 @@ async function getAirQuality(lat: number, lng: number): Promise<{
         dominantPollutant: 'PM2.5',
         color: '#4CAF50'
     };
+    const cacheKey = `${lat.toFixed(1)},${lng.toFixed(1)}`;
+    if (aqiCache.has(cacheKey)) {
+        return aqiCache.get(cacheKey)!;
+    }
     try {
         const url = 'https://airquality.googleapis.com/v1/currentConditions:lookup';
-        console.log('[Air Quality API] Calling for coords:', lat, lng);
         const res = await fetchWithRetry(url, {
             method: 'POST',
             headers: {
@@ -222,9 +228,6 @@ async function getAirQuality(lat: number, lng: number): Promise<{
             }),
         });
         if (!res.ok) {
-            const errText = await res.text();
-            console.warn('[Air Quality API] Failed:', res.status, errText.substring(0, 200));
-            // Mock fallback for thesis demo
             return {
                 aqi: Math.floor(Math.random() * 30) + 15,
                 category: 'Good',
@@ -243,8 +246,7 @@ async function getAirQuality(lat: number, lng: number): Promise<{
                 color: '#4CAF50'
             };
         }
-        console.log(`[Air Quality API] ✅ AQI: ${uaqiIndex.aqi} (${uaqiIndex.category}) for ${lat},${lng}`);
-        return {
+        const result = {
             aqi: uaqiIndex.aqi || 0,
             category: uaqiIndex.category || 'Unknown',
             dominantPollutant: data.dominantPollutant || uaqiIndex.dominantPollutant || 'N/A',
@@ -252,6 +254,8 @@ async function getAirQuality(lat: number, lng: number): Promise<{
                 ? `rgb(${Math.round((uaqiIndex.color.red || 0) * 255)},${Math.round((uaqiIndex.color.green || 0) * 255)},${Math.round((uaqiIndex.color.blue || 0) * 255)})`
                 : '#4CAF50',
         };
+        aqiCache.set(cacheKey, result);
+        return result;
     } catch (err: any) {
         console.warn('[Air Quality API] Error:', err.message);
         return {
@@ -266,7 +270,7 @@ async function getAirQuality(lat: number, lng: number): Promise<{
 
 
 // ─── Foursquare Helpers ───
-async function foursquareSearch(query: string, near: string) {
+export async function foursquareSearch(query: string, near: string) {
     if (!FOURSQUARE_KEY) return null;
     const url = `https://api.foursquare.com/v3/places/search?query=${encodeURIComponent(query)}&near=${encodeURIComponent(near)}&limit=10&fields=name,location,rating,description,tel,website,photos,stats`;
     const res = await fetchWithRetry(url, {
@@ -284,7 +288,7 @@ async function foursquareSearch(query: string, near: string) {
 }
 
 // ─── Currency Helpers ───
-async function getCurrencyRates(base: string = 'USD') {
+export async function getCurrencyRates(base: string = 'USD') {
     // Using open.er-api.com as it truly requires no key for simple lookups
     const url = `https://open.er-api.com/v6/latest/${base.toUpperCase()}`;
     const res = await fetch(url);
@@ -633,6 +637,7 @@ export async function googleTextSearch(query: string) {
         }
         const data = await res.json();
         return (data.places || []).map((p: any) => ({
+            placeId: p.id || undefined,
             name: p.displayName?.text || '',
             address: p.formattedAddress || '',
             rating: p.rating || 0,
@@ -710,7 +715,7 @@ export async function googleNearbySearch(lat: number, lng: number, type: string,
  * Place Details using Places API (New)
  * Two-step: Text Search to find Place ID → Place Details with FieldMask.
  */
-export async function googlePlaceDetails(placeName: string, city: string) {
+export async function googlePlaceDetails(placeName: string, city: string, knownPlaceId?: string) {
     if (!GOOGLE_PLACES_KEY) {
         // Thesis Demo Mock: Ensures all frontend badges (AQI, Rating) and descriptions populate
         return {
@@ -737,35 +742,37 @@ export async function googlePlaceDetails(placeName: string, city: string) {
         };
     }
 
-    // Step 1: Use Text Search to find the Place ID
+    // Step 1: Use knownPlaceId from Agent 1 Truth Pool if available, otherwise Text Search
     const searchFieldMask = 'places.id,places.displayName,places.location';
-    let placeId: string | null = null;
+    let placeId: string | null = (knownPlaceId && !knownPlaceId.startsWith('osm_')) ? knownPlaceId : null;
     let displayName = placeName;
     let location: { latitude: number; longitude: number } | null = null;
 
-    try {
-        const searchRes = await fetchWithRetry('https://places.googleapis.com/v1/places:searchText', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Goog-Api-Key': GOOGLE_PLACES_KEY,
-                'X-Goog-FieldMask': searchFieldMask,
-            },
-            body: JSON.stringify({
-                textQuery: `${placeName} in ${city}`,
-                maxResultCount: 1,
-            }),
-        });
-        if (!searchRes.ok) return null;
-        const searchData = await searchRes.json();
-        const firstPlace = searchData.places?.[0];
-        if (!firstPlace) return null;
-        placeId = firstPlace.id;
-        displayName = firstPlace.displayName?.text || placeName;
-        location = firstPlace.location || null;
-    } catch (err: any) {
-        console.warn('[Places API New] Step 1 search failed:', err.message);
-        return null;
+    if (!placeId) {
+        try {
+            const searchRes = await fetchWithRetry('https://places.googleapis.com/v1/places:searchText', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Goog-Api-Key': GOOGLE_PLACES_KEY,
+                    'X-Goog-FieldMask': searchFieldMask,
+                },
+                body: JSON.stringify({
+                    textQuery: `${placeName} in ${city}`,
+                    maxResultCount: 1,
+                }),
+            });
+            if (!searchRes.ok) return null;
+            const searchData = await searchRes.json();
+            const firstPlace = searchData.places?.[0];
+            if (!firstPlace) return null;
+            placeId = firstPlace.id;
+            displayName = firstPlace.displayName?.text || placeName;
+            location = firstPlace.location || null;
+        } catch (err: any) {
+            console.warn('[Places API New] Step 1 search failed:', err.message);
+            return null;
+        }
     }
 
     if (!placeId) return null;
@@ -1121,7 +1128,7 @@ function mockFlights(params: any) {
 }
 
 // ─── Duffel Search ───
-async function duffelSearchFlights(params: any) {
+export async function duffelSearchFlights(params: any) {
     const DUFFEL_TOKEN = process.env.DUFFEL_TOKEN;
 
     try {
@@ -1205,6 +1212,14 @@ async function rapidApiSearchAirbnb(params: any) {
 }
 
 
+
+async function searchGoogleFlightsApify(params: any) {
+    return null;
+}
+
+async function searchGoogleHotelsApify(params: any) {
+    return null;
+}
 
 // ─── Tool Executor ───
 // Takes a tool name and args, calls the right API, and returns results

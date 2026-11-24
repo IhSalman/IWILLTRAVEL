@@ -35,3 +35,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# private archive (old scripts, data dumps, thesis drafts) — contains secrets, never commit
+/_archive/
+
+# any env file except the example
+.env*
+!.env.example

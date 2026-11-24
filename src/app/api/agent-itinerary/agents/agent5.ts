@@ -17,19 +17,25 @@ export async function localExperienceAgent(plan: PlanResult, input: AgentInput):
         ? 'affordable local food'
         : 'highly rated';
 
-    const experiences: ExperienceDay[] = await Promise.all(
-        plan.plan.map(async (day) => {
+    // Deduplicate queries by (city + neighborhood) and fallback to city pool so we don't fire N identical calls
+    const uniqueAreas = Array.from(
+        new Set(plan.plan.map((d) => `${d.neighborhood || d.city} in ${d.city}`))
+    );
+
+    const areaCache = new Map<string, { activities: PlaceSearchResult[]; restaurants: PlaceSearchResult[] }>();
+
+    await Promise.all(
+        uniqueAreas.map(async (areaLabel) => {
             const interestQuery = input.interests.length > 0
-                ? `${input.interests.slice(0, 2).join(' and ')} in ${day.city}`
-                : `top attractions in ${day.city}`;
+                ? `${input.interests.slice(0, 2).join(' and ')} near ${areaLabel}`
+                : `top attractions near ${areaLabel}`;
 
             const [activityResults, restaurantResults] = await Promise.all([
-                googleTextSearch(interestQuery),
-                googleTextSearch(`best ${restaurantQuality} restaurants in ${day.city}`),
+                googleTextSearch(interestQuery).catch(() => null),
+                googleTextSearch(`best ${restaurantQuality} restaurants near ${areaLabel}`).catch(() => null),
             ]);
 
             const activities: PlaceSearchResult[] = (activityResults || [])
-                .slice(0, 2)
                 .map((p: any): PlaceSearchResult => ({
                     name: p.name, address: p.address, rating: p.rating,
                     totalRatings: p.totalRatings, priceLevel: p.priceLevel, types: p.types,
@@ -38,17 +44,46 @@ export async function localExperienceAgent(plan: PlanResult, input: AgentInput):
 
             const restaurants: PlaceSearchResult[] = (restaurantResults || [])
                 .sort((a: any, b: any) => (b.rating || 0) - (a.rating || 0))
-                .slice(0, 3)
                 .map((p: any): PlaceSearchResult => ({
                     name: p.name, address: p.address, rating: p.rating,
                     totalRatings: p.totalRatings, priceLevel: p.priceLevel, types: p.types,
                     lat: p.lat, lng: p.lng,
                 }));
 
-            return { day: day.day, activities, restaurants };
+            areaCache.set(areaLabel, { activities, restaurants });
         })
     );
 
-    console.log(`[Agent 5: Local Experience] Enriched ${experiences.length} days with verified data.`);
+    const usedRestaurants = new Set<string>();
+    const experiences: ExperienceDay[] = plan.plan.map((day) => {
+        const areaLabel = `${day.neighborhood || day.city} in ${day.city}`;
+        const pool = areaCache.get(areaLabel) || { activities: [], restaurants: [] };
+
+        const dayRestaurants: PlaceSearchResult[] = [];
+        for (const r of pool.restaurants) {
+            const key = r.name.toLowerCase();
+            if (!usedRestaurants.has(key)) {
+                usedRestaurants.add(key);
+                dayRestaurants.push(r);
+                if (dayRestaurants.length >= 3) break;
+            }
+        }
+        if (dayRestaurants.length < 3) {
+            for (const r of pool.restaurants) {
+                if (!dayRestaurants.some((d) => d.name === r.name)) {
+                    dayRestaurants.push(r);
+                    if (dayRestaurants.length >= 3) break;
+                }
+            }
+        }
+
+        return {
+            day: day.day,
+            activities: pool.activities.slice(0, 2),
+            restaurants: dayRestaurants,
+        };
+    });
+
+    console.log(`[Agent 5: Local Experience] Enriched ${experiences.length} days (${uniqueAreas.length} unique areas).`);
     return { experiences };
 }

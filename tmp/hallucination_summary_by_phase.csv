@@ -1,3 +1,0 @@
-phase,phase_label,itinerary_count,avg_hallucination_score,avg_named_places,avg_day_plans,high_risk_count,high_risk_pct,low_risk_count,low_risk_pct,with_real_hotels,with_real_flights,with_geo_coords,with_agent_pipeline
-PHASE_1_BASIC_LLM,Before: Basic LLM,93,73.8,41.7,2.4,79,84.9%,5,5.4%,14,2,63,0
-PHASE_2_STRUCTURED,During: Structured Prompts,1,100.0,66.0,0.0,1,100.0%,0,0.0%,1,0,1,0
