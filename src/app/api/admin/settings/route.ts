@@ -1,15 +1,14 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/utils/supabase/admin';
-import { createClient as createSsrClient } from '@/utils/supabase/server';
+import { requireAdmin } from '@/utils/require-admin';
 import { SUPPORTED_MODELS, MODEL_PRICING, MODEL_INFO, invalidateModelCache } from '@/utils/ai-config';
 
 /**
  * GET /api/admin/settings — Fetch current app settings + model info
  */
 export async function GET() {
-    const supabase = await createSsrClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const guard = await requireAdmin();
+    if ('error' in guard) return guard.error;
 
     const admin = createAdminClient();
     const { data } = await admin.from('app_settings').select('*');
@@ -38,9 +37,8 @@ export async function GET() {
  * POST /api/admin/settings — Update a setting (e.g., active_model)
  */
 export async function POST(req: Request) {
-    const supabase = await createSsrClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const guard = await requireAdmin();
+    if ('error' in guard) return guard.error;
 
     const body = await req.json();
     const { key, value } = body;

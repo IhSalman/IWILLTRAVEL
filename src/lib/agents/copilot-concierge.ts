@@ -197,7 +197,7 @@ RULES:
 
         for (const cand of combinedPool) {
             if (!cand?.name || usedNames.has(String(cand.name).toLowerCase())) continue;
-            const detail = await googlePlaceDetails(cand.name, targetDayObj.areaFocus || city).catch(() => null);
+            const detail = await googlePlaceDetails(cand.name, targetDayObj.areaFocus || city, cand.placeId).catch(() => null);
             const hrs = getVenueHoursForWeekday(detail?.openingHours, weekday);
             if (hrs?.isClosed) continue;
             verifiedDetail = detail;

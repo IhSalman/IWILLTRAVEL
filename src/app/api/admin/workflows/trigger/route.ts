@@ -1,14 +1,13 @@
 import { NextResponse } from 'next/server';
-import { createClient as createSsrClient } from '@/utils/supabase/server';
+import { requireAdmin } from '@/utils/require-admin';
 
 /**
  * POST /api/admin/workflows/trigger — Trigger admin workflows
  * Body: { "workflow": "blog-generation" | "travel-intelligence" | "newsletter", ...params }
  */
 export async function POST(req: Request) {
-    const supabase = await createSsrClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const guard = await requireAdmin();
+    if ('error' in guard) return guard.error;
 
     const body = await req.json();
     const { workflow, topic, category } = body;

@@ -609,7 +609,7 @@ function TravelIntelligenceContent() {
                                 </div>
 
                                 {/* Flight Deals */}
-                                <div>
+                                <div className={intel.flightDeals?.length ? '' : 'hidden'}>
                                     <h3 className="text-base font-serif font-bold text-white flex items-center gap-2 mb-4">
                                         <Plane className="w-4 h-4 text-emerald-300" /> Flight Market Opportunities
                                     </h3>
@@ -650,7 +650,7 @@ function TravelIntelligenceContent() {
                                 </div>
 
                                 {/* Alerts */}
-                                <div className="apple-glass-card rounded-2xl p-5">
+                                <div className={'apple-glass-card rounded-2xl p-5' + (intel.alerts?.length ? '' : ' hidden')}>
                                     <h3 className="text-base font-serif font-bold text-white flex items-center gap-2 mb-4">
                                         <AlertTriangle className="w-4 h-4 text-amber-400" /> Regional Advisories
                                     </h3>
@@ -670,7 +670,7 @@ function TravelIntelligenceContent() {
                                 </div>
 
                                 {/* News */}
-                                <div>
+                                <div className={intel.news?.length ? '' : 'hidden'}>
                                     <h3 className="text-base font-serif font-bold text-white flex items-center gap-2 mb-3">
                                         <Newspaper className="w-4 h-4 text-slate-300" /> Global Travel News
                                     </h3>

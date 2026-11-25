@@ -32,14 +32,20 @@ export async function finalComposerAgent(data: ComposerInput): Promise<FinalItin
         discoveredVenues: input.discoveredVenues,
     });
 
-    // Fetch placeDetails for any Truth Pool replacement venues swapped in during temporal reconciliation
+    // Fetch placeDetails for any Truth Pool replacement venues swapped in during temporal reconciliation.
+    // Pass the known Place ID from the pool so this skips the extra (billed) text search.
     const reconciledNames = Array.from(
         new Set(adjustedDays.flatMap((d) => d.slots.map((s) => s.name)))
     );
+    const placeIdByName = new Map<string, string>();
+    for (const v of input.discoveredVenues || []) {
+        if (v?.name && v?.placeId) placeIdByName.set(String(v.name).toLowerCase(), String(v.placeId));
+    }
     await Promise.all(
         reconciledNames.map(async (actName) => {
             if (!research.placeDetails[actName]) {
-                const detail = await googlePlaceDetails(actName, input.destination).catch(() => null);
+                const knownId = placeIdByName.get(actName.toLowerCase());
+                const detail = await googlePlaceDetails(actName, input.destination, knownId).catch(() => null);
                 if (detail) {
                     research.placeDetails[actName] = detail as any;
                 }

@@ -9,10 +9,14 @@ import { createAdminClient } from '@/utils/supabase/admin';
 import { requireAuth } from '@/utils/auth';
 import { scanItineraryLiveConditions } from '@/app/api/agents/disruption-sentinel';
 
+// Scans up to 25 active trips; each scan can call weather/LLM APIs.
+export const maxDuration = 300;
+
 export async function GET(req: Request) {
     const authHeader = req.headers.get('authorization');
     const cronSecret = process.env.CRON_SECRET;
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+    // Fail closed: without CRON_SECRET this endpoint must not be publicly callable.
+    if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
         return NextResponse.json({ error: 'Unauthorized cron trigger' }, { status: 401 });
     }
 

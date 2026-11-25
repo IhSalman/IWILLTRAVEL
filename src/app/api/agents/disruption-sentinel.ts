@@ -344,7 +344,7 @@ export async function scanItineraryLiveConditions(itineraryRow: any): Promise<{
 
         if (!replacementCandidate) continue;
 
-        const detail = await googlePlaceDetails(replacementCandidate.name, city).catch(() => null);
+        const detail = await googlePlaceDetails(replacementCandidate.name, city, replacementCandidate.placeId).catch(() => null);
         const repHours = getVenueHoursForWeekday(detail?.openingHours, weekday);
         if (repHours?.isClosed) continue;
 

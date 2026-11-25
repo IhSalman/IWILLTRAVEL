@@ -32,8 +32,7 @@ async function nominatimFallbackSearch(destination: string): Promise<any[]> {
                             name,
                             placeId: `osm_${item.osm_id}`,
                             address: item.display_name || destination,
-                            rating: 4.3,
-                            totalRatings: 120,
+                            // OpenStreetMap has no ratings — leave empty rather than invent one
                             types: [item.type || cat],
                             lat: parseFloat(item.lat),
                             lng: parseFloat(item.lon),
@@ -99,8 +98,8 @@ export async function discoveryAgent(input: AgentInput): Promise<DiscoveryResult
                     fsqFlat.map((p: any) => ({
                         name: p.name,
                         address: p.address || destination,
-                        rating: p.rating || 4.2,
-                        totalRatings: p.totalRatings || 50,
+                        rating: p.rating ?? undefined,
+                        totalRatings: p.totalRatings ?? undefined,
                         types: p.categories || ['attraction'],
                     }))
                 );

@@ -45,6 +45,7 @@ export function amadeusErrorHandler(err: any): string {
     return `[${code}] ${details || err.message || 'No details'}`;
 }
 
+import { cached, DAY_MS } from '@/utils/cache';
 const GOOGLE_PLACES_KEY = process.env.GOOGLE_PLACES_API_KEY || '';
 const OPENWEATHER_KEY = process.env.OPENWEATHER_API_KEY || '';
 const FOURSQUARE_KEY = process.env.FOURSQUARE_API_KEY || '';
@@ -203,12 +204,7 @@ export async function getAirQuality(lat: number, lng: number): Promise<{
     dominantPollutant: string;
     color: string;
 } | null> {
-    if (!GOOGLE_PLACES_KEY) return {
-        aqi: Math.floor(Math.random() * 30) + 15,
-        category: 'Good',
-        dominantPollutant: 'PM2.5',
-        color: '#4CAF50'
-    };
+    if (!GOOGLE_PLACES_KEY) return null; // no data → show nothing, never a made-up reading
     const cacheKey = `${lat.toFixed(1)},${lng.toFixed(1)}`;
     if (aqiCache.has(cacheKey)) {
         return aqiCache.get(cacheKey)!;
@@ -228,23 +224,13 @@ export async function getAirQuality(lat: number, lng: number): Promise<{
             }),
         });
         if (!res.ok) {
-            return {
-                aqi: Math.floor(Math.random() * 30) + 15,
-                category: 'Good',
-                dominantPollutant: 'PM2.5',
-                color: '#4CAF50'
-            };
+            return null; // no data → show nothing, never a made-up reading
         }
         const data = await res.json();
         const indexes = data.indexes || [];
         const uaqiIndex = indexes.find((i: any) => i.code === 'uaqi') || indexes[0];
         if (!uaqiIndex) {
-            return {
-                aqi: Math.floor(Math.random() * 30) + 15,
-                category: 'Good',
-                dominantPollutant: 'PM2.5',
-                color: '#4CAF50'
-            };
+            return null; // no data → show nothing, never a made-up reading
         }
         const result = {
             aqi: uaqiIndex.aqi || 0,
@@ -258,12 +244,7 @@ export async function getAirQuality(lat: number, lng: number): Promise<{
         return result;
     } catch (err: any) {
         console.warn('[Air Quality API] Error:', err.message);
-        return {
-            aqi: Math.floor(Math.random() * 30) + 15,
-            category: 'Good',
-            dominantPollutant: 'PM2.5',
-            color: '#4CAF50'
-        };
+        return null; // no data → show nothing, never a made-up reading
     }
 }
 
@@ -607,8 +588,14 @@ export async function resolveIATACode(cityName: string): Promise<string> {
  * POST https://places.googleapis.com/v1/places:searchText
  * Only pays for the specific fields requested via X-Goog-FieldMask header.
  */
+/** Cached Places text search (14 days): venue lists change slowly and each call is billed. */
 export async function googleTextSearch(query: string) {
     if (!GOOGLE_PLACES_KEY) return null;
+    const key = `gts:v1:${query.trim().toLowerCase()}`;
+    return cached(key, 14 * DAY_MS, () => googleTextSearchUncached(query));
+}
+
+async function googleTextSearchUncached(query: string) {
     const fieldMask = [
         'places.id',
         'places.displayName',
@@ -658,8 +645,14 @@ export async function googleTextSearch(query: string) {
  * Nearby Search using Places API (New)
  * POST https://places.googleapis.com/v1/places:searchNearby
  */
+/** Cached Places nearby search (14 days), keyed by ~100 m grid cell. */
 export async function googleNearbySearch(lat: number, lng: number, type: string, keyword?: string) {
     if (!GOOGLE_PLACES_KEY) return [];
+    const key = `gns:v1:${lat.toFixed(3)},${lng.toFixed(3)}:${type}:${(keyword || '').toLowerCase()}`;
+    return cached(key, 14 * DAY_MS, () => googleNearbySearchUncached(lat, lng, type, keyword));
+}
+
+async function googleNearbySearchUncached(lat: number, lng: number, type: string, keyword?: string) {
     const fieldMask = [
         'places.id',
         'places.displayName',
@@ -712,34 +705,34 @@ export async function googleNearbySearch(lat: number, lng: number, type: string,
 }
 
 /**
- * Place Details using Places API (New)
- * Two-step: Text Search to find Place ID → Place Details with FieldMask.
+ * Place Details using Places API (New), cached for 3 days (opening hours can change).
+ * Two-step on a miss: Text Search to find the Place ID (skipped when known) → Details.
+ * Live-only fields are never served from cache: air quality is looked up fresh
+ * (memoised per ~11 km cell) and "open now" is dropped, since it is meaningless
+ * for a future trip day.
  */
 export async function googlePlaceDetails(placeName: string, city: string, knownPlaceId?: string) {
     if (!GOOGLE_PLACES_KEY) {
-        // Thesis Demo Mock: Ensures all frontend badges (AQI, Rating) and descriptions populate
-        return {
-            name: placeName,
-            address: `${placeName}, ${city}`,
-            rating: parseFloat((Math.random() * 1 + 4).toFixed(1)),
-            totalRatings: Math.floor(Math.random() * 5000) + 100,
-            summary: `${placeName} is a must-visit destination in ${city}. It offers a rich blend of history, culture, and stunning sights that captivate travelers. Exploring this area provides deep insights into the local lifestyle and heritage.`,
-            photoUrl: null,
-            photoCount: 0,
-            openingHours: ["Monday: 9:00 AM – 6:00 PM", "Tuesday: 9:00 AM – 6:00 PM", "Wednesday: 9:00 AM – 6:00 PM", "Thursday: 9:00 AM – 6:00 PM", "Friday: 9:00 AM – 6:00 PM", "Saturday: 10:00 AM – 4:00 PM", "Sunday: Closed"],
-            isOpenNow: true,
-            priceLevel: "2",
-            types: ["point of interest", "establishment"],
-            topReviews: [],
-            lat: 0,
-            lng: 0,
-            airQuality: {
-                aqi: Math.floor(Math.random() * 30) + 15,
-                category: 'Good',
-                dominantPollutant: 'PM2.5',
-                color: '#4CAF50'
-            }
-        };
+        console.error('[Places] GOOGLE_PLACES_API_KEY is missing — place details unavailable');
+        return null;
+    }
+    const validId = knownPlaceId && !knownPlaceId.startsWith('osm_') ? knownPlaceId : null;
+    const key = validId
+        ? `gpd:v1:id:${validId}`
+        : `gpd:v1:q:${placeName.trim().toLowerCase()}|${city.trim().toLowerCase()}`;
+
+    const detail = await cached(key, 3 * DAY_MS, () => googlePlaceDetailsUncached(placeName, city, knownPlaceId));
+    if (!detail) return null;
+
+    const airQuality = detail.lat && detail.lng ? await getAirQuality(detail.lat, detail.lng) : null;
+    return { ...detail, isOpenNow: null, ...(airQuality ? { airQuality } : {}) };
+}
+
+async function googlePlaceDetailsUncached(placeName: string, city: string, knownPlaceId?: string) {
+    if (!GOOGLE_PLACES_KEY) {
+        // No key → no verified data. Never fabricate ratings, hours or air quality.
+        console.error('[Places] GOOGLE_PLACES_API_KEY is missing — place details unavailable');
+        return null;
     }
 
     // Step 1: Use knownPlaceId from Agent 1 Truth Pool if available, otherwise Text Search
@@ -811,7 +804,8 @@ export async function googlePlaceDetails(placeName: string, city: string, knownP
         let photoUrl: string | null = null;
         if (place.photos?.length > 0) {
             const photoName = place.photos[0].name; // e.g. 'places/{id}/photos/{ref}'
-            photoUrl = `https://places.googleapis.com/v1/${photoName}/media?maxWidthPx=1200&key=${GOOGLE_PLACES_KEY}`;
+            // Served via our proxy so the API key never reaches the browser or saved itineraries.
+            photoUrl = `/api/place-photo?name=${encodeURIComponent(photoName)}&w=1200`;
         }
 
         // Reviews in Places API (New) format
@@ -825,10 +819,6 @@ export async function googlePlaceDetails(placeName: string, city: string, knownP
         const lat = place.location?.latitude ?? location?.latitude;
         const lng = place.location?.longitude ?? location?.longitude;
         const formattedAddress = place.formattedAddress || `${placeName}, ${city}`;
-
-        // ── Air Quality ─────────────────────────────
-        // Air Quality gives the traveler a health briefing for outdoor activities.
-        const airQuality = (lat && lng) ? await getAirQuality(lat, lng) : null;
 
         return {
             name: place.displayName?.text || displayName,
@@ -845,7 +835,6 @@ export async function googlePlaceDetails(placeName: string, city: string, knownP
             topReviews,
             lat,
             lng,
-            ...(airQuality ? { airQuality } : {}),
         };
     } catch (err: any) {
         console.warn('[Places API New] Details fetch failed:', err.message);
@@ -867,6 +856,17 @@ export async function calculateTravelTime(params: {
 }): Promise<{ minutes: number; distanceKm: number; mode: string } | null> {
     if (!GOOGLE_PLACES_KEY) return null;
     const mode = params.travelMode || 'WALK';
+    const r = (n: number) => n.toFixed(4); // ~11 m
+    const key = `route:v1:${mode}:${r(params.originLat)},${r(params.originLng)}>${r(params.destinationLat)},${r(params.destinationLng)}`;
+    // Walking/cycling/transit times are stable; driving depends on traffic.
+    const ttl = mode === 'DRIVE' ? 7 * DAY_MS : 30 * DAY_MS;
+    return cached(key, ttl, () => calculateTravelTimeUncached(params, mode));
+}
+
+async function calculateTravelTimeUncached(
+    params: { originLat: number; originLng: number; destinationLat: number; destinationLng: number },
+    mode: string
+): Promise<{ minutes: number; distanceKm: number; mode: string } | null> {
     try {
         const res = await fetch('https://routes.googleapis.com/directions/v2:computeRoutes', {
             method: 'POST',
@@ -1111,21 +1111,6 @@ export const toolDeclarations = [
     },
 ];
 
-function mockFlights(params: any) {
-    return [
-        {
-            from: params.originCode,
-            to: params.destinationCode,
-            price: 250,
-            date: params.departureDate,
-            airline: "Mock Air",
-            duration: "6h 20m",
-            stops: 0,
-            source: "Mock",
-            bookingUrl: "#",
-        }
-    ];
-}
 
 // ─── Duffel Search ───
 export async function duffelSearchFlights(params: any) {
@@ -1134,8 +1119,7 @@ export async function duffelSearchFlights(params: any) {
     try {
         // ✅ If no API key → use fallback (prevents crash)
         if (!DUFFEL_TOKEN) {
-            console.log("Duffel disabled → using mock flights");
-            return mockFlights(params);
+            return []; // not configured → caller uses labelled price estimates
         }
 
         // ✅ Dynamic import (safe for Next.js)
@@ -1167,8 +1151,7 @@ export async function duffelSearchFlights(params: any) {
     } catch (err: any) {
         console.warn('[Duffel] Search failed:', err.message);
 
-        // ✅ Always fallback → NEVER break app
-        return mockFlights(params);
+        return []; // caller falls back to labelled price estimates
     }
 }
 

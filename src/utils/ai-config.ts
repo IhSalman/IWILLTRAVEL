@@ -8,7 +8,20 @@
  * - Token usage logging helper
  */
 import { createAdminClient } from '@/utils/supabase/admin';
-import type { z } from 'zod';
+import { z } from 'zod';
+
+/**
+ * Convert a Zod schema to a JSON Schema the model can be constrained with.
+ * Returns null if the schema can't be represented (callers fall back to plain JSON mode).
+ */
+function toModelJsonSchema(schema: z.ZodType<unknown>): Record<string, unknown> | null {
+    try {
+        const { $schema: _drop, ...rest } = z.toJSONSchema(schema, { unrepresentable: 'any' }) as Record<string, unknown>;
+        return rest;
+    } catch {
+        return null;
+    }
+}
 
 // ─── Supported Models ─────────────────────────────────────────────────────────
 
@@ -144,6 +157,8 @@ export async function generateContent(
         model?: string;
         role?: 'creative' | 'analytical' | 'planner';
         json?: boolean;
+        /** Constrain output to this JSON Schema where the provider supports it (OpenRouter json_schema). */
+        jsonSchema?: { name: string; schema: Record<string, unknown> };
         systemInstruction?: string;
         image?: { mimeType: string; data: string }; // base64
         modalities?: ('TEXT' | 'AUDIO')[];
@@ -180,21 +195,39 @@ export async function generateContent(
                 ];
             }
 
-            const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
-                    'Content-Type': 'application/json',
-                    'HTTP-Referer': 'https://iwilltravel.ai',
-                    'X-Title': 'iWillTravel',
-                },
-                body: JSON.stringify({
-                    model: modelName,
-                    messages: openRouterMessages,
-                    response_format: options.json ? { type: 'json_object' } : undefined,
-                }),
-                signal: AbortSignal.timeout(120_000), // 120s timeout for multi-agent generations
-            });
+            const callOpenRouter = (responseFormat: unknown) =>
+                fetch('https://openrouter.ai/api/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+                        'Content-Type': 'application/json',
+                        'HTTP-Referer': 'https://iwilltravel.ai',
+                        'X-Title': 'iWillTravel',
+                    },
+                    body: JSON.stringify({
+                        model: modelName,
+                        messages: openRouterMessages,
+                        response_format: responseFormat,
+                    }),
+                    signal: AbortSignal.timeout(60_000), // per call; retries × calls must fit the 300 s function limit
+                });
+
+            // Prefer schema-constrained output; it removes most JSON/shape retries.
+            // strict:false so optional fields are allowed and unsupported keywords don't hard-fail.
+            const schemaFormat = options.jsonSchema
+                ? {
+                      type: 'json_schema',
+                      json_schema: { name: options.jsonSchema.name, strict: false, schema: options.jsonSchema.schema },
+                  }
+                : undefined;
+            const plainFormat = options.json || options.jsonSchema ? { type: 'json_object' } : undefined;
+
+            let response = await callOpenRouter(schemaFormat ?? plainFormat);
+            if (!response.ok && schemaFormat && (response.status === 400 || response.status === 422)) {
+                // Model/provider doesn't support json_schema → retry once in plain JSON mode.
+                console.warn(`[LLM] ${modelName} rejected json_schema (${response.status}); retrying with json_object`);
+                response = await callOpenRouter(plainFormat);
+            }
 
             if (!response.ok) {
                 const error = await response.text();
@@ -242,7 +275,7 @@ export async function generateContent(
     let result;
 
     const generationConfig: any = {};
-    if (options.json) generationConfig.responseMimeType = 'application/json';
+    if (options.json || options.jsonSchema) generationConfig.responseMimeType = 'application/json';
     if (options.modalities) generationConfig.responseModalities = options.modalities;
     if (options.speechConfig) {
         generationConfig.speechConfig = {
@@ -317,11 +350,15 @@ export async function generateStructuredWithRetry<T>(
     let lastError = 'Unknown schema validation failure';
     let lastModel = 'unknown';
 
+    // Constrain generation to the same schema Zod validates against.
+    const modelSchema = toModelJsonSchema(schema as z.ZodType<unknown>);
+
     for (let attempt = 1; attempt <= maxRetries + 1; attempt++) {
         const res = await generateContent(conversation, {
             model: options.model,
             role: options.role || 'creative',
             json: true,
+            ...(modelSchema ? { jsonSchema: { name: 'structured_output', schema: modelSchema } } : {}),
             systemInstruction: options.systemInstruction,
         });
 

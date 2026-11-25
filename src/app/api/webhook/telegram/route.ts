@@ -1,13 +1,30 @@
+import crypto from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/utils/supabase/admin';
-import { getCache } from '@/utils/cache';
+import { getCache, setCache } from '@/utils/cache';
 import { executeItineraryPipeline } from '@/lib/agents/pipeline';
 import { parseTelegramMessage } from '@/lib/agents/telegram-parser';
 import { formatItineraryForTelegram } from '@/lib/telegram/formatter';
-import { checkItineraryQuota, deductUsage } from '@/utils/usage';
+import { checkItineraryQuota, deductUsage, deductCredits } from '@/utils/usage';
 import { runGroundedItineraryChat } from '@/lib/agents/copilot-concierge';
 
 const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const TELEGRAM_WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET;
+
+// Full itinerary generation can take ~30–70 s.
+export const maxDuration = 300;
+
+/**
+ * Telegram sends the secret given to setWebhook (secret_token) in this header.
+ * Without it anyone could POST fake updates and act as a linked user.
+ */
+function isFromTelegram(req: Request): boolean {
+    if (!TELEGRAM_WEBHOOK_SECRET) return false;
+    const got = req.headers.get('x-telegram-bot-api-secret-token') || '';
+    const a = Buffer.from(got);
+    const b = Buffer.from(TELEGRAM_WEBHOOK_SECRET);
+    return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
 
 async function sendTelegramMessage(chatId: number, text: string) {
     const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
@@ -30,12 +47,20 @@ function isConversationalFollowUp(text: string): boolean {
 }
 
 export async function POST(req: Request) {
+    if (!isFromTelegram(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     if (!TELEGRAM_TOKEN) return NextResponse.json({ error: 'Telegram token not set' }, { status: 500 });
 
     try {
         const body = await req.json();
         const message = body.message;
         if (!message) return NextResponse.json({ ok: true });
+
+        // Telegram retries slow or failed deliveries; process each update only once.
+        if (typeof body.update_id === 'number') {
+            const seenKey = `tg_update_${body.update_id}`;
+            if (await getCache(seenKey)) return NextResponse.json({ ok: true, duplicate: true });
+            await setCache(seenKey, { seen: true });
+        }
 
         const chatId = message.chat.id;
         const text = (message.text || '').trim();
@@ -154,7 +179,8 @@ export async function POST(req: Request) {
             const formatted = formatItineraryForTelegram(result.itinerary);
             await sendTelegramMessage(chatId, formatted);
 
-            await deductUsage(userId, 'itinerary', 1);
+            if (quota.creditsAvailable) await deductCredits(userId, 1);
+            else await deductUsage(userId, 'itinerary', 1);
         } catch (err: any) {
             console.error('[Telegram Webhook] Pipeline Error:', err);
             await sendTelegramMessage(

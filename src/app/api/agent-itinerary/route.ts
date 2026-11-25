@@ -44,6 +44,9 @@ const AgentRequestSchema = z.object({
     currency: z.string().optional().default('USD'),
 });
 
+// The 8-agent pipeline usually takes 30–70 s; allow headroom (Vercel max on Hobby is 300 s).
+export const maxDuration = 300;
+
 // --- POST Handler --------------------------------------------------------------
 
 export async function POST(req: Request) {
@@ -105,10 +108,20 @@ export async function POST(req: Request) {
                     
                     controller.enqueue(encoder.encode(`event: result\ndata: ${JSON.stringify(resultData)}\n\n`));
 
-                    // Async cleanup
+                    // Charge usage BEFORE closing the stream. Work scheduled after the response
+                    // ends can be frozen by the serverless runtime, which let trips go uncounted.
+                    if (user) {
+                        try {
+                            if (useCredits) await deductCredits(user.id, 1);
+                            else await deductUsage(user.id, 'itinerary', 1);
+                        } catch (usageErr) {
+                            console.error('[Agent Itinerary] Usage deduction failed:', usageErr);
+                        }
+                    }
+                    await setCache(cacheKey, resultData).catch(() => {});
+
+                    // Best-effort analytics only
                     (async () => {
-                        if (user) useCredits ? await deductCredits(user.id, 1) : await deductUsage(user.id, 'itinerary', 1);
-                        await setCache(cacheKey, resultData);
                         const activeModelName = await getActiveModel();
                         const totalInputTokens = (result.itinerary._tokens?.inputTokens || 0); // Simplified for now
                         const totalOutputTokens = (result.itinerary._tokens?.outputTokens || 0);

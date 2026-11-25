@@ -172,9 +172,10 @@ async function getNearbyPlacesNew(
 
 // ─── Photo URL Builder (Places API New) ─────────────────────────────────────────
 
-function getPhotoUrlNew(photoName: string, apiKey: string, maxWidthPx = 1200): string {
+// Photos are served through /api/place-photo so the API key never reaches the browser.
+function getPhotoUrlNew(photoName: string, _apiKey?: string, maxWidthPx = 1200): string {
     // photoName format: "places/{placeId}/photos/{photoId}"
-    return `https://places.googleapis.com/v1/${photoName}/media?maxWidthPx=${maxWidthPx}&key=${apiKey}`;
+    return `/api/place-photo?name=${encodeURIComponent(photoName)}&w=${maxWidthPx}`;
 }
 
 
