@@ -8,6 +8,10 @@
     {
       "path": "/api/cron/monthly-reset",
       "schedule": "5 0 1 * *"
+    },
+    {
+      "path": "/api/admin/evals/run",
+      "schedule": "0 3 * * 1"
     }
   ]
 }

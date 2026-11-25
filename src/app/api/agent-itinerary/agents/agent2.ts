@@ -8,6 +8,13 @@
 import { generateStructuredWithRetry } from '@/utils/ai-config';
 import { Agent2LLMOutputSchema } from '../schemas';
 import { resolveTripDayDate } from '@/lib/agents/temporal-scheduler';
+import {
+    assignClustersToDays,
+    clusterVenues,
+    maxSpreadForTransport,
+    nearestUnused,
+    repairDay,
+} from '@/lib/agents/geo-cluster';
 import type { AgentInput, PlanResult } from '../types';
 
 export async function planningAgent(input: AgentInput): Promise<PlanResult> {
@@ -29,12 +36,36 @@ export async function planningAgent(input: AgentInput): Promise<PlanResult> {
         return `Day ${idx + 1}: ${weekday}${date ? ` (${date})` : ''}`;
     }).join(', ');
 
-    const venuesContext = venues.length
-        ? `\nVERIFIED VENUE POOL (YOU MUST SELECT ACTIVITIES EXCLUSIVELY FROM THIS VERIFIED POOL):\n${venues
+    // Deterministic geo-clustering: one area per day, so the LLM chooses and
+    // orders within an area instead of guessing geography from names alone.
+    const perDay = input.travelStyle === 'relaxed' ? 3 : input.travelStyle === 'adventure' ? 5 : 4;
+    const dayAreas = assignClustersToDays(clusterVenues(venues, input.days), input.days, perDay);
+    const clusteredNames = new Set(dayAreas.flatMap((a) => a.venues.map((v) => v.name.toLowerCase())));
+    const unlocatedVenues = venues.filter((v: any) => v?.name && !clusteredNames.has(String(v.name).toLowerCase()));
+
+    const venueLine = (v: any) => `- ${v.name} (${v.types?.[0] || 'Venue'})`;
+    const venuesContext = !venues.length
+        ? ''
+        : dayAreas.length
+        ? `\nVERIFIED VENUE POOL, GROUPED BY AREA (select activities EXCLUSIVELY from these venues).
+Each day has a recommended area; keep that day's activities inside it so travellers don't cross town.
+${dayAreas
+    .map(
+        (area, i) =>
+            `DAY ${i + 1} AREA:\n${area.venues.slice(0, 10).map(venueLine).join('\n')}`
+    )
+    .join('\n\n')}${
+              unlocatedVenues.length
+                  ? `\n\nOTHER VERIFIED VENUES (location unknown — use sparingly):\n${unlocatedVenues
+                        .slice(0, 10)
+                        .map(venueLine)
+                        .join('\n')}`
+                  : ''
+          }\n`
+        : `\nVERIFIED VENUE POOL (YOU MUST SELECT ACTIVITIES EXCLUSIVELY FROM THIS VERIFIED POOL):\n${venues
               .slice(0, 45)
               .map((v: any) => `- ${v.name} (${v.types?.[0] || 'Venue'}) — ${v.address || input.destination}`)
-              .join('\n')}\n`
-        : '';
+              .join('\n')}\n`;
 
     const prompt = `You are the world's most precise Strategic Planning Agent. Your output powers a production data-grounded travel system (DGIS).
 
@@ -113,9 +144,11 @@ STRICT RULES:
             },
         });
 
-        // Enrich dates and deterministically snap/replace any remaining ungrounded item from the pool
+        // Enrich dates and deterministically snap/replace any remaining ungrounded item from the pool.
+        // Replacements come from the day's own area (nearest unused venue), not just any venue.
         const usedLower = new Set<string>();
         const groundedPlan = result.data.plan.map((day, idx) => {
+            const areaCentre = dayAreas[idx]?.centroid;
             const { date } = resolveTripDayDate(input.startDate, idx);
             const cleanedActivities = day.activities.map((act) => {
                 if (normalizedPool.length === 0) return act;
@@ -128,10 +161,11 @@ STRICT RULES:
                     usedLower.add(String(exactOrPartial.name).toLowerCase());
                     return String(exactOrPartial.name);
                 }
-                // Deterministic replacement from unused Truth Pool venues so 100% grounding holds
-                const fallbackVenue = venues.find(
-                    (v: any) => v?.name && !usedLower.has(String(v.name).toLowerCase())
-                );
+                // Deterministic replacement from unused Truth Pool venues so 100% grounding holds:
+                // nearest to the day's area when known, otherwise the next unused venue.
+                const fallbackVenue =
+                    (areaCentre ? nearestUnused(areaCentre, venues, usedLower) : null) ||
+                    venues.find((v: any) => v?.name && !usedLower.has(String(v.name).toLowerCase()));
                 if (fallbackVenue) {
                     usedLower.add(String(fallbackVenue.name).toLowerCase());
                     return String(fallbackVenue.name);
@@ -147,10 +181,40 @@ STRICT RULES:
             };
         });
 
+        // Single-day repair: if a day's stops are spread too far for the chosen transport,
+        // swap the outliers for the nearest unused verified venues. Only that day changes.
+        const byName = new Map<string, any>();
+        for (const v of venues) if (v?.name) byName.set(String(v.name).toLowerCase(), v);
+        const allUsed = new Set(groundedPlan.flatMap((d) => d.activities.map((a) => a.toLowerCase())));
+        const maxKm = maxSpreadForTransport(input.transport);
+        let repairedDays = 0;
+        let replacedStops = 0;
+        for (let i = 0; i < groundedPlan.length; i++) {
+            const fix = repairDay({
+                activities: groundedPlan[i].activities,
+                lookup: (n) => byName.get(n.toLowerCase()),
+                pool: venues,
+                used: allUsed,
+                maxKm,
+                areaCentre: dayAreas[i]?.centroid,
+            });
+            if (fix.replaced.length) {
+                groundedPlan[i] = { ...groundedPlan[i], activities: fix.activities };
+                repairedDays++;
+                replacedStops += fix.replaced.length;
+                console.log(
+                    `[Agent 2: Planning] Day ${i + 1} repaired (${fix.spreadBeforeKm.toFixed(1)} → ${fix.spreadAfterKm.toFixed(1)} km):`,
+                    fix.replaced
+                );
+            }
+        }
+
+        const areaNote = dayAreas.length ? ` across ${new Set(dayAreas.map((a) => a.id)).size} areas` : '';
+        const repairNote = repairedDays ? `; repaired ${repairedDays} day(s), ${replacedStops} far stop(s) swapped` : '';
         return {
             plan: groundedPlan,
             researchPlan: result.data.researchPlan || [],
-            details: `Generated ${groundedPlan.length} schema-verified days (${result.attempts} attempt(s)) from ${venues.length} verified spots.`,
+            details: `Generated ${groundedPlan.length} schema-verified days (${result.attempts} attempt(s)) from ${venues.length} verified spots${areaNote}${repairNote}.`,
             _tokens: result.usage,
         };
     } catch (error: any) {

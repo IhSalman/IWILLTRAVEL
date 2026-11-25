@@ -10,8 +10,8 @@ import { InteractiveItineraryShowcase } from '@/components/landing/InteractiveIt
 import { FlightPathSteps } from '@/components/landing/FlightPathSteps';
 import { DestinationTicker } from '@/components/landing/DestinationTicker';
 
-// WebGL globe is client-only and loaded after first paint.
-const FlightGlobe = dynamic(() => import('@/components/landing/FlightGlobe'), {
+// Photoreal WebGL globe is client-only and loaded after first paint.
+const RealisticGlobe = dynamic(() => import('@/components/landing/RealisticGlobe'), {
     ssr: false,
     loading: () => <div className="w-full h-full rounded-full" />,
 });
@@ -175,7 +175,7 @@ export default function Home() {
                             transition={{ duration: 1.4, ease: EASE, delay: 0.1 }}
                             className="relative mx-auto aspect-square w-full max-w-[420px] sm:max-w-[560px] lg:max-w-none lg:-mr-10 cursor-grab active:cursor-grabbing"
                         >
-                            <FlightGlobe className="absolute inset-0" />
+                            <RealisticGlobe className="absolute inset-0" />
                         </motion.div>
                     </div>
 
