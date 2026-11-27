@@ -94,7 +94,7 @@ export function ParticleField() {
                         ctx.beginPath();
                         ctx.moveTo(p.x, p.y);
                         ctx.lineTo(p2.x, p2.y);
-                        ctx.strokeStyle = `rgba(99, 102, 241, ${opacity})`;
+                        ctx.strokeStyle = `rgba(243,184,127, ${opacity})`;
                         ctx.lineWidth = 0.5;
                         ctx.stroke();
                     }

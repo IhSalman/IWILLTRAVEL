@@ -2,45 +2,85 @@
 
 import { usePathname, useRouter, Link } from '@/i18n/routing';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Plane, Compass, Users, FileText, Languages, LayoutDashboard, LogOut, ChevronDown, Menu, Search, Star } from 'lucide-react';
+import {
+    LayoutDashboard, LogOut, ChevronDown, Menu, Star, ArrowRight,
+} from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { createClient } from '@/utils/supabase/client';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { useTranslations } from 'next-intl';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+
+const PRIMARY_LINKS = [
+    { href: '/plan-trip', label: 'Plan a trip' },
+    { href: '/discover', label: 'Destinations' },
+    { href: '/blogs', label: 'Guides' },
+    { href: '/pricing', label: 'Pricing' },
+];
+
+const TOOL_LINKS = [
+    { href: '/flights', label: 'Live flights', note: 'Planes, routes and airports now' },
+    { href: '/airports', label: 'Airports', note: 'Departures, delays and services' },
+    { href: '/compensation', label: 'Delay compensation', note: 'EU261 & UK261 checker' },
+    { href: '/visa-hub', label: 'Visa hub', note: 'Entry rules by passport' },
+    { href: '/translate', label: 'Translate', note: 'Text, voice and menus' },
+    { href: '/travel-research', label: 'Place research', note: 'Deep-dive any spot' },
+    { href: '/community', label: 'Community', note: 'Notes from travellers' },
+];
+
+export function Wordmark({ className }: { className?: string }) {
+    return (
+        <span className={cn('inline-flex items-center gap-2 text-slate-100', className)}>
+            <svg viewBox="-18 -10 32 20" className="h-3.5 w-5 text-sunrise-300 -rotate-12" fill="currentColor" aria-hidden="true">
+                <path d="M 12 0 L -6 -2 L -10 -9 L -13 -9 L -10 -2 L -14 -1.5 L -16 -5 L -18 -5 L -17 0 L -18 5 L -16 5 L -14 1.5 L -10 2 L -13 9 L -10 9 L -6 2 Z" />
+            </svg>
+            <span className="font-heading text-[1.4rem] leading-none tracking-tight">
+                iWill<em className="text-slate-400">Travel</em>
+            </span>
+        </span>
+    );
+}
 
 export function Navbar() {
     const pathname = usePathname();
     const router = useRouter();
-    const t = useTranslations('Navbar');
     const [user, setUser] = useState<any>(null);
     const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [toolsOpen, setToolsOpen] = useState(false);
     const [sheetOpen, setSheetOpen] = useState(false);
+    const [scrolled, setScrolled] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const toolsRef = useRef<HTMLDivElement>(null);
     const supabase = createClient();
 
     useEffect(() => {
-        supabase.auth.getUser().then(({ data: { user } }) => {
-            setUser(user);
-        });
-
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             setUser(session?.user ?? null);
         });
-
         return () => subscription.unsubscribe();
     }, [supabase.auth]);
 
     useEffect(() => {
+        const onScroll = () => setScrolled(window.scrollY > 12);
+        onScroll();
+        window.addEventListener('scroll', onScroll, { passive: true });
+        return () => window.removeEventListener('scroll', onScroll);
+    }, []);
+
+    useEffect(() => {
         const handler = (e: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-                setDropdownOpen(false);
-            }
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) setDropdownOpen(false);
+            if (toolsRef.current && !toolsRef.current.contains(e.target as Node)) setToolsOpen(false);
         };
         document.addEventListener('mousedown', handler);
         return () => document.removeEventListener('mousedown', handler);
     }, []);
+
+    useEffect(() => {
+        setToolsOpen(false);
+        setDropdownOpen(false);
+    }, [pathname]);
 
     const handleSignOut = async () => {
         await supabase.auth.signOut();
@@ -49,200 +89,231 @@ export function Navbar() {
         router.refresh();
     };
 
-    const links = [
-        { href: '/discover', label: t('links.discover'), icon: Compass },
-        { href: '/plan-trip', label: t('links.planTrip'), icon: Plane },
-        { href: '/travel-research', label: t('links.travelResearch'), icon: Search },
-        { href: '/blogs', label: t('links.blogs'), icon: FileText },
-        { href: '/community', label: t('links.community'), icon: Users },
-        { href: '/visa-hub', label: t('links.visaHub'), icon: FileText },
-        { href: '/translate', label: t('links.translate'), icon: Languages },
-    ];
+    const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+    const toolsActive = TOOL_LINKS.some(l => isActive(l.href));
 
     return (
-        <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="container flex h-16 items-center justify-between">
-                <div className="flex items-center space-x-2">
-                    {/* Side Menu Toggle - visible on all screens */}
-                    <div className="flex items-center">
-                        <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-                            <SheetTrigger asChild>
-                                <Button variant="ghost" size="icon" className="md:mr-2">
-                                    <Menu className="h-6 w-6" />
-                                    <span className="sr-only">Toggle menu</span>
-                                </Button>
-                            </SheetTrigger>
-                            <SheetContent side="left" className="w-[300px] sm:w-[400px] flex flex-col">
-                                <SheetHeader>
-                                    <SheetTitle className="text-left font-bold text-xl tracking-tight bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent inline-block">
-                                        iWillTravel
-                                    </SheetTitle>
-                                </SheetHeader>
-                                <nav className="flex flex-col space-y-4 mt-8 flex-1">
-                                    {user && (
-                                        <Link
-                                            href="/dashboard"
-                                            className={cn(
-                                                "flex items-center space-x-3 px-4 py-3 rounded-xl text-base font-medium transition-all",
-                                                pathname === "/dashboard"
-                                                    ? "bg-primary/10 text-primary"
-                                                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                                            )}
-                                            onClick={() => setSheetOpen(false)}
-                                        >
-                                            <LayoutDashboard className="h-5 w-5" />
-                                            <span>{t('dashboard')}</span>
-                                        </Link>
-                                    )}
-                                    {links.map(({ href, label, icon: Icon }) => {
-                                        const isActive = pathname.startsWith(href);
-                                        return (
-                                            <Link
-                                                key={href}
-                                                href={href as any}
-                                                className={cn(
-                                                    "flex items-center space-x-3 px-4 py-3 rounded-xl text-base font-medium transition-all",
-                                                    isActive
-                                                        ? "nav-link-active"
-                                                        : "nav-link-inactive"
-                                                )}
-                                                onClick={() => setSheetOpen(false)}
-                                            >
-                                                <Icon className="h-5 w-5" />
-                                                <span>{label}</span>
-                                            </Link>
-                                        );
-                                    })}
-                                    {user && (
-                                        <div className="mt-4 pt-4 border-t border-border/50 flex flex-col gap-2">
-                                            <Link
-                                                href="/pricing"
-                                                onClick={() => setSheetOpen(false)}
-                                                className="w-full flex items-center justify-between px-4 py-3 rounded-xl hover:bg-muted text-foreground text-base border-transparent border transition-all"
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    <Star className="h-5 w-5 text-amber-500 fill-amber-500/20" />
-                                                    <span className="font-semibold text-amber-500">Subscription</span>
-                                                </div>
-                                                <div className="text-[10px] bg-amber-500/10 text-amber-500 border border-amber-500/20 px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">
-                                                    {user?.user_metadata?.plan || 'Free'}
-                                                </div>
-                                            </Link>
-                                            <button
-                                                onClick={() => {
-                                                    setSheetOpen(false);
-                                                    handleSignOut();
-                                                }}
-                                                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-destructive/10 text-destructive text-base font-medium transition-all"
-                                            >
-                                                <LogOut className="h-5 w-5" />
-                                                {t('signOut')}
-                                            </button>
-                                        </div>
-                                    )}
-                                </nav>
-                                {!user && (
-                                    <div className="grid grid-cols-2 gap-3 pt-6 border-t mt-auto">
-                                        <Link href="/login" className="w-full" onClick={() => setSheetOpen(false)}>
-                                            <Button variant="outline" className="w-full rounded-xl">{t('logIn')}</Button>
-                                        </Link>
-                                        <Link href="/signup" className="w-full" onClick={() => setSheetOpen(false)}>
-                                            <Button className="w-full rounded-xl bg-primary">{t('signUp')}</Button>
-                                        </Link>
-                                    </div>
-                                )}
-                            </SheetContent>
-                        </Sheet>
-                    </div>
+        <header
+            className={cn(
+                'sticky top-0 z-50 w-full transition-[background-color,border-color] duration-300 border-b',
+                scrolled ? 'bg-background/80 backdrop-blur-xl border-white/[0.07]' : 'bg-background/0 border-transparent'
+            )}
+        >
+            <div className="container max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
+                {/* Left: mobile menu + wordmark */}
+                <div className="flex items-center gap-1">
+                    <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+                        <SheetTrigger asChild>
+                            <button
+                                type="button"
+                                className="lg:hidden -ml-2 flex h-10 w-10 items-center justify-center rounded-full text-slate-300 hover:bg-white/[0.06] hover:text-slate-100"
+                                aria-label="Open menu"
+                            >
+                                <Menu className="h-5 w-5" />
+                            </button>
+                        </SheetTrigger>
+                        <SheetContent side="left" className="w-[300px] sm:w-[340px] flex flex-col bg-background border-r border-white/[0.08]">
+                            <SheetHeader className="pb-6">
+                                <SheetTitle className="text-left">
+                                    <Wordmark />
+                                </SheetTitle>
+                            </SheetHeader>
 
-                    <Link href="/" className="flex items-center space-x-2 transition-transform hover:scale-105 active:scale-95">
-                        <div className="bg-primary/10 p-2 rounded-xl">
-                            <Plane className="h-6 w-6 text-primary" strokeWidth={2.5} />
-                        </div>
-                        <span className="font-bold text-xl tracking-tight bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent hidden sm:inline-block">
-                            iWillTravel
-                        </span>
+                            <nav className="flex flex-col flex-1 overflow-y-auto">
+                                {user && (
+                                    <Link
+                                        href="/dashboard"
+                                        onClick={() => setSheetOpen(false)}
+                                        className={cn(
+                                            'py-3 font-heading text-3xl transition-colors',
+                                            isActive('/dashboard') ? 'text-sunrise-300' : 'text-slate-100 hover:text-sunrise-300'
+                                        )}
+                                    >
+                                        My trips
+                                    </Link>
+                                )}
+                                {PRIMARY_LINKS.map(({ href, label }) => (
+                                    <Link
+                                        key={href}
+                                        href={href as any}
+                                        onClick={() => setSheetOpen(false)}
+                                        className={cn(
+                                            'py-3 font-heading text-3xl transition-colors',
+                                            isActive(href) ? 'text-sunrise-300' : 'text-slate-100 hover:text-sunrise-300'
+                                        )}
+                                    >
+                                        {label}
+                                    </Link>
+                                ))}
+                                <span className="eyebrow mt-8 mb-3">Tools</span>
+                                {TOOL_LINKS.map(({ href, label }) => (
+                                    <Link
+                                        key={href}
+                                        href={href as any}
+                                        onClick={() => setSheetOpen(false)}
+                                        className={cn(
+                                            'py-2 text-sm transition-colors',
+                                            isActive(href) ? 'text-sunrise-300' : 'text-slate-400 hover:text-slate-100'
+                                        )}
+                                    >
+                                        {label}
+                                    </Link>
+                                ))}
+                            </nav>
+
+                            {!user ? (
+                                <div className="grid grid-cols-2 gap-2 pt-6 border-t border-white/[0.08]">
+                                    <Link href="/login" onClick={() => setSheetOpen(false)} className="btn-apple-glass h-11 rounded-full text-sm flex items-center justify-center">
+                                        Sign in
+                                    </Link>
+                                    <Link href="/signup" onClick={() => setSheetOpen(false)} className="btn-apple-primary h-11 rounded-full text-sm flex items-center justify-center">
+                                        Sign up
+                                    </Link>
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={() => {
+                                        setSheetOpen(false);
+                                        handleSignOut();
+                                    }}
+                                    className="pt-6 border-t border-white/[0.08] flex items-center gap-2 text-sm text-slate-400 hover:text-rose-300 transition-colors"
+                                >
+                                    <LogOut className="h-4 w-4" /> Sign out
+                                </button>
+                            )}
+                        </SheetContent>
+                    </Sheet>
+
+                    <Link href="/" aria-label="iWillTravel home">
+                        <Wordmark />
                     </Link>
                 </div>
 
-                {/* Desktop Nav */}
-                <nav className="hidden md:flex items-center space-x-1">
-                    {links.map(({ href, label, icon: Icon }) => {
-                        const isActive = pathname.startsWith(href);
-                        return (
-                            <Link
-                                key={href}
-                                href={href as any}
-                                className={cn(
-                                    "flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
-                                    isActive
-                                        ? "bg-primary/10 text-primary"
-                                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                                )}
-                            >
-                                <Icon className="h-4 w-4" />
-                                <span>{label}</span>
-                            </Link>
-                        );
-                    })}
+                {/* Center: desktop navigation */}
+                <nav aria-label="Primary" className="hidden lg:flex items-center gap-1">
+                    {PRIMARY_LINKS.map(({ href, label }) => (
+                        <Link
+                            key={href}
+                            href={href as any}
+                            className={cn(
+                                'relative px-3.5 py-2 text-[13px] transition-colors',
+                                isActive(href) ? 'text-slate-100' : 'text-slate-400 hover:text-slate-100'
+                            )}
+                        >
+                            {label}
+                            {isActive(href) && (
+                                <motion.span
+                                    layoutId="nav-underline"
+                                    className="absolute left-3.5 right-3.5 -bottom-0.5 h-px bg-sunrise-300"
+                                    transition={{ type: 'spring', stiffness: 420, damping: 36 }}
+                                />
+                            )}
+                        </Link>
+                    ))}
+
+                    <div className="relative" ref={toolsRef}>
+                        <button
+                            type="button"
+                            onClick={() => setToolsOpen(o => !o)}
+                            aria-expanded={toolsOpen}
+                            className={cn(
+                                'flex items-center gap-1 px-3.5 py-2 text-[13px] transition-colors',
+                                toolsActive || toolsOpen ? 'text-slate-100' : 'text-slate-400 hover:text-slate-100'
+                            )}
+                        >
+                            Tools
+                            <ChevronDown className={cn('h-3.5 w-3.5 transition-transform', toolsOpen && 'rotate-180')} />
+                        </button>
+                        <AnimatePresence>
+                            {toolsOpen && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 6 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: 4 }}
+                                    transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                                    className="absolute left-1/2 -translate-x-1/2 mt-2 w-64 rounded-2xl apple-liquid-glass p-2"
+                                >
+                                    {TOOL_LINKS.map(({ href, label, note }) => (
+                                        <Link
+                                            key={href}
+                                            href={href as any}
+                                            className="block rounded-xl px-3 py-2.5 hover:bg-white/[0.05] transition-colors"
+                                        >
+                                            <span className={cn('block text-sm', isActive(href) ? 'text-sunrise-300' : 'text-slate-100')}>
+                                                {label}
+                                            </span>
+                                            <span className="block text-xs text-slate-500">{note}</span>
+                                        </Link>
+                                    ))}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
                 </nav>
 
-                <div className="flex items-center space-x-2 md:space-x-4">
+                {/* Right: language + account */}
+                <div className="flex items-center gap-2">
+                    <LanguageSwitcher />
+
                     {user ? (
                         <div className="relative" ref={dropdownRef}>
                             <button
                                 onClick={() => setDropdownOpen(o => !o)}
-                                className="flex items-center gap-2 px-3 py-2 rounded-full bg-muted hover:bg-muted/80 transition-colors text-sm font-medium"
+                                className="flex items-center gap-2 rounded-full border border-white/[0.1] py-1 pl-1 pr-2.5 text-xs text-slate-200 hover:border-white/25 transition-colors"
                             >
-                                <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm">
+                                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-sunrise-300 text-[11px] font-semibold text-background">
                                     {(user.user_metadata?.full_name || user.email || 'U')[0].toUpperCase()}
-                                </div>
-                                <span className="hidden sm:inline max-w-[100px] truncate">
-                                    {user.user_metadata?.full_name || user.email}
                                 </span>
-                                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                                <span className="hidden sm:inline max-w-[96px] truncate">
+                                    {user.user_metadata?.full_name?.split(' ')[0] || user.email?.split('@')[0]}
+                                </span>
+                                <ChevronDown className={cn('h-3.5 w-3.5 text-slate-500 transition-transform', dropdownOpen && 'rotate-180')} />
                             </button>
-                            {dropdownOpen && (
-                                <div className="absolute right-0 mt-2 w-48 bg-card border border-border/50 rounded-2xl shadow-xl p-1.5 z-50">
-                                    <Link href="/dashboard" onClick={() => setDropdownOpen(false)}>
-                                        <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-muted text-sm cursor-pointer">
-                                            <LayoutDashboard className="h-4 w-4 text-muted-foreground" />
-                                            {t('dashboard')}
-                                        </div>
-                                    </Link>
-                                    <Link href="/pricing" onClick={() => setDropdownOpen(false)}>
-                                        <div className="flex items-center justify-between gap-2.5 px-3 py-2.5 rounded-xl hover:bg-amber-500/10 text-sm cursor-pointer group transition-colors">
-                                            <div className="flex items-center gap-2.5 text-amber-500 font-medium">
-                                                <Star className="h-4 w-4 fill-amber-500/20" />
-                                                Subscription
-                                            </div>
-                                            <div className="text-[9px] bg-amber-500/10 border border-amber-500/20 text-amber-600 px-2 py-0.5 rounded-full font-bold uppercase tracking-wide">
-                                                {user?.user_metadata?.plan || 'Free'}
-                                            </div>
-                                        </div>
-                                    </Link>
-                                    <div className="my-1 border-t border-border/50" />
-                                    <button
-                                        onClick={handleSignOut}
-                                        className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-destructive/10 text-destructive text-sm"
+
+                            <AnimatePresence>
+                                {dropdownOpen && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 6 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: 4 }}
+                                        transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+                                        className="absolute right-0 mt-2 w-56 rounded-2xl apple-liquid-glass p-1.5 z-50"
                                     >
-                                        <LogOut className="h-4 w-4" />
-                                        {t('signOut')}
-                                    </button>
-                                </div>
-                            )}
+                                        <Link href="/dashboard" className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-slate-100 hover:bg-white/[0.05]">
+                                            <LayoutDashboard className="h-4 w-4 text-slate-400" /> My trips
+                                        </Link>
+                                        <Link href="/pricing" className="flex items-center justify-between rounded-xl px-3 py-2.5 text-sm text-slate-100 hover:bg-white/[0.05]">
+                                            <span className="flex items-center gap-2.5">
+                                                <Star className="h-4 w-4 text-slate-400" /> Plan
+                                            </span>
+                                            <span className="rounded-full border border-white/[0.12] px-2 py-0.5 text-[10px] uppercase tracking-wider text-slate-400">
+                                                {user?.user_metadata?.plan || 'Free'}
+                                            </span>
+                                        </Link>
+                                        <div className="my-1 border-t border-white/[0.07]" />
+                                        <button
+                                            onClick={handleSignOut}
+                                            className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm text-slate-400 hover:bg-white/[0.05] hover:text-rose-300"
+                                        >
+                                            <LogOut className="h-4 w-4" /> Sign out
+                                        </button>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
                     ) : (
-                        <div className="hidden sm:flex items-center space-x-2">
-                            <Link href="/login">
-                                <Button variant="ghost" className="rounded-full">{t('logIn')}</Button>
+                        <div className="hidden sm:flex items-center gap-1">
+                            <Link href="/login" className="px-3 py-2 text-[13px] text-slate-400 hover:text-slate-100 transition-colors">
+                                Sign in
                             </Link>
-                            <Link href="/signup">
-                                <Button className="rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20">{t('signUp')}</Button>
+                            <Link
+                                href="/plan-trip"
+                                className="btn-apple-primary h-9 rounded-full px-4 text-[13px] inline-flex items-center gap-1.5"
+                            >
+                                Start planning <ArrowRight className="h-3.5 w-3.5" />
                             </Link>
                         </div>
                     )}
-                    <LanguageSwitcher />
                 </div>
             </div>
         </header>

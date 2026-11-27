@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/utils/supabase/admin';
-import { createClient as createSsrClient } from '@/utils/supabase/server';
+import { requireAdmin } from '@/utils/require-admin';
 
 /**
  * GET /api/admin/usage — Aggregated AI usage stats for the admin dashboard
  * Supports query params: ?period=7d|30d|all&groupBy=feature|user|model
  */
 export async function GET(req: NextRequest) {
-    const supabase = await createSsrClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const guard = await requireAdmin();
+    if ('error' in guard) return guard.error;
 
     const url = new URL(req.url);
     const period = url.searchParams.get('period') || '30d';

@@ -91,3 +91,8 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'Monthly reset failed' }, { status: 500 });
     }
 }
+
+// Vercel Cron invokes scheduled paths with GET (and the CRON_SECRET bearer header).
+export async function GET(req: Request) {
+    return POST(req);
+}

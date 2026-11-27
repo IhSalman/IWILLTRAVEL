@@ -41,7 +41,7 @@ export function OfficeFloorplan({ children, className }: OfficeFloorplanProps) {
             {/* Top Right Corner: Water Cooler */}
             <div className="absolute top-8 right-12 w-10 h-14 object-contain">
                 <div className="w-10 h-8 bg-neutral-200 rounded-t-sm shadow-md flex justify-center border border-neutral-300">
-                    <div className="w-6 h-8 bg-[#8ce0ff] rounded-t opacity-70 mt-1 border border-[#00bfff]" />
+                    <div className="w-6 h-8 bg-[#8ce0ff] rounded-t opacity-70 mt-1 border border-[#f3b87f]" />
                 </div>
                 <div className="w-10 h-6 bg-neutral-300 rounded-b-sm border-t border-neutral-400 relative">
                     {/* Taps */}

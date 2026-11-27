@@ -115,41 +115,6 @@ Return ONLY JSON:
 // GLOBAL INTELLIGENCE AGENT (Combined for Trends, News, Insights, Gems, Alerts)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-function generateMockIntelligence() {
-    return {
-        trending: [
-            { destination: "Helsinki, Finland", score: 92, why: "Northern Lights & Winter Magic", bestTime: "Dec-Mar", budget: "Medium" },
-            { destination: "Kyoto, Japan", score: 88, why: "Cherry Blossom Anticipation", bestTime: "Mar-May", budget: "High" },
-            { destination: "Lisbon, Portugal", score: 85, why: "Sunny Winter Escape", bestTime: "Apr-Oct", budget: "Low" },
-            { destination: "Banff, Canada", score: 90, why: "Peak Ski Season", bestTime: "Jan-Apr", budget: "High" }
-        ],
-        news: [
-            { title: "Europe Simplifies Visa Process", summary: "New digital nomad visas across EU zones.", impact: "Good" },
-            { title: "Airlines Expand Direct Routes", summary: "More long-haul connections to Asia.", impact: "Good" },
-            { title: "Heavy Snow in Alps", summary: "Expect delays in mountain transit.", impact: "Warning" }
-        ],
-        insights: [
-            { title: "Off-Season Gems", description: "Visit popular cities in late winter for 40% lower prices." },
-            { title: "Solo Travel Boom", description: "Increase in safe hubs for solo explorers." },
-            { title: "Eco-Conscious Booking", description: "New labels for sustainable hotel stays." }
-        ],
-        flightDeals: [
-            { route: "London → NYC", price: "€320", trend: "↓ 12%", bestDay: "Tuesday" },
-            { route: "Paris → Tokyo", price: "€580", trend: "↓ 8%", bestDay: "Wednesday" },
-            { route: "Berlin → Rome", price: "€45", trend: "↓ 15%", bestDay: "Saturday" }
-        ],
-        hiddenGems: [
-            { destination: "Gjirokastër, Albania", description: "Stunning stone architecture and Ottoman history." },
-            { destination: "Isle of Skye, Scotland", description: "Rugged landscapes and mythical atmosphere." },
-            { destination: "Matera, Italy", description: "Ancient cave dwellings and unique stays." }
-        ],
-        alerts: [
-            { title: "Winter Storm Alert", description: "Possible disruptions in Northern Europe.", severity: "Medium" },
-            { title: "Currency Fluctuation", description: "Great time to visit Japan due to exchange rates.", severity: "Low" }
-        ]
-    };
-}
-
 export async function generateGlobalIntelligence() {
     console.log('[Travel Intelligence] Generating Global Intelligence Dashboard...');
 
@@ -178,13 +143,21 @@ Make data highly realistic and seasonally appropriate for ${currentDate}. Return
         const parsed = safeJsonParse(text);
         
         // Basic validation of keys
-        if (!parsed.trending || !parsed.news) throw new Error('Invalid AI response structure');
-        
+        if (!parsed.trending) throw new Error('Invalid AI response structure');
+
         console.log('[Travel Intelligence] Successfully generated dashboard data');
-        return parsed;
+        // News, fares and advisories need real, dated sources. An LLM can only invent them,
+        // so only inspirational sections (suggestions, hidden gems, tips) are returned.
+        return {
+            ...parsed,
+            news: [],
+            flightDeals: [],
+            alerts: [],
+        };
     } catch (error: any) {
-        console.error('[Travel Intelligence] Fallback to mock data due to error:', error.message);
-        return generateMockIntelligence();
+        console.error('[Travel Intelligence] Generation failed:', error.message);
+        // Show empty sections rather than made-up data.
+        return { trending: [], news: [], insights: [], flightDeals: [], hiddenGems: [], alerts: [] };
     }
 }
 

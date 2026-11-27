@@ -30,15 +30,21 @@ export interface PlanLimits {
     canSaveAndShare: boolean;
     hasApiAccess: boolean;
     hasTeamSeats: boolean;
+    /** Email alerts for tracked flights (delays, gates, cancellations, aircraft swaps). */
+    hasFlightAlerts: boolean;
+    /** Flights tracked at the same time. 0 = none, -1 = unlimited */
+    maxTrackedFlights: number;
+    /** Alerts when chosen aircraft models (A380, 747…) fly near / land at an airport. */
+    hasAircraftWatches: boolean;
 }
 
 export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
     /**
      * Free — "Try it"
-     * DEV MODE: Unlimited. Change maxItinerariesPerMonth back to 2 before going live.
+     * 2 itineraries per month; extra trips via credit packs or an upgrade.
      */
     free: {
-        maxItinerariesPerMonth: -1, // TODO: set back to 2 for production
+        maxItinerariesPerMonth: 2,
         maxItinerariesTotal: -1,
         maxItineraryDays: -1,
         voiceMinutesPerMonth: 0,
@@ -52,6 +58,9 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
         canSaveAndShare: false,
         hasApiAccess: false,
         hasTeamSeats: false,
+        hasFlightAlerts: false,
+        maxTrackedFlights: 0,
+        hasAircraftWatches: false,
     },
 
     /**
@@ -74,6 +83,9 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
         canSaveAndShare: true,
         hasApiAccess: false,
         hasTeamSeats: false,
+        hasFlightAlerts: true,
+        maxTrackedFlights: 5,
+        hasAircraftWatches: false,
     },
 
     /**
@@ -96,6 +108,9 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
         canSaveAndShare: true,
         hasApiAccess: false,
         hasTeamSeats: false,
+        hasFlightAlerts: true,
+        maxTrackedFlights: -1,
+        hasAircraftWatches: true,
     },
 
     /**
@@ -118,6 +133,9 @@ export const PLAN_LIMITS: Record<PlanType, PlanLimits> = {
         canSaveAndShare: true,
         hasApiAccess: true,
         hasTeamSeats: true,
+        hasFlightAlerts: true,
+        maxTrackedFlights: -1,
+        hasAircraftWatches: true,
     },
 };
 

@@ -13,6 +13,16 @@ function flickrUrl(query: string | undefined | null, w: number, h: number, fallb
     return `https://loremflickr.com/${w}/${h}/${encodeURIComponent(safeQuery)}/all`;
 }
 
+/** Real place photos (name + proxied Google photo URL) from a generated itinerary. */
+function extractPlacePhotos(itinerary: any): { name: string; url: string }[] {
+    try {
+        return (itinerary?.days || [])
+            .flatMap((d: any) => d.activities || [])
+            .filter((a: any) => a?.title && typeof a?.photoUrl === 'string' && a.photoUrl.startsWith('/api/place-photo'))
+            .map((a: any) => ({ name: String(a.title), url: String(a.photoUrl) }));
+    } catch { return []; }
+}
+
 /** Extract place names from an itinerary object (tolerant of different shapes). */
 function extractPlaceNames(itinerary: any): string[] {
     try {
@@ -233,9 +243,16 @@ export async function processItineraryToBlog(itinerary: any, input: any) {
                 const updatedContent = await blogUpdateAgent({ ...existingBlog, content: parsedContent }, itinerary);
                 updatedContent.is_structured_json = true;
 
+                // Never rewrite a live post without review: published posts get a pending
+                // update an admin can apply; drafts are updated in place.
+                const isLive = existingBlog.status === 'published';
                 const { error: updateError } = await supabase
                     .from('blogs')
-                    .update({ content: JSON.stringify(updatedContent) })
+                    .update(
+                        isLive
+                            ? { metadata: { ...(existingBlog.metadata || {}), pending_content: JSON.stringify(updatedContent), pending_since: new Date().toISOString() } }
+                            : { content: JSON.stringify(updatedContent) }
+                    )
                     .eq('id', existingBlog.id);
 
                 if (updateError) console.error('[Main Orchestrator] Update Failed:', updateError.message);
@@ -314,14 +331,18 @@ export async function processItineraryToBlog(itinerary: any, input: any) {
         console.log(`[Main Orchestrator] All agents completed. Assembling final payload...`);
 
         // ─── Assemble Data ───
-        const heroUrl = flickrUrl(images.hero_image_query, 1200, 800, city);
+        // Prefer real Google place photos from the generated trip (served via /api/place-photo);
+        // stock search images are only a fallback.
+        const tripPhotos = extractPlacePhotos(itinerary);
+        const heroUrl = tripPhotos[0]?.url || flickrUrl(images.hero_image_query, 1200, 800, city);
 
         // Merge images into places
         const finalPlaces = (draft.places || []).map((place: any) => {
             const imgMatch = (images.places || []).find((i: any) => i.name === place.name) || (images.places || [])[0] || {};
+            const realPhoto = tripPhotos.find((p) => p.name.toLowerCase() === String(place.name || '').toLowerCase());
             return {
                 ...place,
-                image_url: flickrUrl(imgMatch.image_query, 800, 600, city),
+                image_url: realPhoto?.url || flickrUrl(imgMatch.image_query, 800, 600, city),
                 alt: imgMatch.alt || place.name || city
             };
         });
@@ -354,7 +375,7 @@ export async function processItineraryToBlog(itinerary: any, input: any) {
             console.log(`[Main Orchestrator] Slug collision detected. Using: ${finalSlug}`);
         }
 
-        // STEP 5: Store & Publish
+        // STEP 5: Store as a DRAFT — an admin reviews and publishes it.
         const { error: insertError } = await supabase
             .from('blogs')
             .insert([{
@@ -363,20 +384,21 @@ export async function processItineraryToBlog(itinerary: any, input: any) {
                 excerpt: seo.excerpt || `Discover ${city} with our AI-curated travel guide.`,
                 content: JSON.stringify(structuredContent),
                 category: 'city',
-                status: 'published',
-                published_at: new Date().toISOString(),
+                status: 'draft',
                 image_url: heroUrl,
                 metadata: {
                     seoTitle: seo.seoTitle || seo.title,
                     seoKeywords: seo.seoKeywords || `${city}, travel guide`,
-                    intent_type: contentAngle
+                    intent_type: contentAngle,
+                    source: 'itinerary',
+                    grounded_places: tripPhotos.length,
                 }
             }]);
 
         if (insertError) {
             console.error('[Main Orchestrator] DB Insert Error:', insertError.message);
         } else {
-            console.log(`[Main Orchestrator] Blog successfully assembled and published! Slug: ${finalSlug}`);
+            console.log(`[Main Orchestrator] Draft guide saved for review. Slug: ${finalSlug}`);
         }
 
     } catch (error: any) {

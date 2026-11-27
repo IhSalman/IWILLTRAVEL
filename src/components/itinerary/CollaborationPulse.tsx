@@ -19,7 +19,7 @@ interface Props {
 // Generates a consistent color from a user_id string
 function colorFromId(id: string): string {
   const colors = [
-    '#8B5CF6', '#EC4899', '#06B6D4', '#10B981',
+    '#8B5CF6', '#EC4899', '#f3b87f', '#80ad88',
     '#F59E0B', '#EF4444', '#3B82F6', '#84CC16',
   ];
   let hash = 0;

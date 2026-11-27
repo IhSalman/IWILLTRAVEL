@@ -1,0 +1,25 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "crons": [
+    {
+      "path": "/api/cron/live-trip-monitor",
+      "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/monthly-reset",
+      "schedule": "5 0 1 * *"
+    },
+    {
+      "path": "/api/admin/evals/run",
+      "schedule": "0 3 * * 1"
+    },
+    {
+      "path": "/api/cron/trip-emails",
+      "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/seo-guides",
+      "schedule": "0 4 * * *"
+    }
+  ]
+}

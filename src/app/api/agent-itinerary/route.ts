@@ -16,7 +16,6 @@
  */
 
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
 import crypto from 'node:crypto';
 import { getCache, setCache } from '@/utils/cache';
 import { deductUsage, deductCredits } from '@/utils/usage';
@@ -24,47 +23,39 @@ import { getActiveModel, logAiUsage } from '@/utils/ai-config';
 import { requirePlan } from '@/utils/require-plan';
 import type { AgentLog, StreamEvent } from './types';
 import { executeItineraryPipeline } from '@/lib/agents/pipeline';
+import { AgentRequestSchema } from './request-schema';
 
-// --- Input Validation Schema ---------------------------------------------------
+// Input validation lives in ./request-schema (shared with background jobs).
 
-const AgentRequestSchema = z.object({
-    destination: z.string().min(2),
-    days: z.number().int().min(1).max(30),
-    startDate: z.string().optional(),
-    endDate: z.string().optional(),
-    budget: z.enum(['budget', 'moderate', 'luxury', 'custom']),
-    travelStyle: z.enum(['relaxed', 'balanced', 'adventure', 'cultural']),
-    travelerType: z.enum(['single', 'couple', 'family', 'friends']),
-    interests: z.array(z.string()).default([]),
-    transport: z.enum(['public', 'rental', 'walking']),
-    originCity: z.string().optional(),
-    includeFlights: z.boolean().optional().default(false),
-    includeHotels: z.boolean().optional().default(false),
-    customBudget: z.number().optional(),
-    currency: z.string().optional().default('USD'),
-});
+// The 8-agent pipeline usually takes 30–70 s; allow headroom (Vercel max on Hobby is 300 s).
+export const maxDuration = 300;
 
 // --- POST Handler --------------------------------------------------------------
 
 export async function POST(req: Request) {
+    // Validate before checking quota so a bad request never uses up a guest's daily trip.
+    const body = await req.json().catch(() => null);
+    const preParsed = AgentRequestSchema.safeParse(body);
+    if (!preParsed.success) {
+        return NextResponse.json({ error: 'Invalid request', details: preParsed.error.flatten() }, { status: 400 });
+    }
+
     const planResult = await requirePlan('itinerary', { allowGuest: true });
     if ('error' in planResult) return planResult.error;
     const { user, useCredits } = planResult;
 
     try {
-        const body = await req.json();
-        const parsed = AgentRequestSchema.safeParse(body);
-        if (!parsed.success) {
-            return NextResponse.json({ error: 'Invalid request', details: parsed.error.flatten() }, { status: 400 });
-        }
-        const input = parsed.data;
+        const input = preParsed.data;
 
         // Cache lookup
         const hash = crypto.createHash('sha256').update(JSON.stringify(input)).digest('hex');
         const cacheKey = `agent_itinerary_${hash}`;
-        const cached = await getCache(cacheKey);
+        const cached: any = await getCache(cacheKey);
         if (cached) {
-            return new Response(`event: result\ndata: ${JSON.stringify({ itinerary: cached, agents: [], fromCache: true })}\n\n`, {
+            const payload = cached?.itinerary
+                ? { ...cached, fromCache: true }
+                : { itinerary: cached, flights: [], hotels: [], flightAnalysis: null, agents: [], fromCache: true };
+            return new Response(`event: result\ndata: ${JSON.stringify(payload)}\n\n`, {
                 headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache' }
             });
         }
@@ -72,19 +63,21 @@ export async function POST(req: Request) {
         const encoder = new TextEncoder();
         const stream = new ReadableStream({
             async start(controller) {
-                const agentLogs: AgentLog[] = [];
-                const pipelineStart = Date.now();
-
-                const streamLog = (agent: string, startMs: number, status: AgentLog['status'], details?: string) => {
-                    const log: AgentLog = { agent, durationMs: Date.now() - startMs, status, details, timestamp: new Date().toISOString() };
-                    agentLogs.push(log);
-                    controller.enqueue(encoder.encode(`event: log\ndata: ${JSON.stringify(log)}\n\n`));
-                };
-
                 try {
-                    const result = await executeItineraryPipeline(input, (log) => {
-                        controller.enqueue(encoder.encode(`event: log\ndata: ${JSON.stringify(log)}\n\n`));
-                    }, { userId: user?.id ?? null });
+                    const result = await executeItineraryPipeline(
+                        input,
+                        (log) => {
+                            controller.enqueue(encoder.encode(`event: log\ndata: ${JSON.stringify(log)}\n\n`));
+                        },
+                        {
+                            userId: user?.id ?? null,
+                            onSkeleton: (skeletonPlan) => {
+                                controller.enqueue(
+                                    encoder.encode(`event: skeleton\ndata: ${JSON.stringify({ plan: skeletonPlan.plan })}\n\n`)
+                                );
+                            },
+                        }
+                    );
 
                     const { itinerary, research, flightAnalysis, agentLogs, totalMs } = result;
 
@@ -100,16 +93,26 @@ export async function POST(req: Request) {
                     
                     controller.enqueue(encoder.encode(`event: result\ndata: ${JSON.stringify(resultData)}\n\n`));
 
-                    // Async cleanup
+                    // Charge usage BEFORE closing the stream. Work scheduled after the response
+                    // ends can be frozen by the serverless runtime, which let trips go uncounted.
+                    if (user) {
+                        try {
+                            if (useCredits) await deductCredits(user.id, 1);
+                            else await deductUsage(user.id, 'itinerary', 1);
+                        } catch (usageErr) {
+                            console.error('[Agent Itinerary] Usage deduction failed:', usageErr);
+                        }
+                    }
+                    await setCache(cacheKey, resultData).catch(() => {});
+
+                    // Best-effort analytics only
                     (async () => {
-                        if (user) useCredits ? await deductCredits(user.id, 1) : await deductUsage(user.id, 'itinerary', 1);
-                        await setCache(cacheKey, itinerary);
                         const activeModelName = await getActiveModel();
                         const totalInputTokens = (result.itinerary._tokens?.inputTokens || 0); // Simplified for now
                         const totalOutputTokens = (result.itinerary._tokens?.outputTokens || 0);
                         
                         await logAiUsage({
-                            userId: user ? user.id : 'guest',
+                            userId: user ? user.id : null,
                             featureType: 'agent_itinerary',
                             inputTokens: totalInputTokens,
                             outputTokens: totalOutputTokens,

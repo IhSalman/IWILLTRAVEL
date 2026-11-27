@@ -1,11 +1,15 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { Plane, Mail, Lock, Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useEffect, useState } from 'react';
+import { Link, useRouter } from '@/i18n/routing';
+import {
+    readCheckoutIntent,
+    checkoutResumePath,
+    checkoutIntentQuery,
+    type CheckoutIntent,
+} from '@/lib/checkout-client';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Compass, Mail, Lock, Loader2, AlertCircle, CheckCircle2, Eye, EyeOff, ArrowRight, ArrowLeft } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { createClient } from '@/utils/supabase/client';
@@ -17,9 +21,19 @@ export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
+    const [resetMode, setResetMode] = useState(false);
+    const [resetSent, setResetSent] = useState(false);
     const router = useRouter();
     const locale = useLocale();
     const supabase = createClient();
+    // Paid plan chosen on the pricing page — resume checkout after login.
+    const [checkoutIntent, setCheckoutIntent] = useState<CheckoutIntent | null>(null);
+
+    useEffect(() => {
+        setCheckoutIntent(readCheckoutIntent(window.location.search));
+    }, []);
+
+    const signupHref = checkoutIntent ? `/signup${checkoutIntentQuery(checkoutIntent)}` : '/signup';
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -32,128 +46,242 @@ export default function LoginPage() {
             setError(error.message);
             setIsLoading(false);
         } else {
-            router.push(`/${locale}/dashboard`);
+            router.push(checkoutIntent ? checkoutResumePath(checkoutIntent) : '/dashboard');
             router.refresh();
         }
     };
 
+    const handlePasswordReset = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!email.trim()) {
+            setError('Please enter your email address first.');
+            return;
+        }
+        setIsLoading(true);
+        setError('');
+
+        const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+            redirectTo: `${window.location.origin}/${locale}/dashboard`,
+        });
+
+        setIsLoading(false);
+        if (error) {
+            setError(error.message);
+        } else {
+            setResetSent(true);
+        }
+    };
+
     return (
-        <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4 py-12 relative overflow-hidden">
-            {/* Decorative Gradient Blobs */}
-            <div className="absolute -top-40 -right-40 w-96 h-96 bg-primary/20 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="min-h-screen bg-[#0b0c0f] text-slate-100 font-body flex items-center justify-center px-4 py-16 relative overflow-x-clip">
+            {/* Ambient Spatial Lighting */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[820px] h-[380px] bg-gradient-to-b from-sky-500/[0.08] via-indigo-500/[0.03] to-transparent blur-3xl pointer-events-none" />
 
             <motion.div
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="w-full max-w-md relative"
+                transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                className="w-full max-w-md relative z-10"
             >
                 {/* Header */}
-                <div className="text-center mb-10">
-                    <div className="mx-auto w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-5 shadow-lg shadow-primary/10">
-                        <Plane className="h-8 w-8 text-primary" strokeWidth={2} />
+                <div className="text-center mb-8">
+                    <div className="mx-auto w-12 h-12 rounded-2xl apple-liquid-glass flex items-center justify-center mb-4 text-sky-300">
+                        <Compass className="h-6 w-6" strokeWidth={1.75} />
                     </div>
-                    <h1 className="text-3xl font-extrabold tracking-tight mb-2">
-                        Welcome back
+                    <h1 className="font-heading text-3xl font-semibold text-white mb-2 tracking-tight">
+                        {resetMode ? 'Reset Your Password' : 'Welcome Back'}
                     </h1>
-                    <p className="text-muted-foreground">
-                        Sign in to continue your adventures.
+                    <p className="text-xs text-slate-400">
+                        {resetMode
+                            ? 'Enter your email and we will send a secure recovery link.'
+                            : 'Sign in to access your saved itineraries and AI travel workspace.'}
                     </p>
                 </div>
 
-                {/* Card */}
-                <div className="bg-card/60 backdrop-blur-sm border border-border/50 rounded-3xl p-8 shadow-2xl">
-                    <form onSubmit={handleLogin} className="space-y-5">
-                        {/* Error Message */}
-                        {error && (
-                            <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                className="flex items-start gap-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-xl p-4"
+                {/* Glass Card */}
+                <div className="apple-glass-card rounded-[28px] p-7 sm:p-8 space-y-6">
+                    <AnimatePresence mode="wait">
+                        {resetMode ? (
+                            <motion.form
+                                key="reset"
+                                initial={{ opacity: 0, x: 12 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -12 }}
+                                onSubmit={handlePasswordReset}
+                                className="space-y-4"
                             >
-                                <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                                <span>{error}</span>
-                            </motion.div>
-                        )}
+                                {error && (
+                                    <div className="flex items-start gap-2.5 text-xs text-rose-200 bg-rose-500/12 border border-rose-500/25 rounded-2xl p-3.5">
+                                        <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0 text-rose-400" />
+                                        <span>{error}</span>
+                                    </div>
+                                )}
 
-                        {/* Email */}
-                        <div className="space-y-2">
-                            <Label htmlFor="email" className="font-medium">Email</Label>
-                            <div className="relative">
-                                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    placeholder="you@example.com"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="pl-10 h-12 rounded-xl bg-background/50 border-border/60"
-                                    required
-                                />
-                            </div>
-                        </div>
+                                {resetSent ? (
+                                    <div className="flex items-start gap-3 text-xs text-emerald-200 bg-emerald-500/12 border border-emerald-500/25 rounded-2xl p-4">
+                                        <CheckCircle2 className="h-4 w-4 mt-0.5 flex-shrink-0 text-emerald-400" />
+                                        <div>
+                                            <p className="font-semibold text-white mb-1">Recovery link dispatched</p>
+                                            <p className="text-slate-300 leading-relaxed">
+                                                Check <span className="font-mono text-white">{email}</span> for instructions to set a new password.
+                                            </p>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-1.5">
+                                        <Label htmlFor="reset-email" className="text-xs font-mono uppercase tracking-wider text-slate-300">
+                                            Email Address
+                                        </Label>
+                                        <div className="relative">
+                                            <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                            <Input
+                                                id="reset-email"
+                                                type="email"
+                                                placeholder="you@example.com"
+                                                value={email}
+                                                onChange={(e) => setEmail(e.target.value)}
+                                                className="pl-10 h-12 rounded-2xl bg-slate-950/70 border-white/12 text-white placeholder:text-slate-500 text-sm focus-visible:ring-1 focus-visible:ring-sky-400/50"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                )}
 
-                        {/* Password */}
-                        <div className="space-y-2">
-                            <div className="flex items-center justify-between">
-                                <Label htmlFor="password" className="font-medium">Password</Label>
-                                <Link
-                                    href="/forgot-password"
-                                    className="text-xs text-primary hover:underline"
-                                >
-                                    Forgot password?
-                                </Link>
-                            </div>
-                            <div className="relative">
-                                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                    id="password"
-                                    type={showPassword ? 'text' : 'password'}
-                                    placeholder="••••••••"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="pl-10 pr-10 h-12 rounded-xl bg-background/50 border-border/60"
-                                    required
-                                />
+                                {!resetSent && (
+                                    <button
+                                        type="submit"
+                                        disabled={isLoading}
+                                        className="w-full h-12 rounded-full text-sm btn-apple-primary inline-flex items-center justify-center gap-2"
+                                    >
+                                        {isLoading ? (
+                                            <><Loader2 className="h-4 w-4 animate-spin" /> Sending Link…</>
+                                        ) : (
+                                            <>Send Recovery Link <ArrowRight className="w-4 h-4" /></>
+                                        )}
+                                    </button>
+                                )}
+
                                 <button
                                     type="button"
-                                    onClick={() => setShowPassword(s => !s)}
-                                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                    onClick={() => {
+                                        setResetMode(false);
+                                        setResetSent(false);
+                                        setError('');
+                                    }}
+                                    className="w-full h-10 rounded-full text-xs text-slate-300 hover:text-white inline-flex items-center justify-center gap-1.5 transition-colors"
                                 >
-                                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    <ArrowLeft className="w-3.5 h-3.5" /> Back to Sign In
                                 </button>
-                            </div>
-                        </div>
+                            </motion.form>
+                        ) : (
+                            <motion.form
+                                key="login"
+                                initial={{ opacity: 0, x: -12 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: 12 }}
+                                onSubmit={handleLogin}
+                                className="space-y-4"
+                            >
+                                {error && (
+                                    <div className="flex items-start gap-2.5 text-xs text-rose-200 bg-rose-500/12 border border-rose-500/25 rounded-2xl p-3.5">
+                                        <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0 text-rose-400" />
+                                        <span>{error}</span>
+                                    </div>
+                                )}
 
-                        {/* Submit Button */}
-                        <Button
-                            type="submit"
-                            className="w-full h-12 rounded-xl text-base font-semibold bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 mt-2"
-                            disabled={isLoading}
-                        >
-                            {isLoading ? (
-                                <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Signing in...</>
-                            ) : (
-                                'Sign In'
-                            )}
-                        </Button>
-                    </form>
+                                {/* Email */}
+                                <div className="space-y-1.5">
+                                    <Label htmlFor="email" className="text-xs font-mono uppercase tracking-wider text-slate-300">
+                                        Email Address
+                                    </Label>
+                                    <div className="relative">
+                                        <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                        <Input
+                                            id="email"
+                                            type="email"
+                                            placeholder="you@example.com"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            className="pl-10 h-12 rounded-2xl bg-slate-950/70 border-white/12 text-white placeholder:text-slate-500 text-sm focus-visible:ring-1 focus-visible:ring-sky-400/50"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Password */}
+                                <div className="space-y-1.5">
+                                    <div className="flex items-center justify-between">
+                                        <Label htmlFor="password" className="text-xs font-mono uppercase tracking-wider text-slate-300">
+                                            Password
+                                        </Label>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setResetMode(true);
+                                                setError('');
+                                            }}
+                                            className="text-[11px] font-medium text-sky-300 hover:text-sky-200 transition-colors"
+                                        >
+                                            Forgot password?
+                                        </button>
+                                    </div>
+                                    <div className="relative">
+                                        <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                        <Input
+                                            id="password"
+                                            type={showPassword ? 'text' : 'password'}
+                                            placeholder="••••••••"
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            className="pl-10 pr-10 h-12 rounded-2xl bg-slate-950/70 border-white/12 text-white placeholder:text-slate-500 text-sm focus-visible:ring-1 focus-visible:ring-sky-400/50"
+                                            required
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(s => !s)}
+                                            aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+                                        >
+                                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Submit Button */}
+                                <div className="pt-2">
+                                    <button
+                                        type="submit"
+                                        className="w-full h-12 rounded-full text-sm btn-apple-primary inline-flex items-center justify-center gap-2"
+                                        disabled={isLoading}
+                                    >
+                                        {isLoading ? (
+                                            <><Loader2 className="h-4 w-4 animate-spin" /> Signing In…</>
+                                        ) : (
+                                            <>Sign In <ArrowRight className="w-4 h-4" /></>
+                                        )}
+                                    </button>
+                                </div>
+                            </motion.form>
+                        )}
+                    </AnimatePresence>
 
                     {/* Divider */}
-                    <div className="relative my-6">
+                    <div className="relative my-4">
                         <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t border-border/50" />
+                            <div className="w-full border-t border-white/[0.08]" />
                         </div>
-                        <div className="relative flex justify-center text-xs text-muted-foreground">
-                            <span className="bg-card px-3">Don&apos;t have an account?</span>
+                        <div className="relative flex justify-center text-[10px] font-mono uppercase tracking-wider text-slate-400">
+                            <span className="bg-[#121317] px-3">New to iWillTravel?</span>
                         </div>
                     </div>
 
-                    <Link href="/signup">
-                        <Button variant="outline" className="w-full h-12 rounded-xl text-base">
-                            Create a free account
-                        </Button>
+                    <Link href={signupHref} className="block">
+                        <button
+                            type="button"
+                            className="w-full h-11 rounded-full text-xs font-medium btn-apple-glass"
+                        >
+                            Create a Free Account (2 Trips / Month)
+                        </button>
                     </Link>
                 </div>
             </motion.div>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateAutomatedBlog, getTrendingTopic } from '../../travel-intelligence/agents';
 import { createAdminClient } from '@/utils/supabase/admin';
+import { requireAdmin } from '@/utils/require-admin';
 
 /**
  * ADMIN ONLY API: Triggers AI Blog Generation
@@ -8,6 +9,9 @@ import { createAdminClient } from '@/utils/supabase/admin';
  * If no body, it suggests a trending topic via AI first.
  */
 export async function POST(req: NextRequest) {
+    const guard = await requireAdmin();
+    if ('error' in guard) return guard.error;
+
     try {
         let { topic, category } = await req.json().catch(() => ({}));
 
@@ -33,7 +37,7 @@ export async function POST(req: NextRequest) {
                 excerpt: blogData.excerpt,
                 content: blogData.content,
                 category: category,
-                status: 'published',
+                status: 'draft', // reviewed by an admin before going live
                 image_url: `https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&q=80&w=1200&query=${encodeURIComponent(blogData.image_query)}`,
                 metadata: {
                     seoTitle: blogData.seoTitle,

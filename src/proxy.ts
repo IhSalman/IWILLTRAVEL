@@ -5,7 +5,7 @@ import { routing } from './i18n/routing';
 
 const intlMiddleware = createMiddleware(routing);
 
-export async function proxy(request: NextRequest) {
+export default async function proxy(request: NextRequest) {
     // 1. Run the next-intl middleware first
     const response = intlMiddleware(request);
 
@@ -112,7 +112,7 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
     matcher: [
-        // Match all pathnames except static files and internal Next.js routes
+        // Match all pathnames except static files, api routes, and internal Next.js routes
         '/((?!api|_next|_vercel|.*\\..*).*)',
     ],
 };

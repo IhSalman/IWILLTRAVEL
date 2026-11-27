@@ -1,14 +1,13 @@
 import { NextResponse } from 'next/server';
-import { createClient as createSsrClient } from '@/utils/supabase/server';
+import { requireAdmin } from '@/utils/require-admin';
 
 /**
  * POST /api/admin/workflows/trigger — Trigger admin workflows
  * Body: { "workflow": "blog-generation" | "travel-intelligence" | "newsletter", ...params }
  */
 export async function POST(req: Request) {
-    const supabase = await createSsrClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const guard = await requireAdmin();
+    if ('error' in guard) return guard.error;
 
     const body = await req.json();
     const { workflow, topic, category } = body;
@@ -38,7 +37,7 @@ export async function POST(req: Request) {
                     excerpt: blogData.excerpt,
                     content: blogData.content,
                     category: finalCategory,
-                    status: 'published',
+                    status: 'draft', // reviewed by an admin before going live
                     image_url: `https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&q=80&w=1200&query=${encodeURIComponent(blogData.image_query)}`,
                     metadata: { seoTitle: blogData.seoTitle, seoKeywords: blogData.seoKeywords, tags: blogData.tags },
                 }]).select().single();

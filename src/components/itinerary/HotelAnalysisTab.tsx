@@ -12,15 +12,15 @@ interface Props {
 }
 
 const TIER_CONFIG = {
-    budget: { label: 'Budget', color: '#00FFB3', bg: 'rgba(0,255,179,0.06)', border: 'rgba(0,255,179,0.2)', stars: 2 },
-    'mid-range': { label: 'Best Value', color: '#00D4FF', bg: 'rgba(0,212,255,0.06)', border: 'rgba(0,212,255,0.2)', stars: 3 },
+    budget: { label: 'Budget', color: '#80ad88', bg: 'rgba(0,255,179,0.06)', border: 'rgba(0,255,179,0.2)', stars: 2 },
+    'mid-range': { label: 'Best Value', color: '#f3b87f', bg: 'rgba(0,212,255,0.06)', border: 'rgba(0,212,255,0.2)', stars: 3 },
     luxury: { label: 'Luxury', color: '#8B5CF6', bg: 'rgba(139,92,246,0.06)', border: 'rgba(139,92,246,0.2)', stars: 5 },
 };
 
 const TAG_CONFIG = {
-    cheapest: { label: '🏷️ Cheapest', color: '#00FFB3' },
-    'best-value': { label: '⭐ Best Value', color: '#00D4FF' },
-    'best-rated': { label: '🏆 Top Rated', color: '#FFB300' },
+    cheapest: { label: '🏷️ Cheapest', color: '#80ad88' },
+    'best-value': { label: '⭐ Best Value', color: '#f3b87f' },
+    'best-rated': { label: '🏆 Top Rated', color: '#ee9d57' },
 };
 
 const AMENITY_ICONS: Record<string, React.ReactNode> = {
@@ -86,7 +86,7 @@ export default function HotelAnalysisTab({ hotels, destination, checkIn, checkOu
                 </div>
                 <div className="p-4 rounded-2xl bg-white/5 border border-white/10 text-center">
                     <p className="text-xs text-white/30 uppercase tracking-widest mb-1">From</p>
-                    <p className="text-2xl font-black text-[#00FFB3]">${cheapest.price}<span className="text-sm font-normal text-white/40">/night</span></p>
+                    <p className="text-2xl font-black text-[#80ad88]">${cheapest.price}<span className="text-sm font-normal text-white/40">/night</span></p>
                 </div>
                 <div className="p-4 rounded-2xl bg-white/5 border border-white/10 text-center">
                     <p className="text-xs text-white/30 uppercase tracking-widest mb-1">Avg/Night</p>
@@ -99,7 +99,7 @@ export default function HotelAnalysisTab({ hotels, destination, checkIn, checkOu
                 {hotels.map((hotel, idx) => {
                     const tier = (hotel.tier || (idx === 0 ? 'budget' : idx === 1 ? 'mid-range' : 'luxury')) as keyof typeof TIER_CONFIG;
                     const cfg = TIER_CONFIG[tier] || TIER_CONFIG['mid-range'];
-                    const tagCfg = hotel.tag ? TAG_CONFIG[hotel.tag] : null;
+                    const tagCfg = hotel.tag && (hotel.tag in TAG_CONFIG) ? TAG_CONFIG[hotel.tag as keyof typeof TAG_CONFIG] : null;
                     const links = hotel.comparisonLinks;
                     const stars = hotel.stars || cfg.stars;
 
@@ -221,7 +221,7 @@ export default function HotelAnalysisTab({ hotels, destination, checkIn, checkOu
             {/* Booking Tips */}
             <div className="p-4 rounded-2xl bg-white/3 border border-white/5">
                 <p className="text-xs font-bold text-white/40 uppercase tracking-widest mb-3 flex items-center gap-2">
-                    <Hotel className="w-3.5 h-3.5 text-[#FFB300]" /> Booking Tips
+                    <Hotel className="w-3.5 h-3.5 text-[#ee9d57]" /> Booking Tips
                 </p>
                 <ul className="space-y-1.5">
                     {[
@@ -231,7 +231,7 @@ export default function HotelAnalysisTab({ hotels, destination, checkIn, checkOu
                         'Look for stays with free breakfast — it often saves more than you think',
                     ].map((tip, i) => (
                         <li key={i} className="text-xs text-white/40 flex items-start gap-2">
-                            <span className="text-[#FFB300] flex-shrink-0 mt-0.5">›</span> {tip}
+                            <span className="text-[#ee9d57] flex-shrink-0 mt-0.5">›</span> {tip}
                         </li>
                     ))}
                 </ul>

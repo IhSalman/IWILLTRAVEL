@@ -14,10 +14,12 @@ import { runDisruptionSentinel, FlightStatusPayload } from '@/app/api/agents/dis
 export async function POST(req: Request) {
   try {
     // ── Security: validate shared webhook secret ──
+    // Legacy endpoint: flight alerts now come from /api/cron/flight-watch and /api/webhooks/aerodatabox.
+    // Fail closed: without a configured secret anyone could forge disruption alerts.
     const secret = req.headers.get('x-webhook-secret');
     const expectedSecret = process.env.AVIATIONSTACK_WEBHOOK_SECRET;
 
-    if (expectedSecret && secret !== expectedSecret) {
+    if (!expectedSecret || secret !== expectedSecret) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

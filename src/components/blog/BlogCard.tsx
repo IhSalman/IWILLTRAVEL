@@ -1,87 +1,48 @@
-'use client';
+import { Link } from '@/i18n/routing';
+import { ArrowUpRight } from 'lucide-react';
 
-import Link from 'next/link';
-import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, ArrowRight, MapPin, Globe, Sparkles } from 'lucide-react';
-
-interface BlogCardProps {
-    blog: {
-        id: string;
-        slug: string;
-        title: string;
-        excerpt: string;
-        image_url?: string;
-        category: 'country' | 'city' | 'wonder';
-        published_at: string;
-        author?: string;
-    };
-    locale: string;
+export interface BlogItem {
+    id: string;
+    slug: string;
+    title: string;
+    excerpt: string;
+    image_url?: string | null;
+    category?: string;
+    published_at: string;
+    updated_at?: string | null;
+    metadata?: { destination?: string; days?: number; kind?: string; grounding?: { stops?: number } } | null;
 }
 
-const CategoryIcons = {
-    country: <Globe className="w-3 h-3" />,
-    city: <MapPin className="w-3 h-3" />,
-    wonder: <Sparkles className="w-3 h-3" />,
-};
-
-const CategoryColors = {
-    country: 'bg-blue-100 text-blue-800 border-blue-200',
-    city: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-    wonder: 'bg-purple-100 text-purple-800 border-purple-200',
-};
-
-export function BlogCard({ blog, locale }: BlogCardProps) {
-    const date = new Date(blog.published_at).toLocaleDateString(locale === 'en' ? 'en-US' : 'es-ES', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-    });
+export function BlogCard({ blog, priority = false }: { blog: BlogItem; priority?: boolean }) {
+    const city = blog.metadata?.destination?.split(',')[0];
+    const days = blog.metadata?.days;
+    const label = [days ? `${days} days` : null, city, blog.metadata?.kind === 'itinerary_guide' ? 'verified places' : null]
+        .filter(Boolean)
+        .join(' · ');
 
     return (
-        <Link href={`/${locale}/blogs/${blog.slug}`} className="block h-full group">
-            <div className="h-full flex flex-col bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                {/* Image Placeholder/Hero */}
-                <div className="relative h-56 w-full overflow-hidden bg-slate-100">
-                    {blog.image_url ? (
-                        <img 
-                            src={blog.image_url} 
-                            alt={blog.title} 
-                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+        <Link href={`/blogs/${blog.slug}` as any} className="group block">
+            <article>
+                <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-white/[0.03]">
+                    {blog.image_url && (
+                        <img
+                            src={blog.image_url}
+                            alt={blog.title}
+                            width={800}
+                            height={600}
+                            loading={priority ? 'eager' : 'lazy'}
+                            decoding="async"
+                            className="h-full w-full object-cover saturate-[0.8] transition-all duration-[1200ms] ease-out group-hover:scale-[1.04] group-hover:saturate-100"
                         />
-                    ) : (
-                        <div className="w-full h-full flex items-center justify-center opacity-20">
-                            <Sparkles className="w-12 h-12 text-slate-400" />
-                        </div>
                     )}
-                    <div className="absolute top-4 left-4">
-                        <Badge className={`uppercase tracking-widest text-[10px] font-bold px-3 py-1 flex items-center gap-1.5 shadow-sm ${CategoryColors[blog.category] || 'bg-slate-100 text-slate-800'}`}>
-                            {CategoryIcons[blog.category]} {blog.category}
-                        </Badge>
-                    </div>
+                    <span className="absolute right-3 top-3 flex h-9 w-9 -translate-y-1 items-center justify-center rounded-full bg-background/60 text-slate-100 opacity-0 backdrop-blur transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+                        <ArrowUpRight className="h-4 w-4" />
+                    </span>
                 </div>
-
-                <div className="p-8 flex flex-col flex-grow space-y-4">
-                    <div className="flex items-center gap-4 text-xs font-semibold text-slate-500 uppercase tracking-widest">
-                        <span className="flex items-center gap-1"><Calendar className="w-4 h-4 text-slate-400" /> {date}</span>
-                        <span className="flex items-center gap-1"><Clock className="w-4 h-4 text-slate-400" /> 5 min read</span>
-                    </div>
-
-                    <h3 className="text-2xl font-black text-slate-900 group-hover:text-blue-600 transition-colors leading-tight line-clamp-2">
-                        {blog.title}
-                    </h3>
-
-                    <p className="text-base text-slate-600 line-clamp-3 font-serif leading-relaxed flex-grow">
-                        {blog.excerpt}
-                    </p>
-
-                    <div className="pt-6 mt-4 border-t border-slate-100 flex items-center justify-between">
-                        <span className="text-sm font-bold text-blue-600 uppercase tracking-widest">Read Article</span>
-                        <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all transform group-hover:translate-x-1">
-                            <ArrowRight className="w-5 h-5" />
-                        </div>
-                    </div>
-                </div>
-            </div>
+                {label && <p className="mt-4 text-xs text-sunrise-300">{label}</p>}
+                <h2 className="mt-1 font-heading text-2xl leading-tight text-slate-100 group-hover:text-sunrise-300 transition-colors">{blog.title}</h2>
+                {blog.excerpt && <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-slate-500">{blog.excerpt}</p>}
+            </article>
         </Link>
     );
 }

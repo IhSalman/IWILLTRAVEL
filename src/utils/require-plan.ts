@@ -21,7 +21,9 @@ import {
     type UserPlanInfo,
     type QuotaResult,
 } from './usage';
-import { PLAN_LIMITS } from './plan-limits';
+import { PLAN_LIMITS, type PlanLimits } from './plan-limits';
+import { requireAuth } from './auth';
+import { consumeGuestQuota } from './guest-limit';
 
 type FeatureType = 'itinerary' | 'translation' | 'voice';
 
@@ -53,7 +55,20 @@ export async function requirePlan(
 
     if (error || !user) {
         if (options.allowGuest) {
-            // Guest mode: Give them the free tier limits so they can experience the "Small win"
+            // Guest mode: free tier limits so they can experience the "Small win",
+            // capped per IP per day to protect API costs.
+            if (!(await consumeGuestQuota(feature))) {
+                return {
+                    error: NextResponse.json(
+                        {
+                            error: 'You have used your free guest preview for today. Sign up free to plan more trips.',
+                            signupRequired: true,
+                            limitReached: true,
+                        },
+                        { status: 429 }
+                    ),
+                };
+            }
             return {
                 user: null,
                 supabase,
@@ -107,4 +122,30 @@ export async function requirePlan(
     const useCredits = !!quota.creditsAvailable && quota.creditsAvailable > 0;
 
     return { user, supabase, plan, useCredits };
+}
+
+type BooleanFeature = {
+    [K in keyof PlanLimits]: PlanLimits[K] extends boolean ? K : never;
+}[keyof PlanLimits];
+
+/**
+ * Auth + "does the plan include this feature" check for boolean plan flags
+ * (e.g. hasFlightAlerts). Uses requireAuth, so the mobile app's Bearer token works too.
+ *
+ *   const gate = await requireFeature('hasFlightAlerts');
+ *   if ('error' in gate) return gate.error;
+ */
+export async function requireFeature(
+    flag: BooleanFeature,
+    upgradeMessage = 'This feature is part of the paid plans.',
+): Promise<{ user: User; plan: UserPlanInfo } | PlanFailure> {
+    const auth = await requireAuth();
+    if ('error' in auth) return auth;
+    const plan = await getUserPlan(auth.user.id);
+    if (plan.status !== 'active' || !plan.limits[flag]) {
+        return {
+            error: NextResponse.json({ error: upgradeMessage, upgradeRequired: true, plan: plan.plan }, { status: 403 }),
+        };
+    }
+    return { user: auth.user, plan };
 }

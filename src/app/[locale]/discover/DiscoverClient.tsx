@@ -1,226 +1,364 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Search, MapPin, DollarSign, Thermometer, Compass } from 'lucide-react';
-import Link from 'next/link';
-import { useLocale } from 'next-intl';
+import {
+    Search, MapPin, DollarSign, Thermometer, Compass,
+    Shield, Wifi, Sparkles, ArrowRight, ArrowUpDown
+} from 'lucide-react';
+import { Link } from '@/i18n/routing';
 
 const CATEGORIES = [
-    'All', 'Tropical', 'Urban', 'Cultural', 'Digital Nomad', 'Beach',
-    'Budget', 'Luxury', 'Historic', 'Romantic', 'Nature'
+    'All', 'Cultural', 'Historic', 'Urban', 'Beach', 'Nature',
+    'Adventure', 'Food', 'Romantic', 'Digital Nomad', 'Budget', 'Luxury', 'Tropical'
+];
+
+type SortOption = 'recommended' | 'cost-asc' | 'safety-desc' | 'wifi-desc';
+
+const SORT_OPTIONS: { id: SortOption; label: string }[] = [
+    { id: 'recommended', label: 'Curated' },
+    { id: 'cost-asc', label: 'Lowest Cost' },
+    { id: 'safety-desc', label: 'Highest Safety' },
+    { id: 'wifi-desc', label: 'Fastest Wi-Fi' },
 ];
 
 export default function DiscoverClient({ destinations }: { destinations: any[] }) {
-    const locale = useLocale();
     const [searchQuery, setSearchQuery] = useState('');
     const [activeCategory, setActiveCategory] = useState('All');
+    const [sortBy, setSortBy] = useState<SortOption>('recommended');
 
-    const filteredDestinations = destinations.filter((dest) => {
-        const matchesSearch = dest.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            dest.country.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesCategory = activeCategory === 'All' || (dest.tags && dest.tags.some((t: string) => t.toLowerCase() === activeCategory.toLowerCase()));
-        return matchesSearch && matchesCategory;
-    });
+    const filteredDestinations = useMemo(() => {
+        const list = destinations.filter((dest) => {
+            const q = searchQuery.trim().toLowerCase();
+            const matchesSearch =
+                !q ||
+                dest.name.toLowerCase().includes(q) ||
+                dest.country.toLowerCase().includes(q) ||
+                (dest.tags && dest.tags.some((t: string) => t.toLowerCase().includes(q)));
+            const matchesCategory =
+                activeCategory === 'All' ||
+                (dest.tags && dest.tags.some((t: string) => t.toLowerCase() === activeCategory.toLowerCase()));
+            return matchesSearch && matchesCategory;
+        });
+
+        if (sortBy === 'cost-asc') {
+            return [...list].sort((a, b) => (a.cost || 0) - (b.cost || 0));
+        }
+        if (sortBy === 'safety-desc') {
+            return [...list].sort((a, b) => (b.safety || 0) - (a.safety || 0));
+        }
+        if (sortBy === 'wifi-desc') {
+            return [...list].sort((a, b) => (b.internet || 0) - (a.internet || 0));
+        }
+        return list;
+    }, [destinations, searchQuery, activeCategory, sortBy]);
 
     return (
-        <div className="min-h-screen bg-[#020509] text-white py-24 font-sans selection:bg-[#00D4FF]/30">
-            {/* Minimal Static Background Gradient (Fast Performance) */}
+        <div className="min-h-screen bg-[#0b0c0f] text-slate-100 py-16 md:py-20 font-body">
+            {/* Ambient Spatial Lighting */}
             <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#00D4FF]/10 rounded-full blur-[100px] transform-gpu" />
-                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[#6366F1]/10 rounded-full blur-[100px] transform-gpu" />
+                <div className="absolute top-0 right-1/4 w-[520px] h-[360px] bg-sky-500/[0.06] rounded-full blur-[140px]" />
+                <div className="absolute bottom-0 left-1/4 w-[520px] h-[360px] bg-amber-400/[0.04] rounded-full blur-[140px]" />
             </div>
 
             <div className="container relative z-10 max-w-7xl mx-auto px-4 md:px-8">
-                
+
                 {/* Header & Search */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-8">
+                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-10 gap-6">
                     <div className="max-w-xl">
-                        <motion.h1 
-                            initial={{ opacity: 0, y: 20 }}
+                        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full apple-glass-pill text-xs font-mono text-sky-300 mb-4">
+                            <Compass className="w-3.5 h-3.5" />
+                            <span>Global Destination Intelligence</span>
+                        </div>
+                        <motion.h1
+                            initial={{ opacity: 0, y: 16 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="text-5xl md:text-7xl font-extrabold tracking-tight mb-4 bg-gradient-to-br from-white via-white to-white/40 bg-clip-text text-transparent"
+                            className="text-4xl md:text-6xl font-heading font-bold tracking-tight mb-3 text-white"
                         >
-                            Discover
+                            Discover Destinations
                         </motion.h1>
-                        <motion.p 
-                            initial={{ opacity: 0, y: 20 }}
+                        <motion.p
+                            initial={{ opacity: 0, y: 14 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.1 }}
-                            className="text-white/60 text-lg md:text-xl"
+                            transition={{ delay: 0.08 }}
+                            className="text-slate-300/85 text-sm md:text-base leading-relaxed"
                         >
-                            Find the world's most incredible destinations.
+                            Compare daily travel costs, safety scores, climate, and Wi-Fi speeds—or launch an 8-agent itinerary for any city on Earth.
                         </motion.p>
                     </div>
 
-                    <motion.div 
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.2 }}
-                        className="relative w-full md:w-[400px] group"
+                    <motion.div
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.14 }}
+                        className="relative w-full lg:w-[400px]"
                     >
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/40 group-focus-within:text-[#00D4FF] transition-colors" />
-                        <Input
-                            placeholder="Search cities, countries..."
-                            className="pl-12 h-14 rounded-full border-white/10 bg-white/5 text-white placeholder:text-white/40 focus-visible:ring-[#00D4FF]/50 focus-visible:border-[#00D4FF]/50 transition-all font-medium text-base"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
+                        <div className="apple-liquid-glass rounded-full flex items-center px-4 h-12 focus-within:border-white/25 transition-colors">
+                            <Search className="h-4 w-4 text-sky-300 flex-shrink-0 mr-3" />
+                            <Input
+                                placeholder="Search city, country, or vibe…"
+                                aria-label="Search destinations"
+                                className="border-0 bg-transparent p-0 h-full text-sm text-white placeholder:text-slate-400 focus-visible:ring-0 focus-visible:ring-offset-0"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                            {searchQuery && (
+                                <button
+                                    type="button"
+                                    onClick={() => setSearchQuery('')}
+                                    className="text-xs text-slate-400 hover:text-white ml-2"
+                                >
+                                    Clear
+                                </button>
+                            )}
+                        </div>
                     </motion.div>
                 </div>
 
-                {/* Categories */}
-                <motion.div 
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
-                    className="flex overflow-x-auto pb-4 mb-8 -mx-4 px-4 gap-3 md:gap-4 md:mb-12 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
-                >
-                    {CATEGORIES.map((category) => (
-                        <button
-                            key={category}
-                            onClick={() => setActiveCategory(category)}
-                            className={`whitespace-nowrap px-6 py-2.5 rounded-full text-sm font-semibold transition-colors duration-200 ${
-                                activeCategory === category
-                                    ? 'bg-[#00D4FF] text-black shadow-[0_0_15px_rgba(0,212,255,0.3)]'
-                                    : 'bg-[#111827] text-white/70 hover:bg-[#1E293B] hover:text-white border border-white/5'
-                            }`}
-                        >
-                            {category}
-                        </button>
-                    ))}
-                </motion.div>
+                {/* Filter Categories & Traveler Sort Controls */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
+                    {/* Categories */}
+                    <div className="flex overflow-x-auto pb-2 md:pb-0 -mx-4 px-4 md:mx-0 md:px-0 gap-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                        {CATEGORIES.map((category) => {
+                            const isActive = activeCategory === category;
+                            return (
+                                <button
+                                    key={category}
+                                    type="button"
+                                    onClick={() => setActiveCategory(category)}
+                                    className={`whitespace-nowrap px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
+                                        isActive
+                                            ? 'btn-apple-primary'
+                                            : 'apple-glass-pill text-slate-300 hover:text-white hover:border-white/25'
+                                    }`}
+                                >
+                                    {category}
+                                </button>
+                            );
+                        })}
+                    </div>
 
-                {/* Premium Grid Viewer */}
+                    {/* Sort Segmented Pill */}
+                    <div className="inline-flex items-center gap-1 p-1 rounded-full apple-liquid-glass self-start md:self-auto flex-shrink-0">
+                        <span className="pl-2.5 pr-1 text-[11px] font-mono text-slate-400 hidden sm:inline-flex items-center gap-1">
+                            <ArrowUpDown className="w-3 h-3" /> Sort:
+                        </span>
+                        {SORT_OPTIONS.map((opt) => {
+                            const isActive = sortBy === opt.id;
+                            return (
+                                <button
+                                    key={opt.id}
+                                    type="button"
+                                    onClick={() => setSortBy(opt.id)}
+                                    className={`relative px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                                        isActive ? 'text-white' : 'text-slate-300/75 hover:text-white'
+                                    }`}
+                                >
+                                    {isActive && (
+                                        <motion.span
+                                            layoutId="discover-sort-pill"
+                                            transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+                                            className="absolute inset-0 rounded-full bg-white/[0.14] border border-white/[0.18]"
+                                        />
+                                    )}
+                                    <span className="relative z-10">{opt.label}</span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* Destination Cards Grid */}
                 {filteredDestinations.length > 0 ? (
-                    <motion.div 
+                    <motion.div
                         layout
-                        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8"
+                        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
                     >
                         <AnimatePresence mode="popLayout">
                             {filteredDestinations.map((dest) => (
                                 <motion.div
-                                    key={dest.id || dest.name}
+                                    key={dest.slug || dest.id || dest.name}
                                     layout
-                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    initial={{ opacity: 0, scale: 0.96 }}
                                     animate={{ opacity: 1, scale: 1 }}
-                                    exit={{ opacity: 0, scale: 0.95 }}
-                                    transition={{ duration: 0.3 }}
-                                    className="group"
+                                    exit={{ opacity: 0, scale: 0.96 }}
+                                    transition={{ duration: 0.25 }}
+                                    className="group apple-glass-card card-3d-interactive rounded-[28px] overflow-hidden flex flex-col"
                                 >
-                                    <Link 
-                                        href={`/${locale}/discover/${dest.slug}`} 
-                                        className="relative block h-[400px] md:h-[450px] w-full rounded-[28px] overflow-hidden bg-[#0A101A] border border-white/5 ring-1 ring-white/10 hover:ring-[#00D4FF]/50 transition-all duration-300 shadow-xl"
+                                    {/* Top Photography Header */}
+                                    <Link
+                                        href={`/discover/${dest.slug}` as any}
+                                        className="relative block h-56 overflow-hidden"
                                     >
-                                        {/* Background Image Setup (Hardware Accelerated) */}
-                                        <div className="absolute inset-0 overflow-hidden rounded-[28px]">
-                                            <img
-                                                src={dest.image}
-                                                alt={dest.name}
-                                                className="w-full h-full object-cover will-change-transform transform-gpu transition-transform duration-700 ease-out group-hover:scale-105"
-                                                loading="lazy"
-                                                decoding="async"
-                                            />
+                                        <img
+                                            src={dest.image}
+                                            alt={`${dest.name}, ${dest.country}`}
+                                            className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                                            loading="lazy"
+                                            decoding="async"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-[#121317] via-[#121317]/30 to-transparent" />
+
+                                        {/* Tags */}
+                                        <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
+                                            {(dest.tags || []).slice(0, 2).map((tag: string) => (
+                                                <span
+                                                    key={tag}
+                                                    className="px-2.5 py-0.5 rounded-full apple-liquid-glass text-[10px] font-medium text-white"
+                                                >
+                                                    {tag}
+                                                </span>
+                                            ))}
                                         </div>
 
-                                        {/* Rich Deep Gradient overlay (Static, Non-Laggy) */}
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/10 transition-opacity duration-300 group-hover:via-black/40" />
+                                        {/* Daily Cost Badge */}
+                                        <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full apple-liquid-glass text-xs font-mono font-semibold text-white tabular-nums">
+                                            ${dest.cost}<span className="text-[10px] text-slate-300 font-normal">/d</span>
+                                        </div>
 
-                                        {/* Card Focus Interactive Border Glow */}
-                                        <div className="absolute inset-0 rounded-[28px] border-2 border-transparent group-hover:border-white/10 transition-colors duration-500 pointer-events-none" />
-
-                                        {/* Content Container */}
-                                        <div className="absolute inset-0 p-6 flex flex-col justify-end z-10 transition-transform duration-300 ease-out group-hover:-translate-y-1">
-                                            
-                                            {/* Tag */}
-                                            <Badge className="w-fit mb-3 bg-[#6366F1]/90 hover:bg-[#6366F1] text-white border-none px-3 py-1 text-xs font-bold shadow-md">
-                                                {dest.tags?.[0] || 'Popular'}
-                                            </Badge>
-                                            
-                                            {/* Title & Location */}
-                                            <h3 className="text-3xl font-bold mb-1 text-white group-hover:text-[#00D4FF] transition-colors duration-300 line-clamp-1">{dest.name}</h3>
-                                            <div className="flex items-center text-white/70 mb-5 font-semibold text-sm">
-                                                <MapPin className="w-4 h-4 mr-1.5" />
-                                                {dest.country}
+                                        {/* Title & Country */}
+                                        <div className="absolute bottom-3 left-4 right-4">
+                                            <h3 className="text-2xl font-heading font-bold text-white leading-tight line-clamp-1">
+                                                {dest.name}
+                                            </h3>
+                                            <div className="flex items-center text-slate-300 text-xs mt-0.5">
+                                                <MapPin className="w-3 h-3 mr-1 text-sky-300" />
+                                                <span>{dest.country}</span>
                                             </div>
-
-                                            {/* Quick Stats Grid */}
-                                            <div className="grid grid-cols-2 gap-3 mt-auto">
-                                                <div className="bg-[#111827]/80 backdrop-blur-md rounded-2xl p-3 border border-white/5 transition-colors group-hover:bg-[#111827]">
-                                                    <div className="flex items-center gap-1.5 mb-1 text-[10px] text-white/50 uppercase font-extrabold tracking-wider">
-                                                        <DollarSign className="w-3.5 h-3.5 text-[#00FFB3]" /> 
-                                                        <span>Budget</span>
-                                                    </div>
-                                                    <div className="text-white font-bold text-base leading-none">${dest.cost}<span className="text-xs text-white/50 font-medium tracking-normal">/day</span></div>
-                                                </div>
-                                                
-                                                <div className="bg-[#111827]/80 backdrop-blur-md rounded-2xl p-3 border border-white/5 transition-colors group-hover:bg-[#111827]">
-                                                    <div className="flex items-center gap-1.5 mb-1 text-[10px] text-white/50 uppercase font-extrabold tracking-wider">
-                                                        <Thermometer className="w-3.5 h-3.5 text-amber-400" /> 
-                                                        <span>Temp</span>
-                                                    </div>
-                                                    <div className="text-white font-bold text-base leading-none">{dest.temp}°C</div>
-                                                </div>
-                                            </div>
-
                                         </div>
                                     </Link>
+
+                                    {/* Traveler Telemetry & Dual Actions */}
+                                    <div className="p-4 flex-1 flex flex-col justify-between gap-4">
+                                        {dest.heroDescription && (
+                                            <p className="text-xs text-slate-300/85 line-clamp-2 leading-relaxed">
+                                                {dest.heroDescription}
+                                            </p>
+                                        )}
+
+                                        <div>
+                                            <div className="grid grid-cols-3 gap-2 mb-4 text-center font-mono tabular-nums">
+                                                <div className="rounded-xl bg-[#0b0c0f]/70 border border-white/[0.07] py-2 px-1.5">
+                                                    <div className="flex items-center justify-center gap-1 text-[10px] text-slate-400 mb-0.5">
+                                                        <Shield className="w-3 h-3 text-emerald-400" />
+                                                        <span>Safety</span>
+                                                    </div>
+                                                    <div className="text-xs font-semibold text-white">{dest.safety}/10</div>
+                                                </div>
+                                                <div className="rounded-xl bg-[#0b0c0f]/70 border border-white/[0.07] py-2 px-1.5">
+                                                    <div className="flex items-center justify-center gap-1 text-[10px] text-slate-400 mb-0.5">
+                                                        <Thermometer className="w-3 h-3 text-amber-300" />
+                                                        <span>Climate</span>
+                                                    </div>
+                                                    <div className="text-xs font-semibold text-white">{dest.temp}°C</div>
+                                                </div>
+                                                <div className="rounded-xl bg-[#0b0c0f]/70 border border-white/[0.07] py-2 px-1.5">
+                                                    <div className="flex items-center justify-center gap-1 text-[10px] text-slate-400 mb-0.5">
+                                                        <Wifi className="w-3 h-3 text-sky-300" />
+                                                        <span>Wi-Fi</span>
+                                                    </div>
+                                                    <div className="text-xs font-semibold text-white">{dest.internet}M</div>
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <Link href={`/discover/${dest.slug}` as any}>
+                                                    <button className="w-full h-9 rounded-full btn-apple-glass text-xs font-medium">
+                                                        Read Guide
+                                                    </button>
+                                                </Link>
+                                                <Link
+                                                    href={`/plan-trip?destination=${encodeURIComponent(`${dest.name}, ${dest.country}`)}` as any}
+                                                >
+                                                    <button className="w-full h-9 rounded-full btn-apple-primary text-xs inline-flex items-center justify-center gap-1">
+                                                        <span>Plan Trip</span>
+                                                        <ArrowRight className="w-3 h-3" />
+                                                    </button>
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </motion.div>
                             ))}
                         </AnimatePresence>
                     </motion.div>
                 ) : (
-                    <motion.div 
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="text-center py-20 bg-[#111827]/50 rounded-3xl border border-white/5 mt-8"
+                    /* Smart Traveler Fallback: Plan or Research ANY custom query directly! */
+                    <motion.div
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="text-center py-16 px-6 apple-glass-card rounded-[32px] max-w-xl mx-auto mt-6"
                     >
-                        <Compass className="w-16 h-16 text-white/20 mx-auto mb-4" />
-                        <h3 className="text-2xl font-bold text-white mb-2">No destinations found</h3>
-                        <p className="text-white/50 text-base">Try adjusting your filters or search terms.</p>
+                        <div className="w-12 h-12 rounded-2xl apple-liquid-glass flex items-center justify-center mx-auto mb-4 text-sky-300">
+                            <Sparkles className="w-6 h-6" />
+                        </div>
+                        <h3 className="text-2xl font-heading font-bold text-white mb-2">
+                            {searchQuery.trim()
+                                ? `Explore "${searchQuery.trim()}" with Live AI`
+                                : 'No destinations matched that filter'}
+                        </h3>
+                        <p className="text-slate-300/85 text-sm mb-6 leading-relaxed">
+                            {searchQuery.trim()
+                                ? `Our 8-agent planner supports every city and region worldwide using live Google Places and Amadeus data.`
+                                : 'Reset your category filter or search for any city worldwide.'}
+                        </p>
+                        <div className="flex flex-wrap items-center justify-center gap-3">
+                            {searchQuery.trim() ? (
+                                <>
+                                    <Link href={`/plan-trip?destination=${encodeURIComponent(searchQuery.trim())}` as any}>
+                                        <button className="px-6 py-3 rounded-full btn-apple-primary text-xs inline-flex items-center gap-2">
+                                            <Sparkles className="w-3.5 h-3.5" />
+                                            <span>Plan Trip to {searchQuery.trim()}</span>
+                                            <ArrowRight className="w-3.5 h-3.5" />
+                                        </button>
+                                    </Link>
+                                    <Link href="/travel-research">
+                                        <button className="px-5 py-3 rounded-full btn-apple-glass text-xs font-medium">
+                                            Open Live Place Research
+                                        </button>
+                                    </Link>
+                                </>
+                            ) : (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setActiveCategory('All');
+                                        setSearchQuery('');
+                                    }}
+                                    className="px-6 py-2.5 rounded-full btn-apple-primary text-xs"
+                                >
+                                    Show All Destinations
+                                </button>
+                            )}
+                        </div>
                     </motion.div>
                 )}
-                {/* \u2500\u2500 Soft upsell strip \u2500\u2500 */}
+
+                {/* Bottom Custom Destination Banner */}
                 <motion.div
-                    initial={{ opacity: 0, y: 30 }}
+                    initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    className="mt-20"
+                    className="mt-16"
                 >
-                    <div
-                        className="rounded-[28px] p-8 md:p-10 flex flex-col md:flex-row items-center gap-6 text-center md:text-left"
-                        style={{
-                            background: 'linear-gradient(135deg, rgba(99,102,241,0.1), rgba(0,212,255,0.07))',
-                            border: '1px solid rgba(99,102,241,0.2)',
-                        }}
-                    >
+                    <div className="apple-glass-card rounded-[30px] p-8 md:p-10 flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
                         <div className="flex-1">
-                            <p className="text-xs font-bold uppercase tracking-widest text-[#00D4FF]/70 mb-2">
-                                Ready to visit one of these?
+                            <p className="text-xs font-semibold uppercase tracking-widest text-sky-300 mb-2 font-mono">
+                                Unlimited Global Coverage
                             </p>
-                            <h3 className="text-2xl md:text-3xl font-extrabold text-white mb-2 leading-tight">
-                                Plan your full itinerary in{' '}
-                                <span style={{
-                                    background: 'linear-gradient(90deg, #00D4FF, #6366F1)',
-                                    WebkitBackgroundClip: 'text',
-                                    WebkitTextFillColor: 'transparent',
-                                    backgroundClip: 'text',
-                                }}>
-                                    2 minutes
-                                </span>
+                            <h3 className="text-2xl md:text-3xl font-heading font-bold text-white mb-2 leading-tight">
+                                Heading somewhere off the beaten path?
                             </h3>
-                            <p className="text-white/50 text-sm">
-                                Day-by-day plan, flights, hotels, visa info &mdash; all generated instantly. Free to start.
+                            <p className="text-slate-300/85 text-sm">
+                                Our 8-agent planner generates grounded, zero-backtrack itineraries for any city, island, or multi-neighborhood destination on Earth.
                             </p>
                         </div>
-                        <Link href={`/${locale}/plan-trip`} className="flex-shrink-0">
-                            <button
-                                className="px-8 py-4 rounded-2xl font-extrabold text-black text-sm transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(0,212,255,0.4)]"
-                                style={{ background: 'linear-gradient(135deg, #00D4FF, #6366F1)' }}
-                            >
-                                Generate My Itinerary &rarr;
+                        <Link href="/plan-trip" className="flex-shrink-0">
+                            <button className="btn-apple-primary px-7 py-3.5 rounded-full text-sm inline-flex items-center gap-2">
+                                <Sparkles className="w-4 h-4" />
+                                <span>Plan Custom Trip</span>
+                                <ArrowRight className="w-4 h-4" />
                             </button>
                         </Link>
                     </div>

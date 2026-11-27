@@ -50,7 +50,7 @@ export function Workstation({ agentName, logState, status, isActive, isVisible, 
             {/* The Desk (Top-down view) */}
             <div className={cn(
                 "w-20 h-10 bg-[#8c6b4a] rounded shadow-md border border-[#5c432a] relative transition-colors duration-500",
-                isActive ? "border-[#00D4FF] shadow-[0_0_15px_rgba(0,212,255,0.4)]" : ""
+                isActive ? "border-[#f3b87f] shadow-[0_0_15px_rgba(0,212,255,0.4)]" : ""
             )}>
                 {/* Wood texture lines */}
                 <div className="absolute inset-0 opacity-10 bg-[linear-gradient(90deg,transparent_2px,#000_2px)] bg-[length:10px_10px]" />
@@ -66,7 +66,7 @@ export function Workstation({ agentName, logState, status, isActive, isVisible, 
                     {/* Screen glow when active */}
                     {isActive && (
                         <motion.div 
-                            className="absolute inset-x-0 -bottom-3 h-4 bg-[#00D4FF] opacity-30 blur-sm mix-blend-screen"
+                            className="absolute inset-x-0 -bottom-3 h-4 bg-[#f3b87f] opacity-30 blur-sm mix-blend-screen"
                             animate={{ opacity: [0.2, 0.4, 0.2] }}
                             transition={{ repeat: Infinity, duration: 2 }}
                         />

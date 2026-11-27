@@ -40,12 +40,12 @@ export function JapanLeadMagnet() {
     };
 
     return (
-        <section className="relative py-24 px-4 overflow-hidden" style={{ background: '#020B18' }}>
+        <section className="relative py-24 px-4 overflow-hidden" style={{ background: '#0b0c0f' }}>
             {/* Background elements */}
             <div className="absolute inset-0 pointer-events-none"
                  style={{ background: 'radial-gradient(circle at 80% 50%, rgba(236,72,153,0.08) 0%, transparent 60%)' }} />
             <div className="absolute inset-0 pointer-events-none"
-                 style={{ background: 'radial-gradient(circle at 20% 50%, rgba(99,102,241,0.05) 0%, transparent 60%)' }} />
+                 style={{ background: 'radial-gradient(circle at 20% 50%, rgba(243,184,127,0.05) 0%, transparent 60%)' }} />
 
             <div className="max-w-5xl mx-auto relative z-10 bg-white/5 border border-white/10 rounded-3xl p-8 md:p-12 backdrop-blur-md overflow-hidden">
                 <div className="grid md:grid-cols-2 gap-10 items-center">
@@ -98,7 +98,7 @@ export function JapanLeadMagnet() {
                     <div className="relative">
                         <div className="absolute inset-0 bg-gradient-to-tr from-pink-500/20 to-indigo-500/20 blur-3xl -z-10 rounded-full" />
                         
-                        <div className="bg-[#050D1A]/80 border border-white/10 rounded-2xl p-6 shadow-2xl backdrop-blur-sm">
+                        <div className="bg-[#0b0c0f]/80 border border-white/10 rounded-2xl p-6 shadow-2xl backdrop-blur-sm">
                             <AnimatePresence mode="wait">
                                 {!success ? (
                                     <motion.form

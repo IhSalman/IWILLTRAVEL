@@ -40,6 +40,7 @@ export interface DiscoveryResult {
     venues: any[];
     source: string;
     timestamp: string;
+    fallbackUsed?: boolean;
     error?: string;
 }
 
@@ -47,6 +48,7 @@ export interface DiscoveryResult {
 
 export interface PlanDay {
     day: number;
+    date?: string;
     city: string;
     neighborhood: string;
     neighborhoodDescription?: string;
@@ -65,10 +67,16 @@ export interface PlanResult {
 // ─── AGENT 3: RESEARCH ───────────────────────────────────────────────────────
 
 export interface Flight {
+    id?: string;
+    offerId?: string;
+    flightIata?: string;
     from: string;
     to: string;
     price: number;
+    currency?: string;
     date: string;
+    departureTime?: string;
+    arrivalTime?: string;
     airline?: string;
     duration?: string;
     stops?: number;
@@ -81,9 +89,12 @@ export interface Flight {
 }
 
 export interface Hotel {
+    id?: string;
+    offerId?: string;
     city: string;
     name: string;
     price: number;
+    currency?: string;
     rating?: number;
     stars?: number;
     source?: string;
@@ -94,6 +105,8 @@ export interface Hotel {
     comparisonLinks?: any;
     roomType?: string;
     tag?: string;
+    imageUrl?: string;
+    location?: string;
 }
 
 export interface PlaceDetail {
@@ -176,6 +189,8 @@ export interface OptimizedRoute {
     optimizedRoute: string[];
     removedBacktracks: number;
     routeChanged: boolean;
+    optimizedDayActivities?: Record<number, string[]>;
+    intraDayDistanceSavedKm?: number;
     error?: string;
 }
 
@@ -202,6 +217,8 @@ export interface FinalActivity {
     totalRatings: number;
     address: string;
     openingHours?: string[];
+    openingHoursVerified?: boolean;
+    scheduleAdjustmentNote?: string;
     source: string;
     transportNote: string;
     bookingUrl?: string;
@@ -212,6 +229,8 @@ export interface FinalActivity {
     transitToNextKm?: number;
     mealNearby?: string;
     accessibilityNote?: string;
+    category?: string;
+    bestTimeToVisit?: string;
     airQuality?: {
         aqi: number;
         category: string;
@@ -222,12 +241,25 @@ export interface FinalActivity {
 
 export interface FinalDay {
     day: number;
+    date?: string;
+    weekday?: string;
     theme: string;
     areaFocus: string;
     difficulty: 'high' | 'medium' | 'low';
     pace: string;
     activities: FinalActivity[];
     dayResources: any;
+}
+
+export interface BlackboardState {
+    truthPool: any[];
+    groundingSource: string;
+    weather?: any;
+    currency?: any;
+    locationCoords?: { lat: number; lng: number };
+    temporalAuditFixes?: string[];
+    spatialDistanceSavedKm?: number;
+    lastVerifiedAt: string;
 }
 
 export interface FinalItinerary {
@@ -245,6 +277,7 @@ export interface FinalItinerary {
     flightInfo?: any;
     hotelInfo?: Hotel[];
     esgReport?: ESGReport;
+    blackboardState?: BlackboardState;
     _tokens?: any;
 }
 
@@ -264,7 +297,7 @@ export interface ComposerInput {
 export interface AgentLog {
     agent: string;
     durationMs: number;
-    status: 'success' | 'error' | 'skipped';
+    status: 'running' | 'success' | 'warning' | 'error' | 'skipped';
     details?: string;
     timestamp: string;
 }

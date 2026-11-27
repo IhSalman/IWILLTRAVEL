@@ -10,11 +10,13 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Analytics } from '@vercel/analytics/next';
 import { ClarityAnalytics } from '@/components/analytics/ClarityAnalytics';
 import { GlobalErrorBoundary } from '@/components/layout/ErrorBoundary';
+import { Toaster } from 'sonner';
 
-const interClass = "font-satoshi";
+const interClass = "font-body";
 
 export const viewport: Viewport = {
-    themeColor: '#0da2e7',
+    themeColor: '#0b0c0f',
+    colorScheme: 'dark',
 };
 
 export async function generateMetadata({
@@ -25,13 +27,24 @@ export async function generateMetadata({
     const { locale } = await params;
     const t = await getTranslations({ locale, namespace: 'Metadata' });
 
+    // NOTE: no site-wide canonical here. A layout-level `canonical: '/'` told search
+    // engines that EVERY page was a duplicate of the homepage. Pages set their own.
     return {
-        metadataBase: new URL('https://www.iwilltravel.app'),
+        metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://www.iwilltravel.app'),
         title: t('title'),
         description: t('description'),
         manifest: '/manifest.json',
-        alternates: {
-            canonical: '/',
+        openGraph: {
+            type: 'website',
+            siteName: 'iWillTravel',
+            title: t('title'),
+            description: t('description'),
+            locale: locale === 'es' ? 'es_ES' : 'en_GB',
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title: t('title'),
+            description: t('description'),
         },
     };
 }
@@ -63,7 +76,7 @@ export default async function RootLayout({
     };
 
     return (
-        <html lang={locale}>
+        <html lang={locale} className="dark" suppressHydrationWarning>
             <head>
                 <script
                     type="application/ld+json"
@@ -90,11 +103,24 @@ export default async function RootLayout({
             <body className={interClass} suppressHydrationWarning>
                 <NextIntlClientProvider messages={messages}>
                     <GlobalErrorBoundary>
-                        <div className="relative flex min-h-screen flex-col bg-background selection:bg-primary/30">
+                        <div className="relative flex min-h-screen flex-col bg-background text-slate-100 antialiased">
                             <Navbar />
                             <main className="flex-1">{children}</main>
                             <Footer />
                         </div>
+                        <Toaster
+                            theme="dark"
+                            position="bottom-right"
+                            toastOptions={{
+                                style: {
+                                    background: '#121317',
+                                    border: '1px solid rgba(237, 234, 227, 0.12)',
+                                    boxShadow: '0 16px 40px -16px rgba(0, 0, 0, 0.7)',
+                                    color: '#edeae3',
+                                    borderRadius: '14px',
+                                },
+                            }}
+                        />
                     </GlobalErrorBoundary>
                 </NextIntlClientProvider>
                 <SpeedInsights />

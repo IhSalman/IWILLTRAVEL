@@ -11,8 +11,8 @@ interface Props {
 }
 
 const TIER_CONFIG = {
-    budget: { label: 'Budget', color: '#00FFB3', bg: 'rgba(0,255,179,0.08)', border: 'rgba(0,255,179,0.25)', icon: <TrendingDown className="w-4 h-4" /> },
-    value: { label: 'Best Value', color: '#00D4FF', bg: 'rgba(0,212,255,0.08)', border: 'rgba(0,212,255,0.25)', icon: <Star className="w-4 h-4" /> },
+    budget: { label: 'Budget', color: '#80ad88', bg: 'rgba(0,255,179,0.08)', border: 'rgba(0,255,179,0.25)', icon: <TrendingDown className="w-4 h-4" /> },
+    value: { label: 'Best Value', color: '#f3b87f', bg: 'rgba(0,212,255,0.08)', border: 'rgba(0,212,255,0.25)', icon: <Star className="w-4 h-4" /> },
     premium: { label: 'Premium', color: '#8B5CF6', bg: 'rgba(139,92,246,0.08)', border: 'rgba(139,92,246,0.25)', icon: <Shield className="w-4 h-4" /> },
 };
 
@@ -72,8 +72,8 @@ export default function FlightAnalysisTab({ flights, origin, destination }: Prop
             {/* Best Price Callout */}
             <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/10">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-[#00FFB3]/20 flex items-center justify-center">
-                        <TrendingDown className="w-5 h-5 text-[#00FFB3]" />
+                    <div className="w-10 h-10 rounded-xl bg-[#80ad88]/20 flex items-center justify-center">
+                        <TrendingDown className="w-5 h-5 text-[#80ad88]" />
                     </div>
                     <div>
                         <p className="text-xs uppercase tracking-widest text-white/40 font-bold">Lowest Found</p>
@@ -140,7 +140,7 @@ export default function FlightAnalysisTab({ flights, origin, destination }: Prop
                                     )}
                                     <div>
                                         <p className="text-xs text-white/30 uppercase tracking-wider mb-0.5">Stops</p>
-                                        <p className="font-bold text-sm" style={{ color: flight.stops === 0 ? '#00FFB3' : '#FFB300' }}>
+                                        <p className="font-bold text-sm" style={{ color: flight.stops === 0 ? '#80ad88' : '#ee9d57' }}>
                                             {flight.stops === 0 ? 'Direct ✦' : `${flight.stops} stop`}
                                         </p>
                                     </div>
@@ -185,7 +185,7 @@ export default function FlightAnalysisTab({ flights, origin, destination }: Prop
             {/* Pro Tips */}
             <div className="p-4 rounded-2xl bg-white/3 border border-white/5">
                 <p className="text-xs font-bold text-white/40 uppercase tracking-widest mb-3 flex items-center gap-2">
-                    <Zap className="w-3.5 h-3.5 text-[#00FFB3]" /> Flight Tips
+                    <Zap className="w-3.5 h-3.5 text-[#80ad88]" /> Flight Tips
                 </p>
                 <ul className="space-y-1.5">
                     {[
@@ -195,7 +195,7 @@ export default function FlightAnalysisTab({ flights, origin, destination }: Prop
                         'Consider nearby airports for significant savings',
                     ].map((tip, i) => (
                         <li key={i} className="text-xs text-white/40 flex items-start gap-2">
-                            <span className="text-[#00FFB3] flex-shrink-0 mt-0.5">›</span> {tip}
+                            <span className="text-[#80ad88] flex-shrink-0 mt-0.5">›</span> {tip}
                         </li>
                     ))}
                 </ul>

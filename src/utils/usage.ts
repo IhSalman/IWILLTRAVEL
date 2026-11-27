@@ -148,6 +148,10 @@ export async function checkItineraryQuota(
 
     // Check monthly itinerary quota
     if (planInfo.limits.maxItinerariesPerMonth !== -1 && usage.itinerariesGenerated >= planInfo.limits.maxItinerariesPerMonth) {
+        // Monthly quota used up — fall back to purchased credits if the user has any.
+        if (credits.balance >= 1) {
+            return { allowed: true, creditsAvailable: credits.balance };
+        }
         return {
             allowed: false,
             reason: `You've used all ${planInfo.limits.maxItinerariesPerMonth} itinerary${planInfo.limits.maxItinerariesPerMonth === 1 ? '' : ' generations'} for this month. Upgrade to get more.`,
