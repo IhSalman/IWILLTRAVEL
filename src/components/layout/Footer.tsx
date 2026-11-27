@@ -14,6 +14,7 @@ const COLUMNS = [
     {
         title: 'Tools',
         links: [
+            { href: '/flights', label: 'Live flights' },
             { href: '/visa-hub', label: 'Visa hub' },
             { href: '/translate', label: 'Translate' },
             { href: '/travel-research', label: 'Place research' },

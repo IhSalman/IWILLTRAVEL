@@ -8,6 +8,7 @@
 // @ts-ignore — no types for amadeus package
 import Amadeus from 'amadeus';
 import axios from 'axios';
+import { cityToIata } from '@/lib/airports';
 export let amadeus: any;
 if (process.env.AMADEUS_CLIENT_ID && process.env.AMADEUS_CLIENT_SECRET) {
     if (process.env.AMADEUS_CLIENT_ID === process.env.AMADEUS_CLIENT_SECRET) {
@@ -534,7 +535,11 @@ export async function resolveIATACode(cityName: string): Promise<string> {
     const key = cityName.trim().toLowerCase();
     if (iataCache.has(key)) return iataCache.get(key)!;
 
-    if (amadeus) {
+    // Local OurAirports dataset: no network call. Amadeus self-service was shut down in July 2026,
+    // so Amadeus is only tried (enterprise credentials) when the local data has no answer.
+    const local = cityToIata(cityName);
+
+    if (amadeus && !local) {
         try {
             const response = await amadeus.referenceData.locations.get({
                 keyword: cityName.trim(),
@@ -573,7 +578,8 @@ export async function resolveIATACode(cityName: string): Promise<string> {
         'kuopio': 'KUO',
     };
 
-    const fallback = KNOWN[key] || cityName.trim().substring(0, 3).toUpperCase();
+    // Metro codes (LON, PAR, NYC) cover every airport in a city, so they win for fare searches.
+    const fallback = KNOWN[key] || local || cityName.trim().substring(0, 3).toUpperCase();
     iataCache.set(key, fallback);
     console.log(`[IATA] Fallback for "${cityName}" → ${fallback}`);
     return fallback;

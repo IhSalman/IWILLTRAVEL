@@ -21,7 +21,8 @@ import {
     type UserPlanInfo,
     type QuotaResult,
 } from './usage';
-import { PLAN_LIMITS } from './plan-limits';
+import { PLAN_LIMITS, type PlanLimits } from './plan-limits';
+import { requireAuth } from './auth';
 import { consumeGuestQuota } from './guest-limit';
 
 type FeatureType = 'itinerary' | 'translation' | 'voice';
@@ -121,4 +122,30 @@ export async function requirePlan(
     const useCredits = !!quota.creditsAvailable && quota.creditsAvailable > 0;
 
     return { user, supabase, plan, useCredits };
+}
+
+type BooleanFeature = {
+    [K in keyof PlanLimits]: PlanLimits[K] extends boolean ? K : never;
+}[keyof PlanLimits];
+
+/**
+ * Auth + "does the plan include this feature" check for boolean plan flags
+ * (e.g. hasFlightAlerts). Uses requireAuth, so the mobile app's Bearer token works too.
+ *
+ *   const gate = await requireFeature('hasFlightAlerts');
+ *   if ('error' in gate) return gate.error;
+ */
+export async function requireFeature(
+    flag: BooleanFeature,
+    upgradeMessage = 'This feature is part of the paid plans.',
+): Promise<{ user: User; plan: UserPlanInfo } | PlanFailure> {
+    const auth = await requireAuth();
+    if ('error' in auth) return auth;
+    const plan = await getUserPlan(auth.user.id);
+    if (plan.status !== 'active' || !plan.limits[flag]) {
+        return {
+            error: NextResponse.json({ error: upgradeMessage, upgradeRequired: true, plan: plan.plan }, { status: 403 }),
+        };
+    }
+    return { user: auth.user, plan };
 }

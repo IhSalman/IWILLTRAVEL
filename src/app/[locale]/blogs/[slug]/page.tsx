@@ -1,221 +1,344 @@
-import { createClient } from '@/utils/supabase/server';
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import NewsletterSignup from '@/components/blog/NewsletterSignup';
+import { setRequestLocale } from 'next-intl/server';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Calendar, ArrowLeft, MapPin, Sparkles, ExternalLink, Compass } from 'lucide-react';
-import Link from 'next/link';
+import { ArrowLeft, ArrowUpRight, MapPin } from 'lucide-react';
+import { Link } from '@/i18n/routing';
+import NewsletterSignup from '@/components/blog/NewsletterSignup';
+import { GuideArticle } from '@/components/blog/GuideArticle';
+import { createPublicClient } from '@/utils/supabase/public';
+import { isItineraryGuide, type ItineraryGuideContent } from '@/lib/guides/types';
+import {
+    absoluteImage,
+    absoluteUrl,
+    breadcrumbJsonLd,
+    guideCanonical,
+    jsonLdScript,
+    organizationJsonLd,
+    SITE_NAME,
+} from '@/lib/seo';
 
-export default async function BlogDetailPage({ params }: { params: Promise<{ locale: string, slug: string }> }) {
-    const { locale, slug } = await params;
-    const supabase = await createClient();
+export const revalidate = 3600;
+export const dynamicParams = true;
 
-    const { data: blog, error } = await supabase
+type Params = { locale: string; slug: string };
+
+async function getGuide(slug: string) {
+    const { data } = await createPublicClient()
         .from('blogs')
         .select('*')
         .eq('slug', slug)
         .eq('status', 'published')
-        .single();
+        .maybeSingle();
+    return data as any;
+}
 
-    if (error || !blog) {
-        notFound();
-    }
-
-    const date = new Date(blog.published_at).toLocaleDateString(locale === 'en' ? 'en-US' : 'es-ES', {
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric',
-    });
-
-    let structuredContent = null;
+function parseContent(raw: string): { guide?: ItineraryGuideContent; legacy?: any; markdown?: string } {
     try {
-        const parsed = JSON.parse(blog.content);
-        if (parsed.is_structured_json) {
-            structuredContent = parsed;
-        }
-    } catch (e) {
-        // Raw markdown
+        const parsed = JSON.parse(raw);
+        if (isItineraryGuide(parsed)) return { guide: parsed };
+        if (parsed?.is_structured_json) return { legacy: parsed };
+    } catch {
+        /* markdown */
     }
+    return { markdown: raw };
+}
+
+export async function generateStaticParams() {
+    try {
+        const { data } = await createPublicClient().from('blogs').select('slug').eq('status', 'published').limit(500);
+        return (data || []).filter((b: any) => b.slug).map((b: any) => ({ locale: 'en', slug: b.slug }));
+    } catch {
+        return [];
+    }
+}
+
+export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
+    const { slug } = await params;
+    const blog = await getGuide(slug);
+    if (!blog) return { title: 'Guide not found', robots: { index: false } };
+
+    // Some older titles already end in "| iWillTravel" — don't append the brand twice.
+    const title = String(blog.metadata?.seoTitle || blog.title).replace(/\s*[|–-]\s*iWillTravel\s*$/i, '');
+    const description = blog.excerpt || undefined;
+    const image = absoluteImage(blog.image_url);
+    const canonical = guideCanonical(slug);
+    return {
+        title: `${title} | ${SITE_NAME}`,
+        description,
+        keywords: blog.metadata?.seoKeywords,
+        alternates: { canonical },
+        openGraph: {
+            type: 'article',
+            url: canonical,
+            title,
+            description,
+            siteName: SITE_NAME,
+            publishedTime: blog.published_at || undefined,
+            modifiedTime: blog.updated_at || blog.published_at || undefined,
+            images: image ? [{ url: image, width: 1200, height: 800, alt: title }] : undefined,
+        },
+        twitter: { card: 'summary_large_image', title, description, images: image ? [image] : undefined },
+    };
+}
+
+async function getRelated(blog: any) {
+    const supabase = createPublicClient();
+    const destination = blog.metadata?.destination;
+    const out: any[] = [];
+    if (destination) {
+        const { data } = await supabase
+            .from('blogs')
+            .select('slug, title, excerpt, image_url, metadata')
+            .eq('status', 'published')
+            .eq('metadata->>destination', destination)
+            .neq('slug', blog.slug)
+            .limit(3);
+        out.push(...(data || []));
+    }
+    if (out.length < 3) {
+        const { data } = await supabase
+            .from('blogs')
+            .select('slug, title, excerpt, image_url, metadata')
+            .eq('status', 'published')
+            .neq('slug', blog.slug)
+            .order('published_at', { ascending: false })
+            .limit(6);
+        for (const b of data || []) if (out.length < 3 && !out.some((o) => o.slug === b.slug)) out.push(b);
+    }
+    return out;
+}
+
+function guideJsonLd(blog: any, guide: ItineraryGuideContent | undefined, canonical: string) {
+    const url = absoluteUrl(canonical);
+    const graph: any[] = [
+        {
+            '@context': 'https://schema.org',
+            '@type': 'Article',
+            headline: blog.metadata?.seoTitle || blog.title,
+            description: blog.excerpt,
+            image: absoluteImage(blog.image_url) ? [absoluteImage(blog.image_url)] : undefined,
+            datePublished: blog.published_at,
+            dateModified: blog.updated_at || blog.published_at,
+            mainEntityOfPage: url,
+            author: organizationJsonLd(),
+            publisher: organizationJsonLd(),
+        },
+        breadcrumbJsonLd([
+            { name: 'Home', path: '/en' },
+            { name: 'Travel guides', path: '/en/blogs' },
+            { name: blog.title, path: canonical },
+        ]),
+    ];
+    if (guide) {
+        graph.push({
+            '@context': 'https://schema.org',
+            '@type': 'TouristTrip',
+            name: blog.title,
+            description: blog.excerpt,
+            touristType: guide.quickFacts.pace,
+            itinerary: {
+                '@type': 'ItemList',
+                numberOfItems: guide.stats.stops,
+                itemListElement: guide.plan.flatMap((d) => d.stops).map((s, i) => ({
+                    '@type': 'ListItem',
+                    position: i + 1,
+                    item: {
+                        '@type': 'TouristAttraction',
+                        name: s.name,
+                        ...(s.address ? { address: s.address } : {}),
+                        ...(s.lat != null && s.lng != null ? { geo: { '@type': 'GeoCoordinates', latitude: s.lat, longitude: s.lng } } : {}),
+                        ...(s.photoUrl ? { image: absoluteImage(s.photoUrl) } : {}),
+                        url: s.mapsUrl,
+                    },
+                })),
+            },
+        });
+        if (guide.faq.length) {
+            graph.push({
+                '@context': 'https://schema.org',
+                '@type': 'FAQPage',
+                mainEntity: guide.faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+            });
+        }
+    }
+    return graph;
+}
+
+export default async function GuidePage({ params }: { params: Promise<Params> }) {
+    const { locale, slug } = await params;
+    setRequestLocale(locale);
+
+    const blog = await getGuide(slug);
+    if (!blog) notFound();
+
+    const { guide, legacy, markdown } = parseContent(blog.content);
+    const related = await getRelated(blog);
+    const canonical = guideCanonical(slug);
+    const published = blog.published_at
+        ? new Date(blog.published_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+        : '';
+    const updated =
+        blog.updated_at && blog.updated_at !== blog.published_at
+            ? new Date(blog.updated_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+            : '';
 
     return (
-        <div className="min-h-screen bg-[#0b0c0f] text-slate-200 font-body pb-24 relative overflow-x-clip">
-            {/* Ambient Lighting */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1100px] h-[380px] bg-gradient-to-b from-sky-500/[0.04] via-slate-500/[0.02] to-transparent blur-3xl pointer-events-none" />
+        <div className="relative min-h-screen bg-background pb-24 text-slate-200 overflow-x-clip">
+            {guideJsonLd(blog, guide, canonical).map((ld, i) => (
+                <script key={i} type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(ld) }} />
+            ))}
 
-            {/* Top Navigation */}
-            <div className="relative z-20 max-w-4xl mx-auto px-4 sm:px-6 pt-10">
-                <Link 
-                    href={`/${locale}/blogs`} 
-                    className="inline-flex items-center gap-2 text-xs font-mono text-slate-400 hover:text-slate-200 transition-colors card-3d-minimal px-3 py-1.5 rounded-full"
-                >
-                    <ArrowLeft className="w-3.5 h-3.5" /> Back to Intelligence Archive
-                </Link>
-            </div>
+            <div className="pointer-events-none absolute -top-40 left-1/2 h-[420px] w-[900px] -translate-x-1/2 rounded-full bg-sunrise-300/[0.05] blur-[120px]" />
 
-            <article className="max-w-4xl mx-auto px-4 sm:px-6 pt-8 md:pt-14 relative z-10">
-                {/* Header Section */}
-                <header className="text-center max-w-3xl mx-auto mb-12 space-y-4">
-                    <div className="flex items-center justify-center gap-3 text-xs font-mono text-slate-400 uppercase tracking-wider">
-                        <span className="px-2.5 py-0.5 rounded-full bg-white/[0.05] border border-white/10 text-slate-300">{blog.category}</span>
-                        <span>•</span>
-                        <span className="flex items-center gap-1.5 text-slate-400"><Calendar className="w-3.5 h-3.5 text-slate-500" /> {date}</span>
-                    </div>
+            <article className="relative mx-auto max-w-3xl px-4 pt-10 sm:px-6 md:pt-14">
+                <nav aria-label="Breadcrumb" className="mb-8 text-sm text-slate-500">
+                    <Link href="/blogs" className="inline-flex items-center gap-1.5 hover:text-slate-200">
+                        <ArrowLeft className="h-3.5 w-3.5" /> All travel guides
+                    </Link>
+                </nav>
 
-                    <h1 className="font-serif text-3xl sm:text-5xl md:text-6xl font-normal text-gradient-platinum leading-tight tracking-tight">
-                        {blog.title}
-                    </h1>
-
-                    <p className="text-sm md:text-base text-slate-400 font-light leading-relaxed max-w-2xl mx-auto">
-                        {blog.excerpt}
+                <header className="mb-10 space-y-4">
+                    <p className="eyebrow">
+                        {guide ? `${guide.days}-day itinerary · ${guide.city}` : blog.category || 'Travel guide'}
+                    </p>
+                    <h1 className="font-heading text-4xl leading-[1.05] text-slate-100 sm:text-5xl md:text-6xl">{blog.title}</h1>
+                    {blog.excerpt && <p className="text-lg leading-relaxed text-slate-400">{blog.excerpt}</p>}
+                    <p className="text-xs text-slate-500">
+                        {published && <>Published {published}</>}
+                        {updated && <> · Updated {updated}</>}
+                        {guide && <> · {guide.stats.stops} places verified on Google Maps</>}
                     </p>
                 </header>
 
-                {/* Hero Image */}
                 {blog.image_url && (
-                    <div className="w-full aspect-[16/9] md:aspect-[21/9] rounded-2xl overflow-hidden mb-12 md:mb-16 border border-white/[0.07] bg-slate-900">
-                        <img 
-                            src={blog.image_url} 
-                            alt={blog.title} 
-                            className="w-full h-full object-cover opacity-85"
+                    <figure className="mb-12 overflow-hidden rounded-2xl bg-white/[0.03]">
+                        <img
+                            src={blog.image_url}
+                            alt={guide ? `${guide.city} — ${blog.title}` : blog.title}
+                            width={1200}
+                            height={675}
+                            fetchPriority="high"
+                            className="aspect-[16/9] w-full object-cover"
                         />
+                    </figure>
+                )}
+
+                {guide && (
+                    <nav aria-label="Days" className="mb-12 flex flex-wrap gap-2">
+                        {guide.beforeYouGo && guide.beforeYouGo.length > 0 && (
+                            <a href="#travel-tips" className="rounded-full border border-sunrise-300/40 px-3 py-1.5 text-xs text-sunrise-300 hover:border-sunrise-300/70">
+                                Travel tips
+                            </a>
+                        )}
+                        {guide.plan.map((d) => (
+                            <a key={d.day} href={`#day-${d.day}`} className="rounded-full border border-white/[0.1] px-3 py-1.5 text-xs text-slate-300 hover:border-white/25 hover:text-slate-100">
+                                Day {d.day}
+                                {d.area ? ` · ${d.area}` : ''}
+                            </a>
+                        ))}
+                    </nav>
+                )}
+
+                {guide ? (
+                    <GuideArticle guide={guide} />
+                ) : legacy ? (
+                    <LegacyGuide content={legacy} />
+                ) : (
+                    <div className="prose-invert space-y-4 leading-relaxed text-slate-300 [&_a]:text-sunrise-300 [&_h2]:font-heading [&_h2]:text-3xl [&_h2]:text-slate-100 [&_h3]:text-xl [&_h3]:text-slate-100">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{markdown || ''}</ReactMarkdown>
                     </div>
                 )}
 
-                {/* Content Section */}
-                <div className="max-w-3xl mx-auto space-y-12">
-                    {structuredContent ? (
-                        <div className="space-y-12 md:space-y-16">
-                            
-                            {/* Introduction */}
-                            <section className="text-slate-300 text-sm md:text-base leading-relaxed font-light card-3d-minimal rounded-2xl p-6 sm:p-8">
-                                <p>{structuredContent.introduction}</p>
-                            </section>
-
-                            {/* Places Section */}
-                            <section className="space-y-6">
-                                <h2 className="font-serif text-2xl md:text-3xl font-normal text-slate-200">Destinations & Locales</h2>
-                                
-                                <div className="space-y-6">
-                                    {structuredContent.places?.map((place: any, i: number) => (
-                                        <div key={i} className="flex flex-col md:flex-row gap-6 card-3d-minimal rounded-2xl p-6 overflow-hidden">
-                                            <div className="md:w-2/5 shrink-0 aspect-[4/3] overflow-hidden rounded-xl border border-white/[0.06] bg-slate-900">
-                                                <img src={place.image_url} alt={place.name} className="w-full h-full object-cover" />
-                                            </div>
-                                            <div className="flex flex-col justify-center gap-3">
-                                                <h3 className="font-serif text-xl font-normal text-slate-200 flex items-center gap-2">
-                                                    <MapPin className="w-4 h-4 text-slate-400 shrink-0" /> {place.name}
-                                                </h3>
-                                                <p className="text-slate-300 text-xs font-light leading-relaxed">
-                                                    {place.description}
-                                                </p>
-                                                {place.map_link && (
-                                                    <a 
-                                                        href={place.map_link} 
-                                                        target="_blank" 
-                                                        rel="noopener noreferrer" 
-                                                        className="inline-flex items-center w-fit gap-1.5 text-xs font-mono text-slate-300 hover:text-white transition-colors mt-1"
-                                                    >
-                                                        <ExternalLink className="w-3.5 h-3.5" /> View on Map
-                                                    </a>
-                                                )}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </section>
-
-                            {/* Itinerary */}
-                            {structuredContent.itinerary && (
-                                <section className="space-y-4 card-3d-minimal rounded-2xl p-6 sm:p-8">
-                                    <h2 className="font-serif text-2xl font-normal text-slate-200 border-b border-white/[0.07] pb-3">Suggested Itinerary</h2>
-                                    <div className="text-slate-300 text-xs sm:text-sm font-light leading-relaxed space-y-3">
-                                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{structuredContent.itinerary}</ReactMarkdown>
+                {related.length > 0 && (
+                    <section className="mt-20 border-t border-white/[0.08] pt-10">
+                        <h2 className="font-heading text-3xl text-slate-100">More travel guides</h2>
+                        <div className="mt-6 grid gap-5 sm:grid-cols-3">
+                            {related.map((r) => (
+                                <Link key={r.slug} href={`/blogs/${r.slug}` as any} className="group block">
+                                    <div className="aspect-[4/3] overflow-hidden rounded-xl bg-white/[0.03]">
+                                        {r.image_url && (
+                                            <img src={r.image_url} alt={r.title} width={400} height={300} loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]" />
+                                        )}
                                     </div>
-                                </section>
-                            )}
-
-                            {/* Budget & Weather Grid */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {structuredContent.budget && (
-                                    <section className="card-3d-minimal rounded-2xl p-6 space-y-2">
-                                        <h3 className="text-xs font-mono uppercase tracking-wider text-slate-400">Budget Projection</h3>
-                                        <p className="text-slate-300 text-xs font-light leading-relaxed">{structuredContent.budget}</p>
-                                    </section>
-                                )}
-
-                                {structuredContent.weather && (
-                                    <section className="card-3d-minimal rounded-2xl p-6 space-y-2">
-                                        <h3 className="text-xs font-mono uppercase tracking-wider text-slate-400">Climate Season</h3>
-                                        <p className="text-slate-300 text-xs font-light leading-relaxed">{structuredContent.weather}</p>
-                                    </section>
-                                )}
-                            </div>
-
-                            {/* Food Section */}
-                            {structuredContent.food && (
-                                <section className="card-3d-minimal rounded-2xl overflow-hidden flex flex-col md:flex-row">
-                                    <div className="md:w-1/2 p-6 md:p-8 flex flex-col justify-center space-y-3">
-                                        <h2 className="font-serif text-2xl font-normal text-slate-200">Local Gastronomy</h2>
-                                        <p className="text-slate-300 text-xs font-light leading-relaxed">{structuredContent.food}</p>
-                                    </div>
-                                    {structuredContent.food_image_url && (
-                                        <div className="md:w-1/2 aspect-square md:aspect-auto border-l border-white/[0.06] bg-slate-900">
-                                            <img src={structuredContent.food_image_url} alt="Local Food" className="w-full h-full object-cover" />
-                                        </div>
-                                    )}
-                                </section>
-                            )}
-
-                            {/* Tips Callout */}
-                            {structuredContent.tips && structuredContent.tips.length > 0 && (
-                                <section className="card-3d-minimal rounded-2xl p-6 sm:p-8 space-y-5">
-                                    <h2 className="font-serif text-2xl font-normal text-slate-200 flex items-center gap-2">
-                                        <Sparkles className="w-4 h-4 text-slate-400" /> Essential Dispatches
-                                    </h2>
-                                    <ul className="space-y-4">
-                                        {structuredContent.tips.map((tip: string, i: number) => (
-                                            <li key={i} className="flex gap-4 items-start">
-                                                <span className="flex items-center justify-center w-6 h-6 shrink-0 rounded-full bg-white/[0.05] border border-white/10 text-slate-300 font-mono text-[11px] mt-0.5">
-                                                    {i + 1}
-                                                </span>
-                                                <span className="text-slate-300 font-light text-xs sm:text-sm leading-relaxed">{tip}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </section>
-                            )}
-
+                                    <p className="mt-3 text-sm leading-snug text-slate-200 group-hover:text-sunrise-300">{r.title}</p>
+                                </Link>
+                            ))}
                         </div>
-                    ) : (
-                        <div className="card-3d-minimal rounded-2xl p-6 sm:p-8 text-slate-300 text-xs sm:text-sm leading-relaxed font-light space-y-4">
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                {blog.content}
-                            </ReactMarkdown>
-                        </div>
-                    )}
-
-                    {/* Author / Source */}
-                    <div className="pt-8 border-t border-white/[0.07] flex flex-col sm:flex-row gap-4 items-center justify-between text-center sm:text-left">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl card-3d-minimal flex items-center justify-center text-slate-300 font-mono text-xs">iW</div>
-                            <div>
-                                <h4 className="font-serif text-sm font-normal text-slate-200">iWillTravel Intelligence</h4>
-                                <p className="text-slate-400 text-xs font-light">Autonomous Travel Dossier</p>
-                            </div>
-                        </div>
-                        <p className="text-xs text-slate-500 font-mono max-w-xs">
-                            Verified by the iWillTravel multi-agent collective.
-                        </p>
-                    </div>
-                </div>
+                    </section>
+                )}
             </article>
 
-            {/* Newsletter Section */}
-            <div className="max-w-4xl mx-auto mt-20 px-4 sm:px-6 relative z-10">
-                <div className="card-3d-minimal rounded-3xl overflow-hidden p-6 sm:p-10">
+            <div className="relative mx-auto mt-20 max-w-3xl px-4 sm:px-6">
+                <div className="rounded-3xl border border-white/[0.08] p-6 sm:p-10">
                     <NewsletterSignup />
                 </div>
             </div>
+        </div>
+    );
+}
+
+/** Older AI-written posts (pre-v2): kept readable in the new style. */
+function LegacyGuide({ content }: { content: any }) {
+    return (
+        <div className="space-y-12">
+            {content.introduction && <p className="text-lg leading-relaxed text-slate-300">{content.introduction}</p>}
+            {Array.isArray(content.places) && content.places.length > 0 && (
+                <section className="space-y-5">
+                    <h2 className="font-heading text-3xl text-slate-100">Places to see</h2>
+                    {content.places.map((p: any, i: number) => (
+                        <div key={i} className="grid gap-5 rounded-2xl border border-white/[0.08] p-4 sm:grid-cols-[200px_1fr]">
+                            {p.image_url && <img src={p.image_url} alt={p.alt || p.name} width={400} height={300} loading="lazy" className="aspect-[4/3] w-full rounded-xl object-cover" />}
+                            <div className="space-y-2">
+                                <h3 className="flex items-center gap-2 text-lg text-slate-100">
+                                    <MapPin className="h-4 w-4 text-slate-500" /> {p.name}
+                                </h3>
+                                <p className="text-sm leading-relaxed text-slate-400">{p.description}</p>
+                                {p.map_link && (
+                                    <a href={p.map_link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm text-sunrise-300 hover:underline">
+                                        View on map <ArrowUpRight className="h-3.5 w-3.5" />
+                                    </a>
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                </section>
+            )}
+            {content.itinerary && (
+                <section className="space-y-3">
+                    <h2 className="font-heading text-3xl text-slate-100">Suggested itinerary</h2>
+                    <div className="space-y-3 leading-relaxed text-slate-300">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{content.itinerary}</ReactMarkdown>
+                    </div>
+                </section>
+            )}
+            {(content.budget || content.weather || content.food) && (
+                <section className="grid gap-5 md:grid-cols-3">
+                    {[
+                        ['Budget', content.budget],
+                        ['Weather', content.weather],
+                        ['Food', content.food],
+                    ]
+                        .filter(([, v]) => v)
+                        .map(([k, v]) => (
+                            <div key={k} className="rounded-2xl border border-white/[0.08] p-5">
+                                <h3 className="eyebrow mb-2">{k}</h3>
+                                <p className="text-sm leading-relaxed text-slate-400">{v}</p>
+                            </div>
+                        ))}
+                </section>
+            )}
+            {Array.isArray(content.tips) && content.tips.length > 0 && (
+                <section className="space-y-3">
+                    <h2 className="font-heading text-3xl text-slate-100">Tips</h2>
+                    <ul className="list-disc space-y-2 pl-5 text-slate-300">
+                        {content.tips.map((t: string, i: number) => (
+                            <li key={i}>{t}</li>
+                        ))}
+                    </ul>
+                </section>
+            )}
         </div>
     );
 }

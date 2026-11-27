@@ -12,7 +12,11 @@ const withPWA = require('next-pwa')({
 
 const nextConfig = {
     reactStrictMode: true,
-    serverExternalPackages: ['apify-client', 'amadeus', '@duffel/api', 'axios'],
+    serverExternalPackages: ['apify-client', 'amadeus', '@duffel/api', 'axios', '@react-pdf/renderer'],
+    // The itinerary PDF route reads its fonts from disk; make sure they ship with the function.
+    outputFileTracingIncludes: {
+        '/api/itinerary-pdf': ['./public/fonts/**/*'],
+    },
     images: {
         remotePatterns: [
             {
@@ -58,7 +62,9 @@ const nextConfig = {
                             "img-src 'self' data: blob: https:",
                             "media-src 'self' blob:",
                             // ws/wss needed for Next.js HMR in dev; include all known external API origins
-                            "connect-src 'self' ws: wss: https://tp-em.com http://tp-em.com https://*.supabase.co https://generativelanguage.googleapis.com https://api.elevenlabs.io https://api.amadeus.com https://maps.googleapis.com https://maps.gstatic.com https://places.googleapis.com https://routes.googleapis.com https://aerialview.googleapis.com https://weather.googleapis.com https://airquality.googleapis.com https://api.mapbox.com https://api.resend.com https://tpu.googleapis.com https://*.clarity.ms https://c.bing.com https://va.vercel-scripts.com https://vitals.vercel-insights.com",
+                            "connect-src 'self' ws: wss: https://tp-em.com http://tp-em.com https://*.supabase.co https://generativelanguage.googleapis.com https://api.elevenlabs.io https://api.amadeus.com https://maps.googleapis.com https://maps.gstatic.com https://places.googleapis.com https://routes.googleapis.com https://aerialview.googleapis.com https://weather.googleapis.com https://airquality.googleapis.com https://api.mapbox.com https://api.resend.com https://tpu.googleapis.com https://*.clarity.ms https://c.bing.com https://va.vercel-scripts.com https://vitals.vercel-insights.com https://tiles.openfreemap.org",
+                            // MapLibre (Live flights map) parses tiles in a web worker served from /vendor.
+                            "worker-src 'self' blob:",
                             "frame-src https://www.google.com https://maps.google.com",
                             "frame-ancestors 'none'",
                         ].join('; '),

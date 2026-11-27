@@ -12,12 +12,19 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { createClient } from '@/utils/supabase/client';
+import { MyFlightsTab } from '@/components/dashboard/MyFlightsTab';
 
 export default function DashboardPage() {
     const supabase = createClient();
     const router = useRouter();
 
     const [activeTab, setActiveTab] = useState('overview');
+
+    // Deep links such as /dashboard?tab=flights (used by the live map's "Track this flight").
+    useEffect(() => {
+        const tab = new URLSearchParams(window.location.search).get('tab');
+        if (tab && ['overview', 'itineraries', 'flights', 'translations', 'profile'].includes(tab)) setActiveTab(tab);
+    }, []);
     const [isLoading, setIsLoading] = useState(true);
     const [userId, setUserId] = useState<string | null>(null);
     const [userEmail, setUserEmail] = useState<string>('');
@@ -148,6 +155,7 @@ export default function DashboardPage() {
     const navItems = [
         { id: 'overview', icon: <LayoutDashboard className="w-4 h-4" />, label: 'Overview' },
         { id: 'itineraries', icon: <Compass className="w-4 h-4" />, label: `My Trips (${itineraries.length})` },
+        { id: 'flights', icon: <PlaneTakeoff className="w-4 h-4" />, label: 'My flights' },
         { id: 'translations', icon: <Languages className="w-4 h-4" />, label: `Phrases (${translations.length})` },
         { id: 'profile', icon: <User className="w-4 h-4" />, label: 'Account' },
     ];
@@ -467,6 +475,19 @@ export default function DashboardPage() {
                                         ))}
                                     </div>
                                 )}
+                            </motion.div>
+                        )}
+
+                        {/* FLIGHTS TAB */}
+                        {activeTab === 'flights' && (
+                            <motion.div
+                                key="flights"
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                transition={{ duration: 0.2 }}
+                            >
+                                <MyFlightsTab itineraries={itineraries.map((it) => ({ id: it.id, title: it.title }))} />
                             </motion.div>
                         )}
 

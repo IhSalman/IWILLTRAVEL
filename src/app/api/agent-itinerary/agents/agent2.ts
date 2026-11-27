@@ -9,6 +9,7 @@ import { generateStructuredWithRetry } from '@/utils/ai-config';
 import { Agent2LLMOutputSchema } from '../schemas';
 import { resolveTripDayDate } from '@/lib/agents/temporal-scheduler';
 import {
+    areaCandidates,
     assignClustersToDays,
     clusterVenues,
     maxSpreadForTransport,
@@ -39,6 +40,7 @@ export async function planningAgent(input: AgentInput): Promise<PlanResult> {
     // Deterministic geo-clustering: one area per day, so the LLM chooses and
     // orders within an area instead of guessing geography from names alone.
     const perDay = input.travelStyle === 'relaxed' ? 3 : input.travelStyle === 'adventure' ? 5 : 4;
+    const minPerDay = perDay - 1;
     const dayAreas = assignClustersToDays(clusterVenues(venues, input.days), input.days, perDay);
     const clusteredNames = new Set(dayAreas.flatMap((a) => a.venues.map((v) => v.name.toLowerCase())));
     const unlocatedVenues = venues.filter((v: any) => v?.name && !clusteredNames.has(String(v.name).toLowerCase()));
@@ -52,7 +54,11 @@ Each day has a recommended area; keep that day's activities inside it so travell
 ${dayAreas
     .map(
         (area, i) =>
-            `DAY ${i + 1} AREA:\n${area.venues.slice(0, 10).map(venueLine).join('\n')}`
+            // Small areas are topped up with the nearest venues so every day has enough options.
+            `DAY ${i + 1} AREA (plan ${perDay} activities):\n${areaCandidates(area, venues, perDay + 3)
+                .slice(0, 10)
+                .map(venueLine)
+                .join('\n')}`
     )
     .join('\n\n')}${
               unlocatedVenues.length
@@ -123,6 +129,15 @@ STRICT RULES:
                 if (data.plan.length !== input.days) {
                     return `Expected exactly ${input.days} days in "plan", but received ${data.plan.length}.`;
                 }
+                // Thin days: only enforce when the pool is big enough to fill them.
+                if (venues.length >= input.days * minPerDay) {
+                    const thin = data.plan.filter((d) => d.activities.length < minPerDay);
+                    if (thin.length) {
+                        return `${thin
+                            .map((d) => `Day ${d.day} has only ${d.activities.length} activities`)
+                            .join('; ')}. Plan ${perDay} activities per day (at least ${minPerDay}), chosen from that day's area.`;
+                    }
+                }
                 if (normalizedPool.length >= Math.min(6, input.days * 2)) {
                     const ungrounded: string[] = [];
                     for (const d of data.plan) {
@@ -186,6 +201,33 @@ STRICT RULES:
         const byName = new Map<string, any>();
         for (const v of venues) if (v?.name) byName.set(String(v.name).toLowerCase(), v);
         const allUsed = new Set(groundedPlan.flatMap((d) => d.activities.map((a) => a.toLowerCase())));
+
+        // Safety net for thin days: top up with the nearest unused verified venues
+        // to that day's area (or its own stops), so no day ends up with 1–2 stops.
+        let toppedUp = 0;
+        for (let i = 0; i < groundedPlan.length; i++) {
+            const day = groundedPlan[i];
+            if (day.activities.length >= minPerDay) continue;
+            const located = day.activities
+                .map((a) => byName.get(a.toLowerCase()))
+                .filter((v: any) => typeof v?.lat === 'number' && typeof v?.lng === 'number');
+            const centre =
+                located.length > 0
+                    ? { lat: located.reduce((s: number, v: any) => s + v.lat, 0) / located.length, lng: located.reduce((s: number, v: any) => s + v.lng, 0) / located.length }
+                    : dayAreas[i]?.centroid;
+            if (!centre) continue;
+            const extra: string[] = [];
+            while (day.activities.length + extra.length < minPerDay) {
+                const v = nearestUnused(centre, venues, allUsed);
+                if (!v) break;
+                allUsed.add(v.name.toLowerCase());
+                extra.push(v.name);
+            }
+            if (extra.length) {
+                groundedPlan[i] = { ...day, activities: [...day.activities, ...extra] };
+                toppedUp += extra.length;
+            }
+        }
         const maxKm = maxSpreadForTransport(input.transport);
         let repairedDays = 0;
         let replacedStops = 0;
@@ -210,7 +252,9 @@ STRICT RULES:
         }
 
         const areaNote = dayAreas.length ? ` across ${new Set(dayAreas.map((a) => a.id)).size} areas` : '';
-        const repairNote = repairedDays ? `; repaired ${repairedDays} day(s), ${replacedStops} far stop(s) swapped` : '';
+        const repairNote =
+            (repairedDays ? `; repaired ${repairedDays} day(s), ${replacedStops} far stop(s) swapped` : '') +
+            (toppedUp ? `; added ${toppedUp} nearby stop(s) to thin days` : '');
         return {
             plan: groundedPlan,
             researchPlan: result.data.researchPlan || [],

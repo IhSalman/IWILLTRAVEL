@@ -1,86 +1,48 @@
-'use client';
-
 import { Link } from '@/i18n/routing';
-import { Calendar, Clock, ArrowRight, MapPin, Globe, Sparkles } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 
 export interface BlogItem {
     id: string;
     slug: string;
     title: string;
     excerpt: string;
-    image_url?: string;
-    category: 'country' | 'city' | 'wonder';
+    image_url?: string | null;
+    category?: string;
     published_at: string;
-    author?: string;
+    updated_at?: string | null;
+    metadata?: { destination?: string; days?: number; kind?: string; grounding?: { stops?: number } } | null;
 }
 
-interface BlogCardProps {
-    blog: BlogItem;
-    locale: string;
-}
-
-const CategoryIcons = {
-    country: <Globe className="w-3 h-3 text-sky-300" />,
-    city: <MapPin className="w-3 h-3 text-emerald-300" />,
-    wonder: <Sparkles className="w-3 h-3 text-amber-300" />,
-};
-
-export function BlogCard({ blog, locale }: BlogCardProps) {
-    const date = new Date(blog.published_at).toLocaleDateString(locale === 'en' ? 'en-US' : 'es-ES', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-    });
+export function BlogCard({ blog, priority = false }: { blog: BlogItem; priority?: boolean }) {
+    const city = blog.metadata?.destination?.split(',')[0];
+    const days = blog.metadata?.days;
+    const label = [days ? `${days} days` : null, city, blog.metadata?.kind === 'itinerary_guide' ? 'verified places' : null]
+        .filter(Boolean)
+        .join(' · ');
 
     return (
-        <Link href={`/blogs/${blog.slug}`} className="block h-full group">
-            <div className="h-full flex flex-col apple-glass-card rounded-3xl overflow-hidden hover:border-white/25 transition-all">
-                {/* Image / Thumbnail */}
-                <div className="relative h-52 w-full overflow-hidden bg-slate-900 border-b border-white/[0.08]">
-                    {blog.image_url ? (
+        <Link href={`/blogs/${blog.slug}` as any} className="group block">
+            <article>
+                <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-white/[0.03]">
+                    {blog.image_url && (
                         <img
                             src={blog.image_url}
                             alt={blog.title}
-                            className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                            width={800}
+                            height={600}
+                            loading={priority ? 'eager' : 'lazy'}
+                            decoding="async"
+                            className="h-full w-full object-cover saturate-[0.8] transition-all duration-[1200ms] ease-out group-hover:scale-[1.04] group-hover:saturate-100"
                         />
-                    ) : (
-                        <div className="w-full h-full flex items-center justify-center opacity-35">
-                            <Sparkles className="w-8 h-8 text-slate-400" />
-                        </div>
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                    <div className="absolute top-3.5 left-3.5">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono uppercase tracking-wider apple-liquid-glass text-white">
-                            {CategoryIcons[blog.category] || CategoryIcons.city} {blog.category}
-                        </span>
-                    </div>
+                    <span className="absolute right-3 top-3 flex h-9 w-9 -translate-y-1 items-center justify-center rounded-full bg-background/60 text-slate-100 opacity-0 backdrop-blur transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+                        <ArrowUpRight className="h-4 w-4" />
+                    </span>
                 </div>
-
-                <div className="p-6 flex flex-col flex-grow space-y-3">
-                    <div className="flex items-center gap-3 text-[10px] font-mono text-slate-400 uppercase tracking-wider">
-                        <span className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3 text-slate-400" /> {date}
-                        </span>
-                        <span>•</span>
-                        <span className="flex items-center gap-1">
-                            <Clock className="w-3 h-3 text-slate-400" /> 5 min read
-                        </span>
-                    </div>
-
-                    <h3 className="font-serif text-xl font-bold text-white group-hover:text-sky-100 transition-colors leading-snug line-clamp-2">
-                        {blog.title}
-                    </h3>
-
-                    <p className="text-xs text-slate-300/80 line-clamp-3 leading-relaxed flex-grow">
-                        {blog.excerpt}
-                    </p>
-
-                    <div className="pt-4 mt-2 border-t border-white/[0.08] flex items-center justify-between text-xs font-semibold text-white">
-                        <span className="group-hover:text-sky-200 transition-colors">Read Guide</span>
-                        <ArrowRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-white group-hover:translate-x-1 transition-all" />
-                    </div>
-                </div>
-            </div>
+                {label && <p className="mt-4 text-xs text-sunrise-300">{label}</p>}
+                <h2 className="mt-1 font-heading text-2xl leading-tight text-slate-100 group-hover:text-sunrise-300 transition-colors">{blog.title}</h2>
+                {blog.excerpt && <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-slate-500">{blog.excerpt}</p>}
+            </article>
         </Link>
     );
 }

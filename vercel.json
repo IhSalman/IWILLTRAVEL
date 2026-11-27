@@ -12,6 +12,14 @@
     {
       "path": "/api/admin/evals/run",
       "schedule": "0 3 * * 1"
+    },
+    {
+      "path": "/api/cron/trip-emails",
+      "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/seo-guides",
+      "schedule": "0 4 * * *"
     }
   ]
 }

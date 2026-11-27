@@ -27,13 +27,24 @@ export async function generateMetadata({
     const { locale } = await params;
     const t = await getTranslations({ locale, namespace: 'Metadata' });
 
+    // NOTE: no site-wide canonical here. A layout-level `canonical: '/'` told search
+    // engines that EVERY page was a duplicate of the homepage. Pages set their own.
     return {
-        metadataBase: new URL('https://www.iwilltravel.app'),
+        metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://www.iwilltravel.app'),
         title: t('title'),
         description: t('description'),
         manifest: '/manifest.json',
-        alternates: {
-            canonical: '/',
+        openGraph: {
+            type: 'website',
+            siteName: 'iWillTravel',
+            title: t('title'),
+            description: t('description'),
+            locale: locale === 'es' ? 'es_ES' : 'en_GB',
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title: t('title'),
+            description: t('description'),
         },
     };
 }

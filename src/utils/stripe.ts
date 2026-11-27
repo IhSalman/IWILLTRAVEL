@@ -8,6 +8,9 @@ import Stripe from 'stripe';
 import type { User } from '@supabase/supabase-js';
 import { createAdminClient } from '@/utils/supabase/admin';
 import { CREDIT_PACKS, PLAN_PRICING, type PlanType } from '@/utils/plan-limits';
+import { getSiteUrl } from '@/utils/site-url';
+
+export { getSiteUrl };
 
 let stripeClient: Stripe | null = null;
 
@@ -18,9 +21,7 @@ export function getStripe(): Stripe {
     return stripeClient;
 }
 
-export function getSiteUrl(): string {
-    return (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3001').replace(/\/$/, '');
-}
+
 
 export type PaidPlan = Exclude<PlanType, 'free' | 'enterprise'>;
 export type BillingCycle = 'monthly' | 'yearly';

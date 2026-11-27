@@ -8,6 +8,8 @@ import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/utils/supabase/admin';
 import { requireAuth } from '@/utils/auth';
 import { scanItineraryLiveConditions } from '@/app/api/agents/disruption-sentinel';
+import { notifyUser } from '@/lib/notify';
+import { getSiteUrl } from '@/utils/site-url';
 
 // Scans up to 25 active trips; each scan can call weather/LLM APIs.
 export const maxDuration = 300;
@@ -33,14 +35,33 @@ export async function GET(req: Request) {
         }
 
         let totalAlerts = 0;
+        let notified = 0;
         for (const trip of activeTrips) {
             const res = await scanItineraryLiveConditions(trip);
             totalAlerts += res.alertsCreated;
+
+            // Tell the traveller about NEW issues (alerts are de-duplicated upstream).
+            if (res.alertsCreated > 0 && trip.user_id) {
+                const issues = res.advisories.slice(0, 3);
+                const tripUrl = `${getSiteUrl()}/itineraries/${trip.id}`;
+                const sent = await notifyUser(trip.user_id, {
+                    subject: `Heads-up for ${trip.title || 'your trip'}`,
+                    heading: 'Something changed on your trip',
+                    paragraphs: [
+                        ...issues,
+                        'We’ve prepared a verified alternative. Open your trip to accept it or keep your original plan.',
+                    ],
+                    cta: { label: 'Review the change', url: tripUrl },
+                    telegramText: `⚠️ *Heads-up for ${trip.title || 'your trip'}*\n\n${issues.join('\n\n')}\n\nReview: ${tripUrl}`,
+                });
+                if (sent.email || sent.telegram) notified++;
+            }
         }
 
         return NextResponse.json({
             scannedTrips: activeTrips.length,
             alertsCreated: totalAlerts,
+            travellersNotified: notified,
         });
     } catch (err: any) {
         console.error('[LiveTripMonitor Cron] Error:', err);

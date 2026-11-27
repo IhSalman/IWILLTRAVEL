@@ -239,6 +239,7 @@ export default function ItineraryDetailPage() {
                     flights={flights}
                     hotels={hotels}
                     flightAnalysis={flightAnalysis}
+                    itineraryId={tripId || undefined}
                     onSave={async () => {
                         setIsSaving(true);
                         await new Promise((r) => setTimeout(r, 300));

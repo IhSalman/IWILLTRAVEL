@@ -10,7 +10,7 @@ import {
     MapPin, Clock, DollarSign, Lightbulb,
     PiggyBank, ExternalLink, ChevronRight, CheckCircle,
     Users, Calendar, Wallet, Compass, Shield, Globe,
-    RotateCcw, Save, Printer, Share2, Search, Zap,
+    RotateCcw, Save, Printer, Share2, Search, Zap, Loader2,
     Star, Eye, Plane, Hotel, Trophy, ArrowRight,
     CheckSquare, Square, RefreshCw, CalendarPlus, ChevronDown,
     ChevronUp, Navigation, Sparkles, Leaf, SlidersHorizontal
@@ -177,6 +177,8 @@ interface Props {
     flights?: FlightData[];
     hotels?: HotelData[];
     flightAnalysis?: { recommendation: string; bestOption: FlightData | null } | null;
+    /** Saved trip id — enables a private stored copy of the PDF in the user's account. */
+    itineraryId?: string;
 }
 
 // ── HELPERS ─────────────────────────────────────────────────────────────────
@@ -336,8 +338,10 @@ export default function ItineraryTabs({
     flights,
     hotels,
     flightAnalysis,
+    itineraryId,
 }: Props) {
     const [localItinerary, setLocalItinerary] = useState<Itinerary>(initialItinerary);
+    const [isExportingPdf, setIsExportingPdf] = useState(false);
     useEffect(() => {
         setLocalItinerary(initialItinerary);
     }, [initialItinerary]);
@@ -633,6 +637,64 @@ export default function ItineraryTabs({
         }
     };
 
+    /** Server-rendered multi-page PDF (photos, route maps, clickable map links). */
+    const handleDownloadPdf = async () => {
+        if (isExportingPdf) return;
+        setIsExportingPdf(true);
+        const toastId = toast.loading('Building your PDF — adding photos and maps…');
+        try {
+            const res = await fetch('/api/itinerary-pdf', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    itinerary: localItinerary,
+                    itineraryId,
+                    flights: flights || [],
+                    hotels: hotels || [],
+                    meta: { destination, startDate, endDate, companions, budget, pace, transportation },
+                }),
+            });
+
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                if (res.status === 401) {
+                    toast.error('Sign in to download your trip as a PDF.', { id: toastId });
+                } else if (data?.upgradeRequired) {
+                    toast.error(data.error || 'PDF export is part of the Starter and Pro plans.', {
+                        id: toastId,
+                        action: { label: 'See plans', onClick: () => (window.location.href = '/pricing') },
+                    });
+                } else {
+                    toast.error(data?.error || 'Could not create the PDF. Please try again.', { id: toastId });
+                }
+                return;
+            }
+
+            const blob = await res.blob();
+            const disposition = res.headers.get('content-disposition') || '';
+            const filename = /filename="([^"]+)"/.exec(disposition)?.[1] || 'itinerary.pdf';
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 10_000);
+
+            toast.success(
+                res.headers.get('x-saved-copy') === '1'
+                    ? 'PDF downloaded — a copy is also saved to your account.'
+                    : 'PDF downloaded.',
+                { id: toastId }
+            );
+        } catch {
+            toast.error('Network error while creating the PDF.', { id: toastId });
+        } finally {
+            setIsExportingPdf(false);
+        }
+    };
+
     const handleShare = async () => {
         try {
             if (navigator.share) {
@@ -773,10 +835,16 @@ export default function ItineraryTabs({
                         </button>
                         <button
                             type="button"
-                            onClick={() => window.print()}
-                            className="rounded-full px-4 h-9 text-xs font-medium btn-apple-glass inline-flex items-center"
+                            onClick={handleDownloadPdf}
+                            disabled={isExportingPdf}
+                            className="rounded-full px-4 h-9 text-xs font-medium btn-apple-glass inline-flex items-center disabled:opacity-60 disabled:cursor-wait"
                         >
-                            <Printer className="w-3.5 h-3.5 mr-1.5" /> Print / PDF
+                            {isExportingPdf ? (
+                                <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                            ) : (
+                                <Printer className="w-3.5 h-3.5 mr-1.5" />
+                            )}
+                            {isExportingPdf ? 'Building PDF…' : 'Download PDF'}
                         </button>
                         <button
                             type="button"

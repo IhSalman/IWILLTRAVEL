@@ -26,7 +26,7 @@ export default function NewsletterSignup() {
 
             if (res.ok) {
                 setSuccess(true);
-                toast.success('Welcome to the inner circle! Check your inbox soon.');
+                toast.success("You're subscribed. New guides will arrive in your inbox.");
             } else {
                 const data = await res.json();
                 toast.error(data.error || 'Something went wrong.');
@@ -43,15 +43,15 @@ export default function NewsletterSignup() {
             <div className="max-w-2xl mx-auto relative z-10 space-y-6">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full card-3d-minimal text-[11px] font-mono uppercase tracking-wider text-slate-300">
                     <Compass className="w-3.5 h-3.5 text-slate-400" />
-                    <span>The Travel Dispatch</span>
+                    <span>New guides by email</span>
                 </div>
 
                 <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-normal text-gradient-platinum leading-tight">
-                    Insider Routes & Hidden Topography
+                    Get the next guide in your inbox
                 </h2>
                 
                 <p className="text-slate-400 text-xs sm:text-sm max-w-xl mx-auto font-light leading-relaxed">
-                    Autonomous travel dossiers, flight pricing arbitrage, and unmapped locales delivered to your inbox weekly.
+                    Day-by-day itineraries and practical travel tips, where every place is checked on Google Maps. Unsubscribe any time.
                 </p>
 
                 {!success ? (
@@ -63,7 +63,8 @@ export default function NewsletterSignup() {
                             <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                             <Input 
                                 type="email"
-                                placeholder="Enter your email address..."
+                                placeholder="you@example.com"
+                                aria-label="Email address"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
@@ -94,15 +95,15 @@ export default function NewsletterSignup() {
                         <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
                             <CheckCircle2 className="w-6 h-6" />
                         </div>
-                        <h3 className="font-serif text-xl font-normal text-slate-200">Subscription Confirmed</h3>
-                        <p className="text-xs text-slate-400 font-light">You are registered in the dispatch queue.</p>
+                        <h3 className="font-serif text-xl font-normal text-slate-200">You're subscribed</h3>
+                        <p className="text-xs text-slate-400 font-light">We'll email you when new guides go live.</p>
                     </motion.div>
                 )}
 
                 <div className="pt-6 flex flex-wrap justify-center gap-6 text-[10px] font-mono uppercase tracking-wider text-slate-400">
-                    <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400/70" /> Zero Noise</span>
-                    <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400/70" /> Multi-Agent Intel</span>
-                    <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400/70" /> Weekly Synthesis</span>
+                    <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400/70" /> No spam</span>
+                    <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400/70" /> Verified places</span>
+                    <span className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400/70" /> Unsubscribe any time</span>
                 </div>
             </div>
         </section>

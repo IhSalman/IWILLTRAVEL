@@ -16,7 +16,6 @@
  */
 
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
 import crypto from 'node:crypto';
 import { getCache, setCache } from '@/utils/cache';
 import { deductUsage, deductCredits } from '@/utils/usage';
@@ -24,25 +23,9 @@ import { getActiveModel, logAiUsage } from '@/utils/ai-config';
 import { requirePlan } from '@/utils/require-plan';
 import type { AgentLog, StreamEvent } from './types';
 import { executeItineraryPipeline } from '@/lib/agents/pipeline';
+import { AgentRequestSchema } from './request-schema';
 
-// --- Input Validation Schema ---------------------------------------------------
-
-const AgentRequestSchema = z.object({
-    destination: z.string().min(2),
-    days: z.number().int().min(1).max(30),
-    startDate: z.string().optional(),
-    endDate: z.string().optional(),
-    budget: z.enum(['budget', 'moderate', 'luxury', 'custom']),
-    travelStyle: z.enum(['relaxed', 'balanced', 'adventure', 'cultural']),
-    travelerType: z.enum(['single', 'couple', 'family', 'friends']),
-    interests: z.array(z.string()).default([]),
-    transport: z.enum(['public', 'rental', 'walking']),
-    originCity: z.string().optional(),
-    includeFlights: z.boolean().optional().default(false),
-    includeHotels: z.boolean().optional().default(false),
-    customBudget: z.number().optional(),
-    currency: z.string().optional().default('USD'),
-});
+// Input validation lives in ./request-schema (shared with background jobs).
 
 // The 8-agent pipeline usually takes 30–70 s; allow headroom (Vercel max on Hobby is 300 s).
 export const maxDuration = 300;
@@ -50,17 +33,19 @@ export const maxDuration = 300;
 // --- POST Handler --------------------------------------------------------------
 
 export async function POST(req: Request) {
+    // Validate before checking quota so a bad request never uses up a guest's daily trip.
+    const body = await req.json().catch(() => null);
+    const preParsed = AgentRequestSchema.safeParse(body);
+    if (!preParsed.success) {
+        return NextResponse.json({ error: 'Invalid request', details: preParsed.error.flatten() }, { status: 400 });
+    }
+
     const planResult = await requirePlan('itinerary', { allowGuest: true });
     if ('error' in planResult) return planResult.error;
     const { user, useCredits } = planResult;
 
     try {
-        const body = await req.json();
-        const parsed = AgentRequestSchema.safeParse(body);
-        if (!parsed.success) {
-            return NextResponse.json({ error: 'Invalid request', details: parsed.error.flatten() }, { status: 400 });
-        }
-        const input = parsed.data;
+        const input = preParsed.data;
 
         // Cache lookup
         const hash = crypto.createHash('sha256').update(JSON.stringify(input)).digest('hex');

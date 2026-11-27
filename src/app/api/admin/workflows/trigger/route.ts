@@ -37,7 +37,7 @@ export async function POST(req: Request) {
                     excerpt: blogData.excerpt,
                     content: blogData.content,
                     category: finalCategory,
-                    status: 'published',
+                    status: 'draft', // reviewed by an admin before going live
                     image_url: `https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&q=80&w=1200&query=${encodeURIComponent(blogData.image_query)}`,
                     metadata: { seoTitle: blogData.seoTitle, seoKeywords: blogData.seoKeywords, tags: blogData.tags },
                 }]).select().single();

@@ -1361,6 +1361,7 @@ function PlanTripContent() {
                                         flights={flights}
                                         hotels={hotels}
                                         flightAnalysis={flightAnalysis}
+                                        itineraryId={savedItineraryId || undefined}
                                     />
                                 </div>
 

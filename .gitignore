@@ -42,3 +42,8 @@ next-env.d.ts
 # any env file except the example
 .env*
 !.env.example
+
+# Copied from node_modules on install
+/public/vendor/maplibre-gl-worker.mjs
+
+.env*

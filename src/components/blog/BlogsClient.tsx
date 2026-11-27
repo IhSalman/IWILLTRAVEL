@@ -1,117 +1,130 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { useMemo, useState } from 'react';
+import { Search, X } from 'lucide-react';
 import { Link } from '@/i18n/routing';
 import { BlogCard, type BlogItem } from '@/components/blog/BlogCard';
-import { Search, Sparkles, X } from 'lucide-react';
 
-const CATEGORIES = [
-    { id: 'all', label: 'All Stories' },
-    { id: 'city', label: 'Cities' },
-    { id: 'country', label: 'Countries' },
-    { id: 'wonder', label: 'Wonders' },
-] as const;
+const LENGTHS = [
+    { id: 'all', label: 'Any length' },
+    { id: '2', label: 'Weekend' },
+    { id: '3', label: '3 days' },
+    { id: '5', label: '5 days' },
+    { id: '7', label: 'A week' },
+];
 
-export function BlogsClient({ blogs, locale }: { blogs: BlogItem[]; locale: string }) {
-    const [activeCategory, setActiveCategory] = useState<string>('all');
+export function BlogsClient({ blogs }: { blogs: BlogItem[] }) {
+    const [length, setLength] = useState('all');
+    const [destination, setDestination] = useState('all');
     const [query, setQuery] = useState('');
 
-    const filteredBlogs = useMemo(() => {
+    const destinations = useMemo(() => {
+        const set = new Map<string, number>();
+        for (const b of blogs) {
+            const city = b.metadata?.destination?.split(',')[0];
+            if (city) set.set(city, (set.get(city) || 0) + 1);
+        }
+        return Array.from(set.entries())
+            .sort((a, b) => b[1] - a[1])
+            .map(([c]) => c)
+            .slice(0, 12);
+    }, [blogs]);
+
+    const filtered = useMemo(() => {
+        const q = query.trim().toLowerCase();
         return blogs.filter((b) => {
-            const matchesCat = activeCategory === 'all' || b.category === activeCategory;
-            const cleanQ = query.trim().toLowerCase();
-            const matchesQuery =
-                !cleanQ ||
-                b.title?.toLowerCase().includes(cleanQ) ||
-                b.excerpt?.toLowerCase().includes(cleanQ);
-            return matchesCat && matchesQuery;
+            const days = b.metadata?.days;
+            const city = b.metadata?.destination?.split(',')[0];
+            const okLength = length === 'all' || String(days) === length;
+            const okDest = destination === 'all' || city === destination;
+            const okQuery =
+                !q ||
+                b.title?.toLowerCase().includes(q) ||
+                b.excerpt?.toLowerCase().includes(q) ||
+                b.metadata?.destination?.toLowerCase().includes(q);
+            return okLength && okDest && okQuery;
         });
-    }, [blogs, activeCategory, query]);
+    }, [blogs, length, destination, query]);
+
+    const chip = (active: boolean) =>
+        `rounded-full border px-3.5 py-1.5 text-xs transition-colors whitespace-nowrap ${
+            active ? 'border-slate-100 bg-slate-100 text-background' : 'border-white/[0.1] text-slate-300 hover:border-white/25 hover:text-slate-100'
+        }`;
 
     return (
         <div>
-            {/* Filter & Search Bar */}
-            <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 mb-12">
-                <div className="apple-liquid-glass p-1.5 rounded-full inline-flex items-center gap-1 self-start overflow-x-auto max-w-full">
-                    {CATEGORIES.map((cat) => {
-                        const isActive = activeCategory === cat.id;
-                        return (
-                            <button
-                                key={cat.id}
-                                type="button"
-                                onClick={() => setActiveCategory(cat.id)}
-                                className={`relative px-4 py-2 rounded-full text-xs font-medium transition-colors whitespace-nowrap ${
-                                    isActive ? 'text-slate-950 font-semibold' : 'text-slate-300 hover:text-white'
-                                }`}
-                            >
-                                {isActive && (
-                                    <motion.div
-                                        layoutId="blogs-cat-pill"
-                                        transition={{ type: 'spring', stiffness: 420, damping: 32 }}
-                                        className="absolute inset-0 rounded-full bg-gradient-to-b from-white via-slate-100 to-slate-200 shadow-sm"
-                                    />
-                                )}
-                                <span className="relative z-10">{cat.label}</span>
+            <div className="mb-10 space-y-4">
+                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                    <div className="flex flex-wrap gap-2">
+                        {LENGTHS.map((l) => (
+                            <button key={l.id} type="button" onClick={() => setLength(l.id)} className={chip(length === l.id)}>
+                                {l.label}
                             </button>
-                        );
-                    })}
+                        ))}
+                    </div>
+                    <label className="relative w-full md:w-72">
+                        <span className="sr-only">Search guides</span>
+                        <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                        <input
+                            type="search"
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            placeholder="Search a city or country"
+                            className="h-11 w-full rounded-full border border-white/[0.1] bg-transparent pl-10 pr-9 text-sm text-slate-100 placeholder:text-slate-500 focus:border-sunrise-300/60 focus:outline-none"
+                        />
+                        {query && (
+                            <button type="button" onClick={() => setQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-100" aria-label="Clear search">
+                                <X className="h-3.5 w-3.5" />
+                            </button>
+                        )}
+                    </label>
                 </div>
-
-                <div className="relative w-full md:w-72">
-                    <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                    <input
-                        type="text"
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                        placeholder="Search editorials..."
-                        className="w-full h-11 pl-10 pr-9 rounded-full apple-liquid-glass text-xs text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-white/25"
-                    />
-                    {query && (
-                        <button
-                            type="button"
-                            onClick={() => setQuery('')}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
-                        >
-                            <X className="w-3.5 h-3.5" />
+                {destinations.length > 1 && (
+                    <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
+                        <button type="button" onClick={() => setDestination('all')} className={chip(destination === 'all')}>
+                            All destinations
                         </button>
-                    )}
-                </div>
+                        {destinations.map((d) => (
+                            <button key={d} type="button" onClick={() => setDestination(d)} className={chip(destination === d)}>
+                                {d}
+                            </button>
+                        ))}
+                    </div>
+                )}
             </div>
 
-            {/* Blog Grid */}
-            {filteredBlogs.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7 mb-20">
-                    {filteredBlogs.map((blog) => (
-                        <BlogCard key={blog.id} blog={blog} locale={locale} />
+            {filtered.length > 0 ? (
+                <div className="grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+                    {filtered.map((b, i) => (
+                        <BlogCard key={b.id} blog={b} priority={i < 3} />
                     ))}
                 </div>
             ) : (
-                <div className="py-20 apple-glass-card rounded-3xl border-dashed text-center space-y-4 max-w-lg mx-auto mb-20 px-6">
-                    <Sparkles className="w-8 h-8 text-sky-300 mx-auto" />
-                    <h2 className="font-serif text-xl font-bold text-white">
-                        {blogs.length === 0 ? 'Editorial Guides Updating' : 'No Matching Stories Found'}
+                <div className="mx-auto max-w-md py-20 text-center">
+                    <h2 className="font-heading text-3xl text-slate-100">
+                        {blogs.length === 0 ? 'New guides are on the way' : 'No guides match that yet'}
                     </h2>
-                    <p className="text-slate-300/80 text-xs max-w-sm mx-auto leading-relaxed">
+                    <p className="mt-3 text-sm text-slate-400">
                         {blogs.length === 0
-                            ? 'Explore our 18+ interactive destination dossiers or generate a tailored itinerary while new long-form editorials publish.'
-                            : 'Try clearing your filter or explore our interactive city guides on Discover.'}
+                            ? 'A new verified itinerary guide is published every day.'
+                            : 'Try another filter — or plan this trip yourself in under a minute.'}
                     </p>
-                    <div className="flex flex-wrap justify-center gap-3 pt-2">
-                        {(activeCategory !== 'all' || query) && (
+                    <div className="mt-6 flex flex-wrap justify-center gap-3">
+                        {(length !== 'all' || destination !== 'all' || query) && (
                             <button
                                 type="button"
                                 onClick={() => {
-                                    setActiveCategory('all');
+                                    setLength('all');
+                                    setDestination('all');
                                     setQuery('');
                                 }}
-                                className="btn-apple-glass px-5 py-2 rounded-full text-xs font-medium"
+                                className="btn-apple-glass h-10 rounded-full px-5 text-sm"
                             >
-                                Reset Filters
+                                Clear filters
                             </button>
                         )}
-                        <Link href="/discover" className="btn-apple-primary px-5 py-2 rounded-full text-xs font-semibold">
-                            Explore Destination Guides →
+                        <Link href="/plan-trip" className="btn-apple-primary inline-flex h-10 items-center rounded-full px-5 text-sm">
+                            Plan a trip
                         </Link>
                     </div>
                 </div>

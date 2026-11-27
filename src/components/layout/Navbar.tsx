@@ -19,6 +19,9 @@ const PRIMARY_LINKS = [
 ];
 
 const TOOL_LINKS = [
+    { href: '/flights', label: 'Live flights', note: 'Planes, routes and airports now' },
+    { href: '/airports', label: 'Airports', note: 'Departures, delays and services' },
+    { href: '/compensation', label: 'Delay compensation', note: 'EU261 & UK261 checker' },
     { href: '/visa-hub', label: 'Visa hub', note: 'Entry rules by passport' },
     { href: '/translate', label: 'Translate', note: 'Text, voice and menus' },
     { href: '/travel-research', label: 'Place research', note: 'Deep-dive any spot' },

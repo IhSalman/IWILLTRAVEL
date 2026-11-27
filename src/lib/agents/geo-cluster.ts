@@ -169,6 +169,24 @@ export function assignClustersToDays(clusters: VenueCluster[], days: number, per
     return ordered;
 }
 
+/**
+ * Candidate venues for one day: the area's own venues, topped up with the
+ * nearest venues from the rest of the pool until there are at least `min`.
+ * Small areas (e.g. a district with only 2 verified sights) would otherwise
+ * starve the planner and produce thin days.
+ */
+export function areaCandidates(area: VenueCluster, pool: GeoVenue[], min: number): GeoVenue[] {
+    if (area.venues.length >= min) return area.venues;
+    const own = new Set(area.venues.map((v) => v.name.toLowerCase()));
+    const extra = pool
+        .filter((v) => v.name && !own.has(v.name.toLowerCase()) && hasCoords(v))
+        .map((v) => ({ v, d: haversineKm(area.centroid, v as LatLng) }))
+        .sort((a, b) => a.d - b.d)
+        .slice(0, min - area.venues.length)
+        .map((x) => x.v);
+    return [...area.venues, ...extra];
+}
+
 /** Nearest venue to `near` that has not been used yet. */
 export function nearestUnused(near: LatLng, pool: GeoVenue[], used: Set<string>): GeoVenue | null {
     let best: GeoVenue | null = null;

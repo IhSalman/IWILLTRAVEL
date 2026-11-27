@@ -34,6 +34,8 @@ export interface FlightStatusPayload {
     delay_minutes?: number;
     scheduled_departure: string; // ISO 8601
     estimated_departure?: string;
+    /** Set by flight alerts (tracked_flights.itinerary_id): target this trip directly instead of text matching. */
+    itinerary_id?: string;
 }
 
 export interface ProposedSchedulePatch {
@@ -84,6 +86,19 @@ function isOutdoorActivity(act: any): boolean {
  * columns haven't been migrated yet (embeds patch metadata inside `alternative_options` when needed).
  */
 async function insertDisruptionAlertSafe(supabase: ReturnType<typeof createAdminClient>, alert: DisruptionMitigation) {
+    // De-duplicate: the daily monitor would otherwise re-raise (and re-notify) the
+    // same unresolved issue for the same trip day every run.
+    if (alert.itinerary_id && alert.flight_iata) {
+        const { data: existing } = await supabase
+            .from('disruption_alerts')
+            .select('id')
+            .eq('itinerary_id', alert.itinerary_id)
+            .eq('flight_iata', alert.flight_iata)
+            .eq('resolved', false)
+            .limit(1);
+        if (existing && existing.length > 0) return false;
+    }
+
     const fullRow: Record<string, any> = {
         itinerary_id: alert.itinerary_id,
         user_id: alert.user_id,
@@ -145,22 +160,27 @@ export async function runDisruptionSentinel(
         return { success: true, alertsCreated: 0, message: 'No disruption — sentinel monitoring.' };
     }
 
-    // Match active/saved/planned itineraries containing this flight in flight_data, monitored_flights, or content JSON
-    const { data: candidates, error: dbError } = await supabase
-        .from('itineraries')
-        .select('id, user_id, title, content, status, start_date')
-        .in('status', ['active', 'saved', 'planned'])
-        .limit(100);
+    // A tracked flight knows its trip; otherwise match active/saved/planned itineraries mentioning the flight.
+    const { data: candidates, error: dbError } = payload.itinerary_id
+        ? await supabase
+            .from('itineraries')
+            .select('id, user_id, title, content, status, start_date')
+            .eq('id', payload.itinerary_id)
+            .limit(1)
+        : await supabase
+            .from('itineraries')
+            .select('id, user_id, title, content, status, start_date')
+            .in('status', ['active', 'saved', 'planned'])
+            .limit(100);
 
     if (dbError || !candidates?.length) {
         return { success: true, alertsCreated: 0, message: 'No candidate itineraries found.' };
     }
 
     const cleanCode = payload.flight_iata.replace(/\s+/g, '').toUpperCase();
-    const affectedItineraries = candidates.filter((row: any) => {
-        const blob = JSON.stringify(row).toUpperCase();
-        return blob.includes(cleanCode);
-    });
+    const affectedItineraries = payload.itinerary_id
+        ? candidates
+        : candidates.filter((row: any) => JSON.stringify(row).toUpperCase().includes(cleanCode));
 
     if (!affectedItineraries.length) {
         return { success: true, alertsCreated: 0, message: 'No active itineraries affected.' };

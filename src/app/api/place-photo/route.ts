@@ -10,36 +10,22 @@
  * The redirect itself is CDN-cacheable, so repeat views cost nothing.
  */
 import { NextResponse } from 'next/server';
-import { cached, DAY_MS } from '@/utils/cache';
-
-const PHOTO_NAME_RE = /^places\/[A-Za-z0-9_-]+\/photos\/[A-Za-z0-9_-]+$/;
-const ALLOWED_WIDTHS = [400, 800, 1200];
+import { PHOTO_NAME_RE, resolvePlacePhotoUri } from '@/lib/place-photos';
 
 export async function GET(req: Request) {
     const url = new URL(req.url);
     const name = url.searchParams.get('name') || '';
     const requested = parseInt(url.searchParams.get('w') || '1200', 10);
-    const width = ALLOWED_WIDTHS.find(w => w >= requested) ?? 1200;
 
     if (!PHOTO_NAME_RE.test(name)) {
         return NextResponse.json({ error: 'Invalid photo name' }, { status: 400 });
     }
-    const key = process.env.GOOGLE_PLACES_API_KEY;
-    if (!key) {
+    if (!process.env.GOOGLE_PLACES_API_KEY) {
         return NextResponse.json({ error: 'Photos unavailable' }, { status: 503 });
     }
 
     try {
-        const photoUri = await cached<string | null>(`photo:v1:${name}:${width}`, DAY_MS, async () => {
-            const res = await fetch(
-                `https://places.googleapis.com/v1/${name}/media?maxWidthPx=${width}&skipHttpRedirect=true`,
-                { headers: { 'X-Goog-Api-Key': key }, signal: AbortSignal.timeout(8000) }
-            );
-            if (!res.ok) return null;
-            const data = await res.json();
-            return typeof data.photoUri === 'string' ? data.photoUri : null;
-        });
-
+        const photoUri = await resolvePlacePhotoUri(name, requested);
         if (!photoUri) {
             return NextResponse.json({ error: 'Photo not found' }, { status: 404 });
         }

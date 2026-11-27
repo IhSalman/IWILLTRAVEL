@@ -1,8 +1,8 @@
 import crypto from 'node:crypto';
-import { NextResponse } from 'next/server';
+import { NextResponse, after } from 'next/server';
 import { createAdminClient } from '@/utils/supabase/admin';
 import { getCache, setCache } from '@/utils/cache';
-import { executeItineraryPipeline } from '@/lib/agents/pipeline';
+import { createItineraryJob, runItineraryJob } from '@/lib/jobs/itinerary-jobs';
 import { parseTelegramMessage } from '@/lib/agents/telegram-parser';
 import { formatItineraryForTelegram } from '@/lib/telegram/formatter';
 import { checkItineraryQuota, deductUsage, deductCredits } from '@/utils/usage';
@@ -139,12 +139,10 @@ export async function POST(req: Request) {
             }
         }
 
-        // 4. Otherwise execute full 8-Agent DGIS Generation Pipeline (and auto-save!)
+        // 4. Otherwise generate a new trip as a BACKGROUND JOB.
+        // Telegram expects a quick 200; running the 30–70 s pipeline inline caused
+        // timeouts and retried (duplicate) deliveries.
         const cleanPrompt = text.replace(/^\/new\s+/i, '');
-        await sendTelegramMessage(
-            chatId,
-            '🤖 *DGIS 8-Agent Pipeline Initialized...* \nAcquiring Google Places Truth Pool & verifying opening hours (~25s).'
-        );
 
         try {
             const agentInput = await parseTelegramMessage(cleanPrompt);
@@ -155,32 +153,47 @@ export async function POST(req: Request) {
                 return NextResponse.json({ ok: true });
             }
 
-            const result = await executeItineraryPipeline(agentInput, undefined, { userId });
+            const jobId = await createItineraryJob({ userId, input: agentInput, source: 'telegram', meta: { chatId } });
+            await sendTelegramMessage(
+                chatId,
+                `🧭 Planning *${agentInput.days} days in ${agentInput.destination}*…\nChecking real places and opening hours — I'll message you when it's ready (usually under a minute).`
+            );
 
-            // Save generated itinerary so subsequent Telegram messages can modify it conversationally!
-            await supabase.from('itineraries').insert({
-                user_id: userId,
-                city_id: agentInput.destination.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-                title: result.itinerary.title,
-                content: {
-                    itinerary: result.itinerary,
-                    flights: result.research.flights,
-                    hotels: result.research.hotels,
-                    flightAnalysis: result.flightAnalysis,
-                },
-                days: agentInput.days,
-                budget: agentInput.budget,
-                travel_style: agentInput.travelStyle,
-                traveler_type: agentInput.travelerType,
-                interests: agentInput.interests,
-                status: 'active',
-            });
-
-            const formatted = formatItineraryForTelegram(result.itinerary);
-            await sendTelegramMessage(chatId, formatted);
-
-            if (quota.creditsAvailable) await deductCredits(userId, 1);
-            else await deductUsage(userId, 'itinerary', 1);
+            after(() =>
+                runItineraryJob(jobId, {
+                    onSuccess: async (result) => {
+                        // Save so later messages can modify this trip conversationally.
+                        await supabase.from('itineraries').insert({
+                            user_id: userId,
+                            city_id: agentInput.destination.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+                            title: result.itinerary.title,
+                            content: {
+                                itinerary: result.itinerary,
+                                flights: result.research.flights,
+                                hotels: result.research.hotels,
+                                flightAnalysis: result.flightAnalysis,
+                            },
+                            days: agentInput.days,
+                            start_date: agentInput.startDate ?? null,
+                            end_date: agentInput.endDate ?? null,
+                            budget: agentInput.budget,
+                            travel_style: agentInput.travelStyle,
+                            traveler_type: agentInput.travelerType,
+                            interests: agentInput.interests,
+                            status: 'active',
+                        });
+                        await sendTelegramMessage(chatId, formatItineraryForTelegram(result.itinerary));
+                        if (quota.creditsAvailable) await deductCredits(userId, 1);
+                        else await deductUsage(userId, 'itinerary', 1);
+                    },
+                    onFailure: async () => {
+                        await sendTelegramMessage(
+                            chatId,
+                            '❌ Sorry — I couldn’t build that trip. Try a destination and length, e.g. "3 days in Kuopio".'
+                        );
+                    },
+                })
+            );
         } catch (err: any) {
             console.error('[Telegram Webhook] Pipeline Error:', err);
             await sendTelegramMessage(

@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import Script from 'next/script';
 import { destinations as curatedDestinations } from '@/data/destinations';
+import { createPublicClient } from '@/utils/supabase/public';
 
 function findCuratedDestination(slug: string) {
     const clean = slug.toLowerCase().trim();
@@ -218,6 +219,22 @@ export default async function CityTravelGuidePage({ params }: { params: Promise<
 
     const paragraphs = dest.overview.split(/\n\n+/).filter(Boolean);
 
+    // Internal links to this city's day-by-day guides (helps both users and search ranking).
+    let cityGuides: { slug: string; title: string; days?: number }[] = [];
+    try {
+        const { data } = await createPublicClient()
+            .from('blogs')
+            .select('slug, title, metadata')
+            .eq('status', 'published')
+            .ilike('metadata->>destination', `${cityName}%`)
+            .limit(6);
+        cityGuides = (data || [])
+            .map((b: any) => ({ slug: b.slug, title: b.title, days: Number(b.metadata?.days) || undefined }))
+            .sort((a, b) => (a.days ?? 99) - (b.days ?? 99));
+    } catch {
+        cityGuides = [];
+    }
+
     return (
         <div className="min-h-screen bg-[#0b0c0f] text-slate-100 font-body relative overflow-x-clip">
             <Script
@@ -366,6 +383,23 @@ export default async function CityTravelGuidePage({ params }: { params: Promise<
                                         </div>
                                     ))}
                                 </div>
+                            </section>
+                        )}
+
+                        {/* Day-by-day guides for this city */}
+                        {cityGuides.length > 0 && (
+                            <section className="space-y-4">
+                                <h2 className="font-heading text-3xl text-slate-100">Itineraries for {dest.name}</h2>
+                                <ul className="divide-y divide-white/[0.08] border-y border-white/[0.08]">
+                                    {cityGuides.map((g) => (
+                                        <li key={g.slug}>
+                                            <Link href={`/blogs/${g.slug}` as any} className="flex items-center justify-between gap-4 py-3 text-slate-200 hover:text-sunrise-300 transition-colors">
+                                                <span>{g.title}</span>
+                                                <ArrowRight className="h-4 w-4 shrink-0" />
+                                            </Link>
+                                        </li>
+                                    ))}
+                                </ul>
                             </section>
                         )}
 
